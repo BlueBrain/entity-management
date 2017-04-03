@@ -22,6 +22,14 @@ def deep_update(dict_a, dict_b):
             dict_a[key] = copy.deepcopy(value_b)
 
 
+def subdict(dict_, keys):
+    result = {}
+    for key in keys:
+        if key in dict_:
+            result[key] = dict_[key]
+    return result
+
+
 def test_deep_update():
     dict_a = {
         'a': 1,
@@ -53,3 +61,12 @@ def test_deep_update():
     }
     deep_update(dict_a, dict_b)
     nt.assert_equal(dict_a, dict_ab)
+
+
+def test_subdict():
+    dict_ = {
+        'a': 42,
+        'b': 43,
+    }
+    nt.assert_equal(subdict(dict_, ['a', 'c']), {'a': 42})
+    nt.assert_equal(subdict(dict_, ['x', 'y']), {})

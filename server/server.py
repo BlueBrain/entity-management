@@ -2,14 +2,14 @@
 
 from flask import Flask, request, Response
 from flask_cors import CORS
-from flask_pymongo import PyMongo
+from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 
 from bson import json_util
 from bson.objectid import ObjectId
 
 import json
 
-from util import deep_update
+from util import deep_update, subdict
 
 app = Flask(__name__)
 CORS(app)
@@ -71,7 +71,18 @@ def patch_build(_id):
 
 @app.route('/builds/', methods=['GET'])
 def get_builds():
-    return json_response(map(convert_id, mongo.db.builds.find(request.args)))
+    filter_args = subdict(request.args, ['template', 'status'])
+    result = mongo.db.builds.find(filter_args)
+
+    if 'orderby' in request.args:
+        field, order = request.args['orderby'].split("+")
+        order = {
+            'ASC': ASCENDING,
+            'DESC': DESCENDING,
+        }[order.upper()]
+        result = result.sort(field, order)
+
+    return json_response(map(convert_id, result))
 
 
 @app.route('/builds/<_id>', methods=['GET'])
@@ -86,7 +97,7 @@ def get_build_templates():
 
 @app.route('/circuits/<_id>', methods=['GET'])
 def get_circuit(_id):
-    return json_response(convert_id(mongo.db.circuits.find_one({'_id': ObjectId(_id)}))
+    return json_response(convert_id(mongo.db.circuits.find_one({'_id': ObjectId(_id)})))
 
 
 if __name__ == '__main__':
