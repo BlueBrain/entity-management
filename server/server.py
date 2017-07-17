@@ -48,9 +48,21 @@ def get_activity(_id):
     return json_response(convert_id(mongo.db.activities.find_one({'_id': ObjectId(_id)})))
 
 
+@app.route('/entities/', methods=['POST'])
+def post_entity():
+    doc = json.loads(request.get_data())
+    _id = mongo.db.entities.insert(doc)
+    return str(_id)
+
+
 @app.route('/entities/', methods=['GET'])
 def get_entities():
     return json_response(map(convert_id, mongo.db.entities.find(request.args)))
+
+
+@app.route('/entities/<_id>', methods=['GET'])
+def get_entity(_id):
+    return json_response(convert_id(mongo.db.entities.find_one({'_id': ObjectId(_id)})))
 
 
 @app.route('/builds/', methods=['POST'])
