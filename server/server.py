@@ -55,6 +55,14 @@ def post_entity():
     return str(_id)
 
 
+@app.route('/entities/<_id>', methods=['PUT'])
+def put_entity(_id):
+    doc = json.loads(request.get_data())
+    doc['_id'] = ObjectId(_id)
+    _id = mongo.db.entities.insert(doc)
+    return str(_id)
+
+
 @app.route('/entities/', methods=['GET'])
 def get_entities():
     return json_response(map(convert_id, mongo.db.entities.find(request.args)))
