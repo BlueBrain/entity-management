@@ -1,2 +1,13 @@
 venv
 *.pyc
+*.swp
+.coverage
+ContinuousIntegration/
+ci_dep.txt
+coverage.xml
+dist/
+entity_management/entity_management.egg-info/
+pep8.txt
+platform_venv/
+pylint.txt
+test-reports/
