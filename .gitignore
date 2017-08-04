@@ -11,3 +11,5 @@ pep8.txt
 platform_venv/
 pylint.txt
 test-reports/
+entity_management/doc/build/doctrees/
+entity_management/doc/build/html/

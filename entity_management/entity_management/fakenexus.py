@@ -15,7 +15,7 @@ L = logging.getLogger(__name__)
 SERVER_URL = "148.187.85.73:5000"
 PROJECT_DIR = "/gpfs/bbp.cscs.ch/project/{project}/.nexus"
 
-BLOCK_SIZE = 4096
+BLOCK_SIZE = 4 * 1024 * 1024
 
 
 def _md5sum(filepath):
