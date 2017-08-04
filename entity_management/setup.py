@@ -69,7 +69,7 @@ for file_name in os.listdir(BASEDIR):
     EXTRA_REQS[extra] = parse_reqs(file_name)
 
 setup(
-    name="entity_management",
+    name="entity-management",
     version=VERSION,
     install_requires=REQS,
     extras_require=EXTRA_REQS,
