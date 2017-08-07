@@ -94,4 +94,6 @@ setup(
                  'Topic :: Scientific/Engineering',
                  'Topic :: Utilities',
                  ],
+    scripts=['apps/entity-management.py',
+             ],
 )

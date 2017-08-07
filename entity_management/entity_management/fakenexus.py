@@ -19,7 +19,7 @@ BLOCK_SIZE = 4 * 1024 * 1024
 
 
 def _md5sum(filepath):
-    '''get m35sum of file'''
+    '''get md5sum of file'''
     hash_md5 = hashlib.md5()
     with open(filepath, 'rb') as fd:
         for chunk in iter(functools.partial(fd.read, BLOCK_SIZE), b''):
@@ -89,6 +89,14 @@ def get_entity(url):
         netloc = SERVER_URL
     http_url = urlparse.urlunsplit(("http", netloc or SERVER_URL, path, None, None))
     resp = requests.get(http_url)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def list_entites(query):
+    '''list entites that satisfy dictionary `query`'''
+    url = os.path.join('http://', SERVER_URL, 'entities/')
+    resp = requests.get(url, params=query)
     resp.raise_for_status()
     return resp.json()
 
