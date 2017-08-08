@@ -1,4 +1,4 @@
-""" Fake Nexus. """
+""" Access to fakenexus """
 
 import functools
 import hashlib
@@ -8,6 +8,8 @@ import shutil
 import urlparse
 
 import requests
+
+from entity_management.entity import ENTITY_TYPES
 
 L = logging.getLogger(__name__)
 
@@ -36,12 +38,12 @@ def _snapshot_file(src_path, dst_path):
     os.chmod(dst_path, 0444)
 
 
-def register_entity(entity, collection):
+def register_entity(collection, entity):
     '''register entity w/ fakenexus in collection'''
     L.debug('register_entity: %s to %s', entity, collection)
     base_url = "http://{server}/{collection}/".format(server=SERVER_URL,
                                                       collection=collection)
-    resp = requests.post(base_url, data=entity)
+    resp = requests.post(base_url, json=entity)
     resp.raise_for_status()
     return "fakenexus:///{collection}/{uuid}".format(collection=collection,
                                                      uuid=resp.content)
@@ -85,17 +87,24 @@ def get_entity(url):
     L.debug('Getting entity: %s', url)
     scheme, netloc, path = urlparse.urlsplit(url)[:3]
     assert(scheme == 'fakenexus')
-    if not netloc:
+
+    if netloc in ENTITY_TYPES.keys():
+        path = os.path.join(netloc, path[1:])
         netloc = SERVER_URL
-    http_url = urlparse.urlunsplit(("http", netloc or SERVER_URL, path, None, None))
+    elif not netloc:
+        netloc = SERVER_URL
+
+    http_url = urlparse.urlunsplit(("http", netloc, path, None, None))
     resp = requests.get(http_url)
     resp.raise_for_status()
     return resp.json()
 
 
-def list_entites(query):
+def get_entities(collection, query):
     '''list entites that satisfy dictionary `query`'''
-    url = os.path.join('http://', SERVER_URL, 'entities/')
+    collection = ENTITY_TYPES[collection]
+
+    url = os.path.join('http://', SERVER_URL, collection)
     resp = requests.get(url, params=query)
     resp.raise_for_status()
     return resp.json()
