@@ -73,6 +73,30 @@ def get_entity(_id):
     return json_response(convert_id(mongo.db.entities.find_one({'_id': ObjectId(_id)})))
 
 
+@app.route('/validations/', methods=['POST'])
+def post_validation():
+    doc = json.loads(request.get_data())
+    _id = mongo.db.validations.insert(doc)
+    return str(_id)
+
+
+@app.route('/validations/<_id>', methods=['PUT'])
+def put_validation(_id):
+    doc = json.loads(request.get_data())
+    mongo.db.validations.update_one({'id_': ObjectId(_id)}, {'$set': doc})
+    return str(_id)
+
+
+@app.route('/validations/', methods=['GET'])
+def get_validations():
+    return json_response(map(convert_id, mongo.db.validations.find(request.args)))
+
+
+@app.route('/validations/<_id>', methods=['GET'])
+def get_validation(_id):
+    return json_response(convert_id(mongo.db.validations.find_one({'_id': ObjectId(_id)})))
+
+
 @app.route('/builds/', methods=['POST'])
 def post_build():
     doc = json.loads(request.get_data())
