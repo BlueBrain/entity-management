@@ -23,6 +23,11 @@ def get_entity(type_, id_, config=DEFAULT_CONFIG):  # pylint: disable=unused-arg
     return fakenexus.get_entity(url)
 
 
+def get_entity_by_url(url, config=DEFAULT_CONFIG):  # pylint: disable=unused-argument
+    '''known entity type'''
+    return fakenexus.get_entity(url)
+
+
 def get_entities(type_, query, config=DEFAULT_CONFIG):  # pylint: disable=unused-argument
     '''register files'''
     _assert_entity(type_)
