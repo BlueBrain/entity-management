@@ -149,7 +149,7 @@ def post_circuit():
 @app.route('/circuits/', methods=['GET'])
 def get_circuits():
     filter_args = subdict(request.args, ['status'])
-    result = mongo.db.builds.find(filter_args)
+    result = mongo.db.circuits.find(filter_args)
 
     if 'orderby' in request.args:
         field, order = request.args['orderby'].split("+")
