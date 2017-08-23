@@ -139,6 +139,29 @@ def get_build_templates():
     return json_response(map(convert_id, mongo.db.build_templates.find(request.args)))
 
 
+@app.route('/circuits/', methods=['POST'])
+def post_circuit():
+    doc = json.loads(request.get_data())
+    _id = mongo.db.circuits.insert(doc)
+    return str(_id)
+
+
+@app.route('/circuits/', methods=['GET'])
+def get_circuits():
+    filter_args = subdict(request.args, ['status'])
+    result = mongo.db.builds.find(filter_args)
+
+    if 'orderby' in request.args:
+        field, order = request.args['orderby'].split("+")
+        order = {
+            'ASC': ASCENDING,
+            'DESC': DESCENDING,
+        }[order.upper()]
+        result = result.sort(field, order)
+
+    return json_response(map(convert_id, result))
+
+
 @app.route('/circuits/<_id>', methods=['GET'])
 def get_circuit(_id):
     return json_response(convert_id(mongo.db.circuits.find_one({'_id': ObjectId(_id)})))
