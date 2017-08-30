@@ -3,12 +3,28 @@
 
 import argparse
 import logging
-import urlparse
 
 from pprint import pprint
 
 from entity_management import client
+from entity_management.compat import urlparse, StringType
 from entity_management.entity import ENTITY_TYPES
+
+
+MAX_TEXT_WIDTH = 150
+
+
+def _truncate(obj):
+    '''strings that are too long are truncated to be easier to read on a terminal'''
+    if isinstance(obj, dict):
+        return {k: _truncate(v) for k, v in obj.items()}
+    elif isinstance(obj, StringType):
+        ret = str(obj)
+        if MAX_TEXT_WIDTH < len(ret):
+            ret = ret[:MAX_TEXT_WIDTH] + '...'
+        return ret
+    else:
+        return obj
 
 
 def split_values(values):
@@ -22,8 +38,8 @@ def get_parser():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-v', '--verbose', action='count', dest='verbose',
-                        default=0, help='-v for INFO, -vv for DEBUG')
+    parser.add_argument('-v', '--verbose', action='count', dest='verbose', default=0,
+                        help='-v for INFO, -vv for DEBUG')
 
     subparsers = parser.add_subparsers(dest='action')
 
@@ -33,13 +49,13 @@ def get_parser():
 
     query = subparsers.add_parser('query',
                                   help='Query graph')
-    query.add_argument('--type', '-t', default=None, choices=types,
+    query.add_argument('--type', '-t', default='entities', choices=types,
                        help='Type of entity')
     query.add_argument('predicates', nargs='*')
 
     register = subparsers.add_parser('register',
                                      help='Register')
-    register.add_argument('--type', '-t', default=None, choices=types,
+    register.add_argument('--type', '-t', default='entities', choices=types,
                           help='Type of entity')
     register.add_argument('properties', nargs='+')
 
@@ -54,16 +70,19 @@ def main(args):
 
     if args.action == 'query':
         query = split_values(args.predicates)
-        entities = client.get_entities(args.type, query)
+        entities = [_truncate(entity) for entity in client.get_entities(args.type, query)]
         pprint(entities)
     elif args.action == 'register':
         properties = split_values(args.properties)
         id_ = client.register_entity(args.type, properties)
-        print id_
+        print(id_)
     elif args.action == 'get':
-        url = urlparse.urlparse(args.url)
-        type_, id_ = url.path[1:].split('/')
-        entity = client.get_entity(type_, id_)
+        url = urlparse(args.url)
+        if url.netloc in ENTITY_TYPES:
+            type_, id_ = url.netloc, url.path[1:]
+        else:
+            type_, id_ = url.path[1:].split('/')
+        entity = _truncate(client.get_entity(type_, id_))
         pprint(entity)
 
 

@@ -1,7 +1,6 @@
 '''Entity types'''
 
-ENTITY_TYPES = {None: 'entities',  # default
-                'activities': 'activities',
+ENTITY_TYPES = {'activities': 'activities',
                 'circuits': 'circuits',
                 'entities': 'entities',
                 'validations': 'validations',

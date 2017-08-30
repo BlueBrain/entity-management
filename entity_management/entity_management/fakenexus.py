@@ -5,10 +5,10 @@ import hashlib
 import logging
 import os
 import shutil
-import urlparse
 
 import requests
 
+from entity_management.compat import urlsplit, urlunsplit
 from entity_management.entity import ENTITY_TYPES
 
 L = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ def _snapshot_file(src_path, dst_path):
     '''copy file to 'immutable' store'''
     L.debug("Snapshot file: %s -> %s", src_path, dst_path)
     shutil.copyfile(src_path, dst_path)
-    os.chmod(dst_path, 0444)
+    os.chmod(dst_path, 0o444)
 
 
 def register_entity(collection, entity):
@@ -85,16 +85,16 @@ def register_files(dirpath, files, project, basename=None):
 def get_entity(url):
     """ Get entity by 'fakenexus://' URL. """
     L.debug('Getting entity: %s', url)
-    scheme, netloc, path = urlparse.urlsplit(url)[:3]
+    scheme, netloc, path = urlsplit(url)[:3]
     assert(scheme == 'fakenexus')
 
-    if netloc in ENTITY_TYPES.keys():
+    if netloc in ENTITY_TYPES:
         path = os.path.join(netloc, path[1:])
         netloc = SERVER_URL
     elif not netloc:
         netloc = SERVER_URL
 
-    http_url = urlparse.urlunsplit(("http", netloc, path, None, None))
+    http_url = urlunsplit(("http", netloc, path, None, None))
     resp = requests.get(http_url)
     resp.raise_for_status()
     return resp.json()
@@ -113,6 +113,6 @@ def get_entities(collection, query):
 def get_file_path(url):
     """ Get file path by 'fakenexus://' URL. """
     L.debug('Getting filepath: %s', url)
-    scheme, netloc, path = urlparse.urlsplit(url)[:3]
+    scheme, netloc, path = urlsplit(url)[:3]
     assert(scheme == 'fakenexus')
     return os.path.join(PROJECT_DIR.format(project=netloc), path[1:])

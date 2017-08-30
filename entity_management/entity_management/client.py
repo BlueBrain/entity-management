@@ -1,8 +1,8 @@
 '''Client for interacting w/ provenance and file store'''
 import logging
-import urlparse
 
 from entity_management import fakenexus
+from entity_management.compat import urlsplit
 from entity_management.config import Config
 from entity_management.entity import ENTITY_TYPES
 
@@ -54,7 +54,7 @@ def register_files(dirpath, files, project, basename=None,
 
 def get_file_path_by_url(url, config=DEFAULT_CONFIG):  # pylint: disable=unused-argument
     ''' Get locally available file path from URL '''
-    scheme, netloc, path = urlparse.urlsplit(url)[:3]
+    scheme, netloc, path = urlsplit(url)[:3]
     if scheme in ('file', ''):
         assert(not netloc)
         result = path
