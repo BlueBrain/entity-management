@@ -73,28 +73,28 @@ def get_entity(_id):
     return json_response(convert_id(mongo.db.entities.find_one({'_id': ObjectId(_id)})))
 
 
-@app.route('/validations/', methods=['POST'])
-def post_validation():
+@app.route('/circuit_analyses/', methods=['POST'])
+def post_circuit_analysis():
     doc = json.loads(request.get_data())
-    _id = mongo.db.validations.insert(doc)
+    _id = mongo.db.circuit_analyses.insert(doc)
     return str(_id)
 
 
-@app.route('/validations/<_id>', methods=['PUT'])
-def put_validation(_id):
+@app.route('/circuit_analyses/<_id>', methods=['PUT'])
+def put_circuit_analysis(_id):
     doc = json.loads(request.get_data())
-    mongo.db.validations.update_one({'id_': ObjectId(_id)}, {'$set': doc})
+    mongo.db.circuit_analyses.update_one({'id_': ObjectId(_id)}, {'$set': doc})
     return str(_id)
 
 
-@app.route('/validations/', methods=['GET'])
-def get_validations():
-    return json_response(map(convert_id, mongo.db.validations.find(request.args)))
+@app.route('/circuit_analyses/', methods=['GET'])
+def get_circuit_analyses():
+    return json_response(map(convert_id, mongo.db.circuit_analyses.find(request.args)))
 
 
-@app.route('/validations/<_id>', methods=['GET'])
-def get_validation(_id):
-    return json_response(convert_id(mongo.db.validations.find_one({'_id': ObjectId(_id)})))
+@app.route('/circuit_analyses/<_id>', methods=['GET'])
+def get_circuit_analysis(_id):
+    return json_response(convert_id(mongo.db.circuit_analyses.find_one({'_id': ObjectId(_id)})))
 
 
 @app.route('/builds/', methods=['POST'])
