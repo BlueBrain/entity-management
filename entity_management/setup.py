@@ -87,6 +87,7 @@ setup(
               'parameters',
               'BlueBrainProject'),
     url="http://bluebrain.epfl.ch",
+    download_url="https://bbpteam.epfl.ch/repository/devpi/+search?query=name%3Aentity-management",
     classifiers=['Development Status :: 3 - Alpha',
                  'Environment :: Console',
                  'License :: Proprietary',
