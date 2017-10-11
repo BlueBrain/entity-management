@@ -1,8 +1,7 @@
 ''' nexus access layer '''
 import logging
 import requests
-from urllib import urlencode
-from urlparse import urljoin
+from requests.compat import urljoin, urlencode
 from entity_management.client import DEFAULT_CONFIG
 L = logging.getLogger(__name__)
 
