@@ -30,49 +30,21 @@ def get_version(version_filepath):
 VERSION = get_version(os.path.join(os.path.dirname(__file__),
                                    'entity_management/version.py'))
 
-############ REQUIREMENTS FINDING
-BASEDIR = os.path.dirname(os.path.abspath(__file__))
-REQS = []
-EXTRA_REQS_PREFIX = 'requirements_'
-EXTRA_REQS = {}
-
-import pip
-from pip.req import parse_requirements
-from optparse import Option
-
-
-def parse_reqs(reqs_file):
-    ''' parse the requirements '''
-    options = Option('--workaround')
-    options.skip_requirements_regex = None
-    # Hack for old pip versions: Versions greater than 1.x
-    # have a required parameter "sessions" in parse_requierements
-    if pip.__version__.startswith('1.'):
-        install_reqs = parse_requirements(reqs_file, options=options)
-    else:
-        from pip.download import PipSession  # pylint:disable=E0611
-        options.isolated_mode = False
-        install_reqs = parse_requirements(reqs_file,  # pylint:disable=E1123
-                                          options=options,
-                                          session=PipSession)
-    return [str(ir.req) for ir in install_reqs]
-
-REQS = parse_reqs(os.path.join(BASEDIR, 'requirements.txt'))
-
-# look for extra requirements (ex: requirements_bbp.txt)
-for file_name in os.listdir(BASEDIR):
-    if not file_name.startswith(EXTRA_REQS_PREFIX):
-        continue
-    base_name = os.path.basename(file_name)
-    (extra, _) = os.path.splitext(base_name)
-    extra = extra[len(EXTRA_REQS_PREFIX):]
-    EXTRA_REQS[extra] = parse_reqs(file_name)
+TESTS_REQUIRE = [
+        'nose==1.3.0',
+        'mock==1.0.1',
+        ]
 
 setup(
     name="entity-management",
     version=VERSION,
-    install_requires=REQS,
-    extras_require=EXTRA_REQS,
+    install_requires=[
+        'requests>=2.18,<3.0',
+        ],
+    tests_require=TESTS_REQUIRE,
+    extras_require={
+        'extension_tests': TESTS_REQUIRE,
+    },
     packages=['entity_management',
               ],
     include_package_data=True,

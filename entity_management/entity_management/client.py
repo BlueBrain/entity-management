@@ -1,14 +1,15 @@
 '''Client for interacting w/ provenance and file store'''
 import logging
 
-from entity_management import fakenexus
-from entity_management.compat import urlsplit
 from entity_management.config import Config
+DEFAULT_CONFIG = Config()
+
+from entity_management import fakenexus, nexus
+from entity_management.compat import urlsplit
 from entity_management.entity import ENTITY_TYPES
 
 
 L = logging.getLogger(__name__)
-DEFAULT_CONFIG = Config()
 
 
 def _assert_entity(type_):
@@ -25,7 +26,14 @@ def get_entity(type_, id_, config=DEFAULT_CONFIG):  # pylint: disable=unused-arg
 
 def get_entity_by_url(url, config=DEFAULT_CONFIG):  # pylint: disable=unused-argument
     '''known entity type'''
-    return fakenexus.get_entity(url)
+    scheme, netloc = urlsplit(url)[:2]
+    if scheme in ('http', 'https'):
+        if 'nexus' in netloc:
+            return nexus.get_entity(url)
+        else:
+            raise Exception('Unsupported host, only nexus connections are allowed')
+    else:
+        return fakenexus.get_entity(url)
 
 
 def get_entities(type_, query, config=DEFAULT_CONFIG):  # pylint: disable=unused-argument

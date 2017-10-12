@@ -15,6 +15,8 @@ DOC_REPO=--doc-repo ssh://bbpcode.epfl.ch/infra/jekylltest
 
 PYTHON_PIP_VERSION=pip==9.0.1
 
+OPTIONAL_FEATURES:='[extension_tests]'
+
 ##### DO NOT MODIFY BELOW #####################
 
 CI_REPO?=ssh://bbpcode.epfl.ch/platform/ContinuousIntegration.git
