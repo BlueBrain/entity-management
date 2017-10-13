@@ -6,7 +6,7 @@ from entity_management.client import DEFAULT_CONFIG
 L = logging.getLogger(__name__)
 
 PROPERTY_NS = "bbpprodprop:"
-WHITE_LIST_NEXUS = ['@id', '@type', 'rev']
+WHITE_LIST_NEXUS = ['@id', '@type', 'rev', 'name', 'description']
 # TODO only circuit is supported now.
 CIRCUIT_SCHEMA = 'v0.0.8'
 CIRCUIT_TYPE = 'bbprod:circuit'
