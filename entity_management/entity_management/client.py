@@ -1,9 +1,7 @@
 '''Client for interacting w/ provenance and file store'''
 import logging
 
-from entity_management.config import Config
-DEFAULT_CONFIG = Config()
-
+from entity_management.config import DEFAULT_CONFIG
 from entity_management import fakenexus, nexus
 from entity_management.compat import urlsplit
 from entity_management.entity import ENTITY_TYPES

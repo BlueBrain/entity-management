@@ -20,3 +20,6 @@ class Config(object):
         assert environment in ENVIRONMENTS, \
             'Environment must be one of %s' % ENVIRONMENTS.keys()
         self.environment = ENVIRONMENTS[environment]
+
+
+DEFAULT_CONFIG = Config()

@@ -2,7 +2,7 @@
 import logging
 import requests
 from requests.compat import urljoin, urlencode
-from entity_management.client import DEFAULT_CONFIG
+from entity_management.config import DEFAULT_CONFIG
 L = logging.getLogger(__name__)
 
 PROPERTY_NS = "bbpprodprop:"
@@ -65,10 +65,18 @@ def _from_ids_to_url(ids):
     return ids['@id'] + '?' + urlencode({'rev': str(ids['rev'])})
 
 
+def get_entity_by(entity_type, entity_id):
+    '''retrieve entity by type and id'''
+    url = '/'.join([_build_url(entity_type), entity_id])
+    req = requests.get(url)
+    req.raise_for_status()
+    return _map_from_raw(req.json())
+
+
 def get_entity(ids):
     ''' remove namespace from keys and other boilerplate '''
-    get_url = _from_ids_to_url(ids)
-    req = requests.get(get_url)
+    url = _from_ids_to_url(ids)
+    req = requests.get(url)
     req.raise_for_status()
     return _map_from_raw(req.json())
 
