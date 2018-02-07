@@ -39,6 +39,7 @@ def test_update_circuit():
     ''' update the circuit '''
     circuit_data = {
         'cells': 'foo_cells_update',
+        'abc': 'foo_cells_update',
         'connectome': 'foo_connectome_update',
         'targets': ['foo_target_update'],
     }
@@ -52,6 +53,32 @@ def test_update_circuit():
     nt.eq_(returned_data['@type'], 'bbprod:circuit')
     nt.eq_(returned_ids['rev'], 2)
     _check_keys(returned_data, updated_data)
+
+
+def test_create_new_circuit():
+    nx.create_circuit({
+        "name": "SSCxO1.v6",
+        "description": "Somatosensory cortex circuit",
+        "date": "2017-10-16T18:13:00",
+        "brainRegion": {
+            "@id": "http://www.FIXME.org/paxinos_rat_ontology/00721",
+            "label": "primary somatosensory cortex"
+        },
+        "species": {
+            "@id": "http://purl.obolibrary.org/obo/NCBITaxon_10116",
+            "label": "Rattus norvegicus"
+        },
+        "cells": "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/circuit.mvd3",
+        "morphologies": "/gpfs/bbp.cscs.ch/project/proj59/entities/morphologies/2017.01.05",
+        "connectome": "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/ncsFunctionalAllRecipePathways",
+        "soma_index": "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/",
+        "synapse_index": "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/ncsFunctionalAllRecipePathways",
+        "location": "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/CircuitConfig",
+        "segment_index": "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/",
+        "targets": [
+            "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/ncsFunctionalAllRecipePathways/start.target",
+            "/gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6/20171016/default_user.target"
+        ]})
 
 # TODO find a way to test that
 # def test_get_entities():

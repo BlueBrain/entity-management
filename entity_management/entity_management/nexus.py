@@ -1,111 +1,126 @@
-''' nexus access layer '''
+'''New nexus access layer'''
+from __future__ import print_function
+
 import logging
 import requests
-from requests.compat import urljoin, urlencode
-from entity_management.config import DEFAULT_CONFIG
+import sys
+
+from functools import wraps
+from pprint import pprint
+
+from six import iteritems
+from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
+
+import attr
+
+from entity_management.settings import JSLD_ID, JSLD_REV
+
 L = logging.getLogger(__name__)
 
-PROPERTY_NS = "bbpprodprop:"
-WHITE_LIST_NEXUS = ['@id', '@type', 'rev', 'name', 'description']
-# TODO only circuit is supported now.
-CIRCUIT_SCHEMA = 'v0.0.8'
-CIRCUIT_TYPE = 'bbprod:circuit'
+
+def _byteify(data, ignore_dicts=False):
+    '''Use to convert unicode strings to str while loading json'''
+    # if this is a unicode string, return its string representation
+    if isinstance(data, unicode):
+        return data.encode('utf-8')
+    # if this is a list of values, return list of byteified values
+    if isinstance(data, list):
+        return [_byteify(item, ignore_dicts=True) for item in data]
+    # if this is a dictionary, return dictionary of byteified keys and values
+    # but only if we haven't already byteified it
+    if isinstance(data, dict) and not ignore_dicts:
+        return {
+            _byteify(key, ignore_dicts=True): _byteify(value, ignore_dicts=True)
+            for key, value in iteritems(data)
+        }
+    # if it's anything else, return it in its original form
+    return data
 
 
-def _map_from_raw(raw_properties):
-    ''' return actual properties w/o namespace
-    and a white listed properties of nexus
-    '''
-    ret = {}
-    for k, v in raw_properties.items():
-        if PROPERTY_NS == k[:len(PROPERTY_NS)]:
-            ret[k[len(PROPERTY_NS):]] = v
-        elif k in WHITE_LIST_NEXUS:
-            ret[k] = v
-    return ret
+def _log_nexus_exception(func):
+    '''Pretty print nexus error responses'''
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        '''decorator function'''
+        try:
+            return func(*args, **kwargs)
+        except requests.exceptions.HTTPError as e:
+            print('NEXUS ERROR>>>', file=sys.stderr)
+            pprint(e.response.json(object_hook=_byteify), stream=sys.stderr)
+            print('<<<', file=sys.stderr)
+            raise
+    return wrapper
 
 
-def _map_to_raw(properties):
-    ''' add a namespace to the raw_properties and add nexus boilerplate '''
-    raw_properties = {
-        '@context': {
-            '@vocab': 'https://bbp-nexus.epfl.ch/voc/productionentity/core/',
-            'bbpprodprop':
-            'https://bbp-nexus.epfl.ch/voc/bbp/productionentity/prop/core/',
-            'bbprod':
-            'https://bbp-nexus.epfl.ch/voc/bbp/productionentity/core/'
-        },
-        '@type': CIRCUIT_TYPE
-    }
-    for k, v in properties.items():
-        if k in WHITE_LIST_NEXUS:
-            raw_properties[k] = v
-        else:
-            raw_properties[PROPERTY_NS + k] = v
-    return raw_properties
+def get_uuid_from_url(url):
+    '''Extract last part of url path which is UUID'''
+    return urlsplit(url).path.split('/')[-1]
 
 
-def _build_url(type_, versioned=True, config=DEFAULT_CONFIG):
-    ''' get the nexus url for a particular type '''
-    paths = [
-        'data',
-        'bbp',  # organization
-        'core',  # domain
-        type_
-    ]
-    if versioned:
-        paths.append(CIRCUIT_SCHEMA)
-    return urljoin(config.environment['nexus_url'], '/'.join(paths))
+@_log_nexus_exception
+def save(entity):
+    '''Save entity, return new instance with uuid, rev, deprecated fields updated'''
+    response = requests.post(entity.base_url,
+                             headers={'accept': 'application/ld+json'},
+                             json=entity.as_json_ld())
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    return attr.evolve(entity,
+                       uuid=get_uuid_from_url(js[JSLD_ID]),
+                       rev=js[JSLD_REV])
 
 
-def _from_ids_to_url(ids):
-    ''' convert nexus ids to a url '''
-    if isinstance(ids, basestring):
-        return ids
-    return ids['@id'] + '?' + urlencode({'rev': str(ids['rev'])})
+@_log_nexus_exception
+def update(entity):
+    '''Update entity, return new instance with uuid, rev, deprecated fields updated'''
+    response = requests.put('%s/%s' % (entity.base_url, entity.uuid),
+                            headers={'accept': 'application/ld+json'},
+                            params={'rev': entity.rev},
+                            json=entity.as_json_ld())
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    return attr.evolve(entity, rev=js[JSLD_REV])
 
 
-def get_entity_by(entity_type, entity_id):
-    '''retrieve entity by type and id'''
-    url = '/'.join([_build_url(entity_type), entity_id])
-    req = requests.get(url)
-    req.raise_for_status()
-    return _map_from_raw(req.json())
+@_log_nexus_exception
+def deprecate(entity):
+    '''Mark entity as deprecated, return new instance with deprecated field updated'''
+    assert entity.uuid is not None
+    assert entity.rev > 0
+    response = requests.delete('%s/%s' % (entity.base_url, entity.uuid),
+                               headers={'accept': 'application/ld+json'},
+                               params={'rev': entity.rev})
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    return attr.evolve(entity, rev=js[JSLD_REV], deprecated=True)
 
 
-def get_entity(ids):
-    ''' remove namespace from keys and other boilerplate '''
-    url = _from_ids_to_url(ids)
-    req = requests.get(url)
-    req.raise_for_status()
-    return _map_from_raw(req.json())
+@_log_nexus_exception
+def load_by_uuid(base_url, uuid):
+    '''Load Entity from the base url with appended uuid'''
+    response = requests.get('%s/%s' % (base_url, uuid))
+    # if not found then return None
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    js[JSLD_ID] = get_uuid_from_url(js[JSLD_ID])
+    return js
 
 
-def get_entities(type_, from_, size, config=DEFAULT_CONFIG):
-    ''' get a paginated list of entities without namespace and nexus additions'''
-    url = _build_url(type_, False, config)
-    req = requests.get(url, params={'from': from_, 'size': size})
-    req.raise_for_status()
-    results = req.json()['results']
-    results_id = [r['resultId'] for r in results]
-    # TODO replace that when properties are available in result
-    res_properties = [get_entity(r_id) for r_id in results_id]
-    return res_properties
-
-
-def register_entity(type_, properties, config=DEFAULT_CONFIG):
-    ''' create an entity in nexus based on the schema providing properties w/o namespace '''
-    url = _build_url(type_, True, config)
-    body = _map_to_raw(properties)
-    req = requests.post(url, json=body)
-    req.raise_for_status()
-    return req.json()
-
-
-def update_entity(ids, properties):
-    ''' update an entity in nexus providing properties w/o namespace '''
-    body = _map_to_raw(properties)
-    url = _from_ids_to_url(ids)
-    req = requests.put(url, json=body)
-    req.raise_for_status()
-    return req.json()
+@_log_nexus_exception
+def find_uuid_by_name(base_url, name):
+    '''Lookup not deprecated entity uuid from the base url with the name filter'''
+    response = requests.get(base_url, params={
+        'deprecated': 'false',
+        'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
+    # if not found then return None
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    if js['total'] == 0:
+        return None
+    elif js['total'] > 1:
+        raise ValueError('Too many results found!')
+    return get_uuid_from_url(js['results'][0]['resultId'])

@@ -33,6 +33,7 @@ VERSION = get_version(os.path.join(os.path.dirname(__file__),
 TESTS_REQUIRE = [
         'nose==1.3.0',
         'mock==1.0.1',
+        'responses'
         ]
 
 setup(
@@ -40,6 +41,8 @@ setup(
     version=VERSION,
     install_requires=[
         'requests>=2.18,<3.0',
+        'attrs',
+        'six',
         ],
     tests_require=TESTS_REQUIRE,
     extras_require={
@@ -55,7 +58,7 @@ setup(
     keywords=('computational neuroscience',
               'simulation',
               'analysis',
-              'visualization',
+              'nexus',
               'parameters',
               'BlueBrainProject'),
     url="http://bluebrain.epfl.ch",

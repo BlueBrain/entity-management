@@ -1,17 +1,19 @@
-#modules that have tests
-TEST_MODULES=entity_management/entity_management
-
 #modules that are installable (ie: ones w/ setup.py)
 INSTALL_MODULES=entity_management
 
+#modules that have tests
+TEST_MODULES=entity_management
+
 # Ignore directories for pep8 and pylint (on top of tests and doc)
-IGNORE_LINT=examples|server
+# IGNORE_LINT=examples|server
 
 #packages to cover
 COVER_PACKAGES=entity_management
 #documentation to build, separated by spaces
 DOC_MODULES=entity_management/doc
-DOC_REPO=--doc-repo ssh://bbpcode.epfl.ch/infra/jekylltest
+DOC_REPO=ssh://bbpcode.epfl.ch/infra/jekylltest
+
+DOC_REQS?=sphinx==1.6.7 sphinxcontrib-napoleon==0.6.1
 
 PYTHON_PIP_VERSION=pip==9.0.1
 

@@ -6,11 +6,16 @@
 Welcome to entity_management's documentation!
 =============================================
 
+.. inheritance-diagram:: entity_management.base entity_management.simulation.circuit entity_management.simulation.cell
+   :parts: 2
+
+
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
+   api
 
 
 Indices and tables
@@ -19,4 +24,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
