@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''simple app for interacting with entity source'''
-
+# TODO consider rewriting this to use new nexus api
+# or remove it completely
 import argparse
 import logging
 
