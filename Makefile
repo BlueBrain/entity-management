@@ -11,7 +11,7 @@ IGNORE_LINT=entity_management/apps|server
 COVER_PACKAGES=entity_management
 #documentation to build, separated by spaces
 DOC_MODULES=entity_management/doc
-DOC_REPO=ssh://bbpcode.epfl.ch/infra/jekylltest
+DOC_REPO=--doc-repo ssh://bbpcode.epfl.ch/infra/jekylltest
 
 DOC_REQS?=sphinx==1.6.7 sphinxcontrib-napoleon==0.6.1
 
