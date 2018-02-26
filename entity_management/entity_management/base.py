@@ -8,12 +8,8 @@ from attr.validators import instance_of, optional
 from uuid import UUID
 
 from entity_management import nexus
+from entity_management.util import optional_of
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX
-
-
-def _optional_of(type_):
-    '''Composition of optional and instance_of'''
-    return optional(instance_of(type_))
 
 
 def _deserialize_json_to_datatype(data_type, data_raw):
@@ -157,6 +153,14 @@ class _IdentifiableMeta(type):
             return cls == type(inst)
 
 
+def _map_attr_name(attr_name):
+    '''Fix some attribute names for serialization.''' # TODO fix nexus schemas
+    if attr_name == 'property_':
+        return 'property'
+    else:
+        return attr_name
+
+
 @attr.s(these={
     'uuid': attr.ib(
         type=str,
@@ -169,13 +173,18 @@ class _IdentifiableMeta(type):
 class Identifiable(_Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
-    request to that entity.'''
+    requests to that entity.'''
+    # Identifiable can be used on its own but json-ld deserialization will set _proxied_type
+    # to make it behave like proxy to underlying Entity instance
+
     __metaclass__ = _IdentifiableMeta
 
     def __getattr__(self, name):
-        if isinstance(self, Identifiable):
+        if type(self) == Identifiable: # isinstance is overriden in metaclass which is true for
+                                       # all subclasses of Identifiable
             # Identifiable instances behave like proxies, set it up and then forward attr request
-            if not hasattr(self, '_proxied_object'):
+            if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
+                                                       # and that will cause recursion to _getattr_
                 object.__setattr__(self, '_proxied_object', self._proxied_type.from_uuid(self.uuid))
             if self._proxied_object is None:
                 raise ValueError('Unable to find proxied entity for uuid:%s and %s' %
@@ -186,13 +195,16 @@ class Identifiable(_Frozen):
             raise AttributeError("No attribute '%s' in %s" % (name, type(self)))
 
     def __dir__(self):
-        '''If Identifiable is a proxy(has _proxied_object attribute) then collect attributes from
+        '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
         proxied object'''
-        current = self.__dict__.keys()
-        if hasattr(self, '_proxied_object'):
-            return sorted(set(current + dir(self._proxied_object)))
+        if hasattr(self, '_proxied_type') and self.name: # access proxied attr to trigger lazy load
+            attrs_from_mro = set(attrib for cls in type(self._proxied_object).__mro__
+                                        for attrib in dir(cls))
+            attrs_from_obj = set(self._proxied_object.__dict__)
         else:
-            return sorted(current)
+            attrs_from_mro = set(attrib for cls in type(self).__mro__ for attrib in dir(cls))
+            attrs_from_obj = set(self.__dict__)
+        return sorted(attrs_from_mro + attrs_from_obj)
 
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
@@ -205,39 +217,44 @@ class Identifiable(_Frozen):
                 'uuid', 'rev', 'types', 'deprecated')
         for attribute in attributes:
             attr_value = getattr(self, attribute.name)
+            attr_name = _map_attr_name(attribute.name)
             if not essential_attrs(attribute, attr_value):
                 continue
             if attr.has(type(attr_value)):
                 if issubclass(type(attr_value), Identifiable):
-                    rv[attribute.name] = {'@id': '%s/%s' % (attr_value.base_url, attr_value.uuid),
-                                          '@type': attr_value.types,
-                                          'name': 'dummy'} # TODO remove when nexus starts using
-                                                           # graph traversal for validation
+                    rv[attr_name] = {'@id': '%s/%s' % (attr_value.base_url, attr_value.uuid),
+                                     '@type': attr_value.types,
+                                     'name': 'dummy'} # TODO remove when nexus starts using
+                                                      # graph traversal for validation
                 else:
-                    rv[attribute.name] = attr.asdict(
+                    rv[attr_name] = attr.asdict(
                             attr_value,
                             recurse=True,
                             filter=essential_attrs)
             elif isinstance(attr_value, (tuple, list, set)):
-                rv[attribute.name] = [
+                rv[attr_name] = [
                         attr.asdict(i, recurse=True, filter=essential_attrs)
                         if attr.has(type(i)) else i
                         for i in attr_value]
             elif isinstance(attr_value, dict):
-                rv[attribute.name] = dict((
+                rv[attr_name] = dict((
                     attr.asdict(kk) if attr.has(type(kk)) else kk,
                     attr.asdict(vv) if attr.has(type(vv)) else vv)
                     for kk, vv in six.iteritems(attr_value))
             else:
-                rv[attribute.name] = attr_value
+                rv[attr_name] = attr_value
         rv['@context'] = [ENTITY_CTX, NSG_CTX,
                           {
-                              'accessURL': {'@id': 'schema:accessURL'},
-                              'downloadURL': {'@id': 'schema:downloadURL'},
+                              'accessURL': {'@id': 'schema:accessURL', '@type': '@id'},
+                              'downloadURL': {'@id': 'schema:downloadURL', '@type': '@id'},
                               'distribution': {'@id': 'schema:distribution'},
                               'mediaType': {'@id': 'schema:mediaType', },
                               'cellPlacement': {'@id': 'nsg:cellPlacement'},
                               'memodelRelease': {'@id': 'nsg:memodelRelease'},
+                              'property': {'@id': 'nsg:property'},
+                              'synapseRelease': {'@id': 'nsg:synapseRelease'},
+                              'nodeCollection': {'@id': 'nsg:nodeCollection'},
+                              'isPartOf': {'@id': 'dcterms:isPartOf'},
                           }]
         rv['@type'] = self.types # pylint: disable=no-member
         return rv
@@ -246,12 +263,16 @@ class Identifiable(_Frozen):
 @attr.s(these=_merge(
     {'name': attr.ib(type=str, validator=instance_of(str))},
     _attrs_pos(Identifiable),
-    {'description': attr.ib(type=str, validator=_optional_of(str), default=None),
-     'rev': attr.ib(type=int, validator=_optional_of(int), default=None),
-     'deprecated': attr.ib(type=bool, default=None)},
+    {'description': attr.ib(type=str, validator=optional_of(str), default=None),
+     'rev': attr.ib(type=int, validator=optional_of(int), default=None),
+     'deprecated': attr.ib(type=bool, validator=optional_of(bool), default=None)},
     _attrs_kw(Identifiable)))
 class Entity(Identifiable):
-    '''Models of many things such as cells, ion channels, circuits, whole brains'''
+    '''Base abstract class for many things having `name` and `description`
+
+    :param str name: required entity name which can later be used for retrieval
+    :param str description: short description of the entity
+    '''
     base_url = None
 
     @classmethod
@@ -262,11 +283,11 @@ class Entity(Identifiable):
         # prepare all entity init args
         init_args = {}
         for field in attr.fields(cls):
-            name = field.name
-            raw = js.get(name)
+            attr_name = field.name
+            raw = js.get(_map_attr_name(attr_name))
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[name] = _deserialize_json_to_datatype(type_, raw)
+                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw)
 
         entity = cls(uuid=js[JSLD_ID],
                      rev=js[JSLD_REV],
@@ -298,8 +319,16 @@ class Entity(Identifiable):
 
 
 @attr.s(these=_merge(
-    {'modelOf': attr.ib()},
     _attrs_pos(Entity),
+    _attrs_kw(Entity)))
+class Release(Entity):
+    '''Release base entity'''
+    pass
+
+
+@attr.s(these=_merge(
+    _attrs_pos(Entity),
+    {'modelOf': attr.ib(type=str, validator=optional_of(str), default=None)},
     _attrs_kw(Entity)))
 class ModelInstance(Entity):
     '''Model instance collection'''
@@ -307,11 +336,11 @@ class ModelInstance(Entity):
 
 
 @attr.s(these={
-    'downloadURL': attr.ib(validator=_optional_of(str), default=None),
-    'accessURL': attr.ib(validator=_optional_of(str), default=None),
-    'contentSize': attr.ib(validator=_optional_of(int), default=None),
-    'digest': attr.ib(validator=_optional_of(int), default=None),
-    'mediaType': attr.ib(validator=_optional_of(str), default=None)
+    'downloadURL': attr.ib(type=str, validator=optional_of(str), default=None),
+    'accessURL': attr.ib(type=str, validator=optional_of(str), default=None),
+    'contentSize': attr.ib(type=int, validator=optional_of(int), default=None),
+    'digest': attr.ib(type=int, validator=optional_of(int), default=None),
+    'mediaType': attr.ib(type=str, validator=optional_of(str), default=None)
     })
 class Distribution(_Frozen):
     '''External resource representations,

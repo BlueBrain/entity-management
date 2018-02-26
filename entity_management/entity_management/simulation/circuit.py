@@ -2,8 +2,9 @@
 import attr
 from attr.validators import instance_of
 
-from entity_management.settings import ENTITY_CTX, NSG_CTX, DATA_SIM, VERSION
-from entity_management.base import (ModelInstance, Entity, Distribution,
+from entity_management.util import optional_of
+from entity_management.settings import DATA_SIM, VERSION
+from entity_management.base import (Entity, Release, ModelInstance, Distribution,
                                     _merge, _attrs_pos, _attrs_kw)
 from entity_management.simulation.cell import MEModelRelease
 
@@ -29,9 +30,9 @@ class NodeCollection(Entity):
 
 @attr.s(these=_merge(
     {'distribution': attr.ib(type=Distribution, validator=instance_of(Distribution))},
-    _attrs_pos(Entity),
-    _attrs_kw(Entity)))
-class SynapseRelease(Entity):
+    _attrs_pos(Release),
+    _attrs_kw(Release)))
+class SynapseRelease(Release):
     '''Edge collection represents circuit connectivity(synapses, projections)'''
     base_url = DATA_SIM + '/synapserelease/' + VERSION
 
@@ -57,31 +58,10 @@ class Target(Entity):
 
 @attr.s(these=_merge(
     {'nodeCollection': attr.ib(type=NodeCollection, validator=instance_of(NodeCollection)),
-     'edgeCollection': attr.ib(type=EdgeCollection, validator=instance_of(EdgeCollection)),
-     'target': attr.ib(type=Target, validator=instance_of(Target))},
+     'edgeCollection': attr.ib(type=EdgeCollection, validator=instance_of(EdgeCollection))},
     _attrs_pos(ModelInstance),
+    {'target': attr.ib(type=Target, validator=optional_of(Target), default=None)},
     _attrs_kw(ModelInstance)))
 class DetailedCircuit(ModelInstance):
     '''Detailed circuit'''
     base_url = DATA_SIM + '/detailedcircuit/' + VERSION
-
-    def as_json_ld(self):
-        json_ld = {}
-        json_ld['@context'] = [ENTITY_CTX, NSG_CTX,
-                                {
-                                    'accessURL': {'@id': 'schema:accessURL', '@type': '@id'},
-                                    'downloadURL': {'@id': 'schema:downloadURL', '@type': '@id'},
-                                    'distribution': {'@id': 'schema:distribution', '@type': '@id'},
-                                    'mediaType': {'@id': 'schema:mediaType'},
-                                }]
-        json_ld['@type'] = self.types # pylint: disable=no-member
-        json_ld['nodeCollection'] = {
-                '@type': self.nodeCollection.types, # pylint: disable=no-member
-                '@id': self.nodeCollection.uuid} # pylint: disable=no-member
-        json_ld['edgeCollection'] = {
-                '@type': self.edgeCollection.types, # pylint: disable=no-member
-                '@id': self.edgeCollection.uuid} # pylint: disable=no-member
-        json_ld['target'] = {
-                '@type': self.target.types, # pylint: disable=no-member
-                '@id': self.target.uuid} # pylint: disable=no-member
-        return json_ld
