@@ -1,17 +1,10 @@
 '''Cell related entities'''
-import attr
-from attr.validators import instance_of
-
-from entity_management.util import optional_of
+from entity_management.util import attributes, AttrOf
 from entity_management.settings import DATA_SIM, VERSION
-from entity_management.base import (Entity, Release, ModelInstance, Distribution,
-                                    _merge, _attrs_pos, _attrs_kw)
+from entity_management.base import (Entity, Release, ModelInstance, Distribution)
 
 
-@attr.s(these=_merge(
-    {'distribution': attr.ib(type=Distribution, validator=instance_of(Distribution))},
-    _attrs_pos(Entity),
-    _attrs_kw(Entity)))
+@attributes({'distribution': AttrOf(Distribution)})
 class ModelScript(Entity):
     '''Scripts attached to the model
 
@@ -24,10 +17,7 @@ class ModelScript(Entity):
     base_url = DATA_SIM + '/modelscript/' + VERSION
 
 
-@attr.s(these=_merge(
-    {'modelScript': attr.ib(type=ModelScript, validator=instance_of(ModelScript))},
-    _attrs_pos(ModelInstance),
-    _attrs_kw(ModelInstance)))
+@attributes({'modelScript': AttrOf(ModelScript)})
 class SubCellularModel(ModelInstance):
     '''SubCellular model
 
@@ -36,11 +26,8 @@ class SubCellularModel(ModelInstance):
     base_url = DATA_SIM + '/subcellularmodel/' + VERSION
 
 
-@attr.s(these=_merge(
-    {'distribution': attr.ib(type=Distribution, validator=instance_of(Distribution)),
-     'emodelIndex': attr.ib(type=Distribution, validator=instance_of(Distribution))},
-    _attrs_pos(Release),
-    _attrs_kw(Release)))
+@attributes({'distribution': AttrOf(Distribution),
+             'emodelIndex': AttrOf(Distribution)})
 class EModelRelease(Release):
     '''Electrical model release
 
@@ -50,14 +37,9 @@ class EModelRelease(Release):
     base_url = DATA_SIM + '/emodelrelease/' + VERSION
 
 
-@attr.s(these=_merge(
-    _attrs_pos(Entity),
-    {'subCellularMechanism': attr.ib(type=SubCellularModel,
-                                     validator=optional_of(SubCellularModel),
-                                     default=None),
-     'modelScript': attr.ib(type=ModelScript, validator=optional_of(ModelScript), default=None),
-     'isPartOf': attr.ib(type=EModelRelease, validator=optional_of(EModelRelease), default=None)},
-    _attrs_kw(Entity)))
+@attributes({'subCellularMechanism': AttrOf(SubCellularModel, default=None),
+             'modelScript': AttrOf(ModelScript, default=None),
+             'isPartOf': AttrOf(EModelRelease, default=None)})
 class EModel(Entity):
     '''Electrical model
 
@@ -69,13 +51,8 @@ class EModel(Entity):
     base_url = DATA_SIM + '/emodel/' + VERSION
 
 
-@attr.s(these=_merge(
-    {'distribution': attr.ib(type=Distribution, validator=optional_of(Distribution))},
-    _attrs_pos(Release),
-    {'morphologyIndex': attr.ib(type=Distribution,
-                                validator=optional_of(Distribution),
-                                default=None)},
-    _attrs_kw(Release)))
+@attributes({'distribution': AttrOf(Distribution),
+             'morphologyIndex': AttrOf(Distribution, default=None)})
 class MorphologyRelease(Release):
     '''Morphology release
 
@@ -85,15 +62,9 @@ class MorphologyRelease(Release):
     base_url = DATA_SIM + '/morphologyrelease/' + VERSION
 
 
-@attr.s(these=_merge(
-    {'emodelRelease': attr.ib(type=EModelRelease, validator=instance_of(EModelRelease)),
-     'morphologyRelease': attr.ib(type=MorphologyRelease,
-                                  validator=instance_of(MorphologyRelease))},
-    _attrs_pos(Release),
-    {'memodelIndex': attr.ib(type=Distribution,
-                             validator=optional_of(Distribution),
-                             default=None)},
-    _attrs_kw(Release)))
+@attributes({'emodelRelease': AttrOf(EModelRelease),
+             'morphologyRelease': AttrOf(MorphologyRelease),
+             'memodelIndex': AttrOf(Distribution, default=None)})
 class MEModelRelease(Release):
     '''MorphoElectrical model release
 

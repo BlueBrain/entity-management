@@ -2,13 +2,15 @@
 import typing
 import six
 
+from inspect import getmro
+
 import attr
 from attr.validators import instance_of, optional
 
 from uuid import UUID
 
 from entity_management import nexus
-from entity_management.util import optional_of
+from entity_management.util import optional_of, _attrs_pos, _merge, _attrs_kw
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX
 
 
@@ -46,36 +48,6 @@ def _deserialize_json_to_datatype(data_type, data_raw):
         return data_type(**data_raw)
     else:
         return data_type(data_raw)
-
-
-def _attrs_pos(cls):
-    '''Clone all mandatory/positional attr fields of the cls
-    Return dictionary with name as key and as value new attribute with cloned properties
-    '''
-    return {field.name: attr.ib(**{slot: getattr(field, slot) # name becomes key so skip it
-                                   for slot in field.__slots__ if slot != 'name'})
-            for field in attr.fields(cls)
-            # only fields which are part of __init__ and have NO default value
-            if field.init and field.default == attr.NOTHING}
-
-
-def _attrs_kw(cls):
-    '''Clone all optional/keyword attr fields of the cls.
-    Return dictionary with name as key and as value new attribute with cloned properties
-    '''
-    return {field.name: attr.ib(**{slot: getattr(field, slot) # name becomes key so skip it
-                                   for slot in field.__slots__ if slot != 'name'})
-            for field in attr.fields(cls)
-            # only fields which are part of __init__ and have default value
-            if field.init and field.default != attr.NOTHING}
-
-
-def _merge(*dicts):
-    '''Merge dictionaries using update from left to right'''
-    result = {}
-    for d in dicts:
-        result.update(d)
-    return result
 
 
 @attr.s(frozen=True)
@@ -198,11 +170,11 @@ class Identifiable(_Frozen):
         '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
         proxied object'''
         if hasattr(self, '_proxied_type') and self.name: # access proxied attr to trigger lazy load
-            attrs_from_mro = set(attrib for cls in type(self._proxied_object).__mro__
+            attrs_from_mro = set(attrib for cls in getmro(type(self._proxied_object))
                                         for attrib in dir(cls))
             attrs_from_obj = set(self._proxied_object.__dict__)
         else:
-            attrs_from_mro = set(attrib for cls in type(self).__mro__ for attrib in dir(cls))
+            attrs_from_mro = set(attrib for cls in getmro(type(self)) for attrib in dir(cls))
             attrs_from_obj = set(self.__dict__)
         return sorted(attrs_from_mro + attrs_from_obj)
 
