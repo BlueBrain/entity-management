@@ -1,39 +1,52 @@
 '''Circuit related entities'''
 from entity_management.util import attributes, AttrOf
 from entity_management.settings import DATA_SIM, VERSION
-from entity_management.base import (Entity, Release, ModelInstance, Distribution)
-from entity_management.simulation.cell import MEModelRelease
+from entity_management.base import (Entity, ModelInstance, Distribution)
+from entity_management.simulation.cell import MEModelRelease, SynapseRelease
 
 
 @attributes({'distribution': AttrOf(Distribution)})
 class CellPlacement(Entity):
-    '''Cell placement'''
+    '''Cell placement provides locationd of the MVD3 file with cell properties.
+
+    Args
+        distribution(Distribution): Location of the cell placement file.
+    '''
     base_url = DATA_SIM + '/cellplacement/' + VERSION
 
 
 @attributes({'memodelRelease': AttrOf(MEModelRelease),
              'cellPlacement': AttrOf(CellPlacement)})
 class NodeCollection(Entity):
-    '''Node collection represents circuit nodes(positions, orientations)'''
+    '''Node collection represents circuit nodes(positions, orientations)
+
+    Args:
+        memodelRelease(MEModelRelease): MEModel release this node collection is using.
+        cellPlacement(CellPlacement): Cell placement which is used in this node collection.
+    '''
     base_url = DATA_SIM + '/nodecollection/' + VERSION
 
 
-@attributes({'distribution': AttrOf(Distribution)})
-class SynapseRelease(Release):
-    '''Edge collection represents circuit connectivity(synapses, projections)'''
-    base_url = DATA_SIM + '/synapserelease/' + VERSION
-
-
-@attributes({'property_': AttrOf(Distribution),
+@attributes({'edgePopulation': AttrOf(Distribution),
              'synapseRelease': AttrOf(SynapseRelease)})
 class EdgeCollection(Entity):
-    '''Edge collection represents circuit connectivity(synapses, projections)'''
+    '''Edge collection represents circuit connectivity(synapses, projections)
+
+    Args
+        edgePopulation(Distribution): Distribution providing path to the collection of nrn
+        files or syn2.
+        synapseRelease(SynapseRelease): Synapse release used for this edge collection.
+    '''
     base_url = DATA_SIM + '/edgecollection/' + VERSION
 
 
 @attributes({'distribution': AttrOf(Distribution)})
 class Target(Entity):
-    '''Targets'''
+    '''Location of the text file defining cell targets (i.e. named collections of cell GIDs)
+
+    Args
+        distribution(Distribution): Location of the target file.
+    '''
     base_url = DATA_SIM + '/target/' + VERSION
 
 
@@ -41,5 +54,11 @@ class Target(Entity):
              'edgeCollection': AttrOf(EdgeCollection),
              'target': AttrOf(Target, default=None)})
 class DetailedCircuit(ModelInstance):
-    '''Detailed circuit'''
+    '''Detailed circuit
+
+    Args
+        nodeCollection(NodeCollection): Node collection.
+        edgeCollection(EdgeCollection): Edge collection.
+        target(Target): Target.
+    '''
     base_url = DATA_SIM + '/detailedcircuit/' + VERSION

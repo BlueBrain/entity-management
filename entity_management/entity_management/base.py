@@ -10,7 +10,7 @@ from attr.validators import instance_of, optional
 from uuid import UUID
 
 from entity_management import nexus
-from entity_management.util import optional_of, _attrs_pos, _merge, _attrs_kw
+from entity_management.util import optional_of, _attrs_pos, _merge, _attrs_kw, _clean_up_dict
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX
 
 
@@ -40,25 +40,29 @@ def _deserialize_json_to_datatype(data_type, data_raw):
             return result_list
     elif issubclass(data_type, Identifiable):
         # make lazy proxy for identifiable object
-        obj = Identifiable(uuid=nexus.get_uuid_from_url(data_raw['@id']))
+        obj = Identifiable(uuid=nexus.get_uuid_from_url(data_raw[JSLD_ID]))
         object.__setattr__(obj, '_proxied_type', data_type)
         object.__setattr__(obj, 'types', ['nsg:Entity', 'nsg:' + data_type.__name__])
         return obj
     elif isinstance(data_raw, dict):
-        return data_type(**data_raw)
+        return data_type(**_clean_up_dict(data_raw))
     else:
         return data_type(data_raw)
 
 
 @attr.s(frozen=True)
-class _Frozen(object):
-    '''Utility class with evolve method'''
+class Frozen(object):
+    '''Utility class making derived classed immutable. Use `evolve` method to introduce changes.'''
 
     def evolve(self, **changes):
         '''Create new instance of the frozen(immutable) object with *changes* applied.
 
-        :param changes: Keyword changes in the new copy, should be a subset of class
-                        constructor(__init__) keyword arguments.'''
+        Args:
+            changes: Keyword changes in the new copy, should be a subset of class
+                constructor(__init__) keyword arguments.
+        Returns:
+            New instance of the same class with changes applied.
+        '''
 
         return attr.evolve(self, **changes)
 
@@ -125,14 +129,6 @@ class _IdentifiableMeta(type):
             return cls == type(inst)
 
 
-def _map_attr_name(attr_name):
-    '''Fix some attribute names for serialization.''' # TODO fix nexus schemas
-    if attr_name == 'property_':
-        return 'property'
-    else:
-        return attr_name
-
-
 @attr.s(these={
     'uuid': attr.ib(
         type=str,
@@ -142,7 +138,7 @@ def _map_attr_name(attr_name):
         init=False,
         default=attr.Factory(
             lambda self: ['nsg:Entity', 'nsg:' + type(self).__name__], takes_self=True))})
-class Identifiable(_Frozen):
+class Identifiable(Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
     requests to that entity.'''
@@ -176,7 +172,7 @@ class Identifiable(_Frozen):
         else:
             attrs_from_mro = set(attrib for cls in getmro(type(self)) for attrib in dir(cls))
             attrs_from_obj = set(self.__dict__)
-        return sorted(attrs_from_mro + attrs_from_obj)
+        return sorted(attrs_from_mro | attrs_from_obj)
 
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
@@ -189,7 +185,7 @@ class Identifiable(_Frozen):
                 'uuid', 'rev', 'types', 'deprecated')
         for attribute in attributes:
             attr_value = getattr(self, attribute.name)
-            attr_name = _map_attr_name(attribute.name)
+            attr_name = attribute.name
             if not essential_attrs(attribute, attr_value):
                 continue
             if attr.has(type(attr_value)):
@@ -242,8 +238,9 @@ class Identifiable(_Frozen):
 class Entity(Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
-    :param str name: required entity name which can later be used for retrieval
-    :param str description: short description of the entity
+    Args:
+        name(str): Required entity name which can later be used for retrieval.
+        description(str): Short description of the entity.
     '''
     base_url = None
 
@@ -256,7 +253,7 @@ class Entity(Identifiable):
         init_args = {}
         for field in attr.fields(cls):
             attr_name = field.name
-            raw = js.get(_map_attr_name(attr_name))
+            raw = js.get(attr_name)
             if field.init and raw is not None:
                 type_ = field.type
                 init_args[attr_name] = _deserialize_json_to_datatype(type_, raw)
@@ -289,6 +286,27 @@ class Entity(Identifiable):
         assert self.uuid is not None # pylint: disable=no-member
         return nexus.deprecate(self)
 
+    def attach(self, file_name, data, content_type='text/html'):
+        '''Attach binary data to entity.
+        Attached data downloadURL and other metadata will be available in ``distribution``.
+
+        Args:
+            file_name(str): Original file name.
+            data(file): File like data stream.
+            content_type(str): Content type with which attachment will be delivered when
+                accessed with the download url. Default value is `text/html`.
+
+        Returns:
+            New instance with distribution attribute updated.
+        '''
+        assert self.uuid is not None # pylint: disable=no-member
+        js = nexus.attach(self.base_url, self.uuid, self.rev, file_name, data, content_type)
+        return attr.evolve(self,
+                           uuid=nexus.get_uuid_from_url(js[JSLD_ID]),
+                           rev=js[JSLD_REV],
+                           distribution=_deserialize_json_to_datatype(
+                               Distribution, js['distribution'][0]))
+
 
 @attr.s(these=_merge(
     _attrs_pos(Entity),
@@ -310,19 +328,22 @@ class ModelInstance(Entity):
 @attr.s(these={
     'downloadURL': attr.ib(type=str, validator=optional_of(str), default=None),
     'accessURL': attr.ib(type=str, validator=optional_of(str), default=None),
-    'contentSize': attr.ib(type=int, validator=optional_of(int), default=None),
-    'digest': attr.ib(type=int, validator=optional_of(int), default=None),
-    'mediaType': attr.ib(type=str, validator=optional_of(str), default=None)
+    'contentSize': attr.ib(type=dict, validator=optional_of(dict), default=None),
+    'digest': attr.ib(type=dict, validator=optional_of(dict), default=None),
+    'mediaType': attr.ib(type=str, validator=optional_of(str), default=None),
+    'originalFileName': attr.ib(type=str, validator=optional_of(str), default=None),
     })
-class Distribution(_Frozen):
+class Distribution(Frozen):
     '''External resource representations,
     this can be a file or a folder on gpfs
 
-    :param str downloadURL: for directly accessible resources for example files
-    :param str accessURL: for container locations for example folders
-    :param int contentSize: if known in advance size of the resource
-    :param int digest: hash/checksum of the resource
-    :param str mediaType: type of the resource accessible by the downloadURL
+    Args:
+        downloadURL(str): For directly accessible resources for example files.
+        accessURL(str): For container locations for example folders.
+        contentSize(int): If known in advance size of the resource.
+        digest(int): Hash/Checksum of the resource.
+        mediaType(str): Type of the resource accessible by the downloadURL.
+        originalFileName(str): File name which was submitted as an attachment.
 
     either `downloadURL` for files or `accessURL` for folders must be provided'''
 

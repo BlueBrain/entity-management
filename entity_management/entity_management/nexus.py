@@ -96,6 +96,30 @@ def deprecate(entity):
 
 
 @_log_nexus_exception
+def attach(base_url, uuid, rev, file_name, data, content_type):
+    '''Attach binary to the entity.
+
+    Args:
+        base_url(str): Base url of the entity to which the attachment will be added.
+        uuid(str): UUID of the entity.
+        file_name(str): Original file name.
+        data(file): File like data stream.
+        content_type(str): Content type with which attachment will be delivered when accessed
+            with the download url.
+
+    Returns:
+        New instance with uuid, rev, deprecated fields updated.
+    '''
+    response = requests.put('%s/%s/attachment' % (base_url, uuid),
+                            headers={'accept': 'application/ld+json'},
+                            params={'rev': rev},
+                            files={'file': (file_name, data, content_type)})
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    return js
+
+
+@_log_nexus_exception
 def load_by_uuid(base_url, uuid):
     '''Load Entity from the base url with appended uuid'''
     response = requests.get('%s/%s' % (base_url, uuid))

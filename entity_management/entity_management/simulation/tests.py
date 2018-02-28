@@ -1,5 +1,7 @@
 import responses
 
+from io import StringIO
+
 from mock import patch, Mock
 from nose.tools import raises
 
@@ -10,7 +12,7 @@ import entity_management.nexus as nexus
 from entity_management import base
 from entity_management.simulation.circuit import (DetailedCircuit, NodeCollection,
         SynapseRelease, EdgeCollection, Target, CellPlacement)
-from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease)
+from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 
@@ -167,6 +169,41 @@ MEMODEL_RELEASE_JSLD = {
     "nxv:rev": 1
 }
 
+MORPHOLOGY_JSLD = {
+    "@context": [
+        "https://bbp-nexus.epfl.ch/dev/v0/contexts/bbp/core/entity/v0.1.0",
+        "https://bbp-nexus.epfl.ch/dev/v0/contexts/neurosciencegraph/core/data/v0.1.0",
+        "https://bbp-nexus.epfl.ch/dev/v0/contexts/nexus/core/resource/v0.3.0"
+    ],
+    "@id": "https://bbp-nexus.epfl.ch/dev/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/" + UUID,
+    "@type": [
+        "nsg:Entity",
+        "nsg:Morphology"
+    ],
+    "name": "Morphology",
+    "nxv:deprecated": False,
+    "nxv:rev": 1
+}
+
+MORPHOLOGY_PUT_JSLD = {
+    '@context': 'https://bbp-nexus.epfl.ch/dev/v0/contexts/nexus/core/resource/v0.3.0',
+    '@id': 'https://bbp-nexus.epfl.ch/dev/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID,
+    'distribution': [{
+        '@context': 'https://bbp-nexus.epfl.ch/dev/v0/contexts/nexus/core/distribution/v0.1.0',
+        'contentSize': {
+            'unit': 'byte',
+            'value': 121440
+        },
+        'digest': {
+            'algorithm': 'SHA-256',
+            'value': 'c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb'
+        },
+        'downloadURL': 'https://bbp-nexus.epfl.ch/dev/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment',
+        'mediaType': 'text/plain',
+        'originalFileName': 'file_name'}],
+    'nxv:rev': 2
+}
+
 
 @responses.activate
 def test_load_morphology_release_by_uuid():
@@ -303,7 +340,7 @@ def test_create_detailed_circuit():
             distribution=base.Distribution(downloadURL='url'))
     edgeCollection = EdgeCollection(
             name='EdgeCollection',
-            property_=base.Distribution(accessURL='url'),
+            edgePopulation=base.Distribution(accessURL='url'),
             synapseRelease=synapseRelease)
 
     target = Target(name='Target', distribution=base.Distribution(downloadURL='url'))
@@ -341,3 +378,28 @@ def test_lazy_load_memodel_release_by_uuid():
     assert memodel_release.memodelIndex.downloadURL == 'file:///memodelIndex'
     assert memodel_release.emodelRelease.name == 'EModel Release'
     assert memodel_release.morphologyRelease.name == 'Morphology Release'
+
+
+@responses.activate
+def test_morphology_attachment():
+    responses.add(responses.GET, '%s/%s' % (Morphology.base_url, UUID),
+            json=MORPHOLOGY_JSLD)
+    responses.add(responses.PUT, '%s/%s/attachment' % (Morphology.base_url, UUID),
+            json=MORPHOLOGY_PUT_JSLD)
+
+    morphology = Morphology.from_uuid(UUID)
+
+    assert morphology.name == 'Morphology'
+    assert morphology.rev == 1
+
+    morphology = morphology.attach('file_name', StringIO(u'hello'), 'text/plain')
+
+    assert morphology.name == 'Morphology'
+    assert morphology.rev == 2
+    assert morphology.distribution.downloadURL == 'https://bbp-nexus.epfl.ch/dev/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment'
+    assert morphology.distribution.contentSize['value'] == 121440
+    assert morphology.distribution.contentSize['unit'] == 'byte'
+    assert morphology.distribution.digest['value'] == 'c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb'
+    assert morphology.distribution.digest['algorithm'] == 'SHA-256'
+    assert morphology.distribution.mediaType == 'text/plain'
+    assert morphology.distribution.originalFileName == 'file_name'

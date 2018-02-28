@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 '''Upload dummy test data to nexus'''
 
+from io import StringIO
+
 from pprint import pprint
 
 from entity_management.base import Distribution
 from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
-                                               EModel, SubCellularModel, ModelScript)
+                                               EModel, SubCellularModel, ModelScript, Morphology)
 from entity_management.simulation.circuit import (NodeCollection, SynapseRelease, EdgeCollection,
-                                                  CellPlacement, DetailedCircuit)
+                                                  CellPlacement, Target, DetailedCircuit)
 
 
 morphology_release_name = 'Test MorphologyRelease'
@@ -19,13 +21,10 @@ if morphology_release is None:
         description=morphology_release_name + ' description',
         distribution=Distribution(
             downloadURL='file:///distribution',
-            mediaType='application/swc,'
-                      'application/neurolucida,'
-                      'application/h5,'
-                      'application/neuroml'),
+            mediaType='application/swc'),
         morphologyIndex=Distribution(
             downloadURL='file:///morphologyIndex',
-            mediaType='application/mvd3'))
+            mediaType='text/plain'))
     morphology_release.save()
     pprint('MorphologyRelease created: ' + morphology_release_name)
 
@@ -39,12 +38,10 @@ if emodel_release is None:
         description='EModel Release description',
         distribution=Distribution(
             downloadURL='file:///Emodel/release/distribution',
-            mediaType='application/swc,application/neurolucida,application/h5,'
-                      'application/neuroml'),
+            mediaType='application/neuroml'),
         emodelIndex=Distribution(
             downloadURL='file:///emodelIndex',
-            mediaType='application/swc,application/neurolucida,application/h5,'
-                      'application/neuroml'))
+            mediaType='application/neuroml'))
     emodel_release.save()
     pprint('EModelRelease created: EModel release')
 
@@ -110,8 +107,7 @@ if memodel_release is None:
         emodelRelease=emodel_release,
         memodelIndex=Distribution(
             downloadURL='file:///memodelIndex',
-            mediaType='application/swc,application/neurolucida,application/h5,'
-                      'application/neuroml'))
+            mediaType='application/neuroml'))
     memodel_release.save()
     pprint('MEModelRelease created: MEModel Release')
 
@@ -125,8 +121,7 @@ if cell_placement is None:
             description=cell_placement_name + ' description',
             distribution=Distribution(
                 downloadURL='file:///cell/placement/distribution',
-                mediaType='application/swc,application/neurolucida,application/h5,'
-                          'application/neuroml'))
+                mediaType='application/neuroml'))
     cell_placement.save()
     pprint('CellPlacement created: ' + cell_placement_name)
 
@@ -162,19 +157,19 @@ if edge_collection is None:
     pprint('EdgeCollection creating...')
     edge_collection = EdgeCollection(
             name=edge_collection_name,
-            property_=Distribution(accessURL='file:///edge/collection'),
+            edgePopulation=Distribution(accessURL='file:///edge/collection'),
             synapseRelease=synapse_release)
     edge_collection = edge_collection.save()
     pprint('EdgeCollection created: ' + edge_collection_name)
 
 
-# target_name = 'Target'
-# target = Target.from_name(target_name)
-# if target is None:
-#     pprint('Target creating...')
-#     target = Target(name=target_name, distribution=Distribution(downloadURL='file:///target'))
-#     target = target.save()
-#     pprint('Target created: ', target_name)
+target_name = 'Target'
+target = Target.from_name(target_name)
+if target is None:
+    pprint('Target creating...')
+    target = Target(name=target_name, distribution=Distribution(downloadURL='file:///target'))
+    target = target.save()
+    pprint('Target created: ', target_name)
 
 
 update = False
@@ -186,13 +181,25 @@ if circuit is None:
     circuit = DetailedCircuit(
             name=circuit_name,
             nodeCollection=node_collection,
-            edgeCollection=edge_collection)
-            # target=target)
+            edgeCollection=edge_collection,
+            target=target)
     circuit.save()
     pprint('DetailedCircuit created: ' + circuit_name)
-
 elif update:
     pprint('DetailedCircuit updating...')
     circuit = circuit.evolve(description='DetailedCircuit description')
     circuit.save()
     pprint('DetailedCircuit updated')
+
+
+# create morphology with dummy attachment
+morphology_name = 'Morphology'
+morphology = Morphology.from_name(morphology_name)
+if morphology is None:
+    morphology = Morphology(name=morphology_name)
+    morphology = morphology.save()
+
+    file_name = 'test.html'
+    file_data = StringIO(u'hello')
+    file_type = 'text/html'
+    morphology = morphology.attach(file_name, file_data, file_type)

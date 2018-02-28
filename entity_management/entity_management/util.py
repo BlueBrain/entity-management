@@ -1,5 +1,6 @@
 '''Utilities'''
 
+import six
 import attr
 from attr import validators
 
@@ -50,8 +51,8 @@ def attributes(attr_dict):
     def wrap(cls):
         '''wraps'''
         these = _merge(
-            {k: v() for k, v in attr_dict.items() if v.is_positional},
             _attrs_pos(cls),
+            {k: v() for k, v in attr_dict.items() if v.is_positional},
             {k: v() for k, v in attr_dict.items() if not v.is_positional},
             _attrs_kw(cls))
         return attr.attrs(cls, these=these)
@@ -88,3 +89,8 @@ def _merge(*dicts):
         if dicts:
             result.update(d)
     return result
+
+
+def _clean_up_dict(d):
+    '''Produce new dictionary without json-ld attrs which start with @'''
+    return {k: v for k, v in six.iteritems(d) if not k.startswith('@')}
