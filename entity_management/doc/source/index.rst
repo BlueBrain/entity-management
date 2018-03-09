@@ -26,10 +26,11 @@ class is available under `Bases` section.
 By default BBP Staging Nexus instance is accessed. Provide environment variables
 `NEXUS_BASE(default=https://bbp-nexus.epfl.ch/staging/v0)` and
 `NEXUS_ORG(default=neurosciencegraph)` to specify nexus instance and organization
-context.
+context. If nexus instance is protected with bearer token you can pass it through
+`NEXUS_TOKEN=jwt` environment variable.
 
 
-.. inheritance-diagram:: entity_management.base entity_management.prov entity_management.simulation.circuit entity_management.simulation.cell
+.. inheritance-diagram:: entity_management.base entity_management.prov entity_management.sim entity_management.simulation.circuit entity_management.simulation.cell
    :parts: 2
 
 

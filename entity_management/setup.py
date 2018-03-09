@@ -43,6 +43,7 @@ setup(
         'requests>=2.18,<3.0',
         'attrs',
         'six',
+        'python-dateutil',
         ],
     tests_require=TESTS_REQUIRE,
     extras_require={

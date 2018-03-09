@@ -1,6 +1,7 @@
 '''Cell related entities'''
 from entity_management.util import attributes, AttrOf
-from entity_management.base import (Entity, Release, ModelInstance, Distribution)
+from entity_management.base import Distribution
+from entity_management.sim import Entity, Release, ModelInstance
 
 
 @attributes()

@@ -1,6 +1,7 @@
 '''Circuit related entities'''
 from entity_management.util import attributes, AttrOf
-from entity_management.base import (Entity, ModelInstance, Distribution)
+from entity_management.base import Distribution
+from entity_management.sim import Entity, ModelInstance
 from entity_management.simulation.cell import MEModelRelease, SynapseRelease
 
 

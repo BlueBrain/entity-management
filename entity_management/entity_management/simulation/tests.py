@@ -206,6 +206,19 @@ MORPHOLOGY_PUT_JSLD = {
 
 
 @responses.activate
+def test_load_morphology_release_by_url():
+    url = '%s/%s' % (MorphologyRelease._base_url, UUID)
+    responses.add(responses.GET, url, json=MORPHOLOGY_RELEASE_JSLD)
+
+    morphology_release = nexus.load_by_url(url)
+
+    assert morphology_release.description == 'test description'
+    assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
+    assert morphology_release.morphologyIndex.downloadURL == 'file:///morphology/index/url'
+    assert morphology_release.morphologyIndex.mediaType == 'media type'
+
+
+@responses.activate
 def test_load_morphology_release_by_uuid():
     responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)

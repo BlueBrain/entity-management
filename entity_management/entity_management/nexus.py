@@ -11,9 +11,32 @@ from pprint import pprint
 from six import iteritems
 from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
-from entity_management.settings import JSLD_ID
+from entity_management.settings import JSLD_ID, TOKEN
 
 L = logging.getLogger(__name__)
+
+_URL_TO_CLS_MAP = {}
+
+
+def register_type(url_prefix, cls):
+    '''Store type corresponding to url prefix'''
+    _URL_TO_CLS_MAP[url_prefix] = cls
+
+
+def get_type(url):
+    '''Get type which corresponds to the url'''
+    for url_prefix in _URL_TO_CLS_MAP:
+        if url.startswith(url_prefix):
+            return _URL_TO_CLS_MAP[url_prefix]
+    return None
+
+
+def _get_headers():
+    '''Get headers with additional authorization header if NEXUS_TOKE env variable had value'''
+    headers = {'accept': 'application/ld+json'}
+    if TOKEN is not None:
+        headers['authorization'] = 'bearer %s' % TOKEN
+    return headers
 
 
 def _byteify(data, ignore_dicts=False):
@@ -67,7 +90,7 @@ def save(base_url, payload):
         Json response.
     '''
     response = requests.post(base_url,
-                             headers={'accept': 'application/ld+json'},
+                             headers=_get_headers(),
                              json=payload)
     response.raise_for_status()
     return response.json(object_hook=_byteify)
@@ -89,7 +112,7 @@ def update(base_url, uuid, rev, payload):
     assert uuid is not None
     assert rev > 0
     response = requests.put('%s/%s' % (base_url, uuid),
-                            headers={'accept': 'application/ld+json'},
+                            headers=_get_headers(),
                             params={'rev': rev},
                             json=payload)
     response.raise_for_status()
@@ -102,7 +125,7 @@ def deprecate(base_url, uuid, rev):
     assert uuid is not None
     assert rev > 0
     response = requests.delete('%s/%s' % (base_url, uuid),
-                               headers={'accept': 'application/ld+json'},
+                               headers=_get_headers(),
                                params={'rev': rev})
     response.raise_for_status()
     return response.json(object_hook=_byteify)
@@ -124,7 +147,7 @@ def attach(base_url, uuid, rev, file_name, data, content_type):
         Json response.
     '''
     response = requests.put('%s/%s/attachment' % (base_url, uuid),
-                            headers={'accept': 'application/ld+json'},
+                            headers=_get_headers(),
                             params={'rev': rev},
                             files={'file': (file_name, data, content_type)})
     response.raise_for_status()
@@ -160,3 +183,10 @@ def find_uuid_by_name(base_url, name):
     elif js['total'] > 1:
         raise ValueError('Too many results found!')
     return get_uuid_from_url(js['results'][0]['resultId'])
+
+
+def load_by_url(url):
+    '''Load Entity from url'''
+    uuid = get_uuid_from_url(url)
+    cls = get_type(url)
+    return cls.from_uuid(uuid)

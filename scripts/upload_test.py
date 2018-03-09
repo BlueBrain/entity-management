@@ -6,13 +6,22 @@ from io import StringIO
 from pprint import pprint
 
 from entity_management.base import Distribution
+from entity_management.prov import Agent, Activity
 from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
                                                EModel, SubCellularModel, ModelScript, Morphology)
 from entity_management.simulation.circuit import (NodeCollection, SynapseRelease, EdgeCollection,
                                                   CellPlacement, Target, DetailedCircuit)
 
 
-morphology_release_name = 'Test MorphologyRelease'
+agent_name = 'NSE'
+agent = Agent.from_name(agent_name)
+if agent is None:
+    agent = Agent(name=agent_name)
+    agent = agent.save()
+
+
+# morphology_release_name = 'Test MorphologyRelease'
+morphology_release_name = '2012 Morphology release'
 morphology_release = MorphologyRelease.from_name(morphology_release_name)
 if morphology_release is None:
     pprint('MorphologyRelease creating...')
@@ -27,6 +36,13 @@ if morphology_release is None:
             mediaType='text/plain'))
     morphology_release.save()
     pprint('MorphologyRelease created: ' + morphology_release_name)
+
+
+activity_name = 'test activity'
+activity = Activity.from_name(activity_name)
+if activity is None:
+    activity = Activity(used=morphology_release)
+    activity = activity.save()
 
 
 emodel_release_name = 'EModel Release'

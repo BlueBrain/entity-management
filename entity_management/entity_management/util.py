@@ -5,9 +5,103 @@ import attr
 from attr import validators
 
 
+# copied from attrs, their standard way to make validators
+@attr.s(repr=False, slots=True, hash=True)
+class _ListOfValidator(object):
+    '''Validate list of type'''
+    type_ = attr.ib()
+
+    def __call__(self, inst, attribute, value):
+        '''
+        We use a callable class to be able to change the ``__repr__``.
+        '''
+        if type(value) != list or len(value) == 0:
+            raise TypeError(
+                "'{name}' must be non empty list"
+                .format(name=attribute.name), attribute, self.type_, value,
+            )
+
+        if not all(isinstance(v, self.type_) for v in value):
+            raise TypeError(
+                "'{name}' must be list of {type!r} (got {value!r} that is a "
+                '{actual!r}).'
+                .format(name=attribute.name, type=self.type_,
+                        actual=type(value), value=value),
+                attribute, self.type_, value,
+            )
+
+    def __repr__(self):
+        return (
+            '<instance_of validator for list of type {type!r}>'
+            .format(type=self.type_)
+        )
+
+
+def _list_of(type_):
+    '''
+    A validator that raises a :exc:`TypeError` if the initializer is called
+    with a list of wrong types for this particular attribute (checks are performed
+    using :func:`isinstance` therefore it's also valid to pass a tuple of types).
+
+    :param type_: The type to check for.
+    :type type_: type or tuple of types
+
+    :raises TypeError: With a human readable error message, the attribute
+        (of type :class:`attr.Attribute`), the expected type, and the value it
+        got.
+    '''
+    return _ListOfValidator(type_)
+
+
+# copied from attrs, their standard way to make validators
+@attr.s(repr=False, slots=True, hash=True)
+class _SubClassOfValidator(object):
+    '''SubClass validator'''
+    type_ = attr.ib()
+
+    def __call__(self, inst, attribute, value):
+        '''
+        We use a callable class to be able to change the ``__repr__``.
+        '''
+        # pylint: disable=protected-access
+        value_type = value._proxied_type if hasattr(value, '_proxied_type') else type(value)
+
+        if not issubclass(value_type, self.type_):
+            raise TypeError(
+                "'{name}' must be a subclass of {type!r} (got {value!r} that is a "
+                "{actual!r})."
+                .format(name=attribute.name, type=self.type_,
+                        actual=value.__class__, value=value),
+                attribute, self.type_, value,
+            )
+
+    def __repr__(self):
+        return (
+            "<subclass_of validator for type {type!r}>"
+            .format(type=self.type_)
+        )
+
+
+def subclass_of(type_):
+    '''
+    A validator that raises a :exc:`TypeError` if the initializer is called
+    with a wrong type for this particular attribute (checks are performed using
+    :func:`issubclass` therefore it's also valid to pass a tuple of types).
+
+    Args:
+        type_(type): The type to check for.
+
+    Raises:
+        TypeError: With a human readable error message, the attribute
+        (of type :class:`attr.Attribute`), the expected type, and the value it
+        got.
+    '''
+    return _SubClassOfValidator(type_)
+
+
 def optional_of(type_):
-    '''Composition of optional and instance_of'''
-    return validators.optional(validators.instance_of(type_))
+    '''Composition of optional and subclass_of'''
+    return validators.optional(subclass_of(type_))
 
 
 class AttrOf(object):
@@ -24,12 +118,12 @@ class AttrOf(object):
         validator = None
         if optional is Ellipsis:
             if default is Ellipsis:
-                validator = validators.instance_of(type_)
+                validator = subclass_of(type_)
             elif default is None:
                 validator = optional_of(type_)
         else:
             if optional is False:
-                validator = validators.instance_of(type_)
+                validator = subclass_of(type_)
             else:
                 validator = optional_of(type_)
 

@@ -5,7 +5,9 @@ JSLD_ID = '@id'
 JSLD_REV = 'nxv:rev'
 JSLD_DEPRECATED = 'nxv:deprecated'
 
-BASE = os.getenv('NEXUS_BASE', 'https://bbp-nexus.epfl.ch/staging/v0')
+TOKEN = os.getenv('NEXUS_TOKEN')
+
+BASE = os.getenv('NEXUS_BASE', 'https://bbp-nexus.epfl.ch/dev/v0')
 VERSION = 'v0.1.0'
 
 BASE_CTXS = BASE + '/contexts'
