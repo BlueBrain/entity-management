@@ -1,10 +1,9 @@
 '''Cell related entities'''
 from entity_management.util import attributes, AttrOf
-from entity_management.settings import DATA_SIM, VERSION
 from entity_management.base import (Entity, Release, ModelInstance, Distribution)
 
 
-@attributes({'distribution': AttrOf(Distribution, default=None)})
+@attributes()
 class ModelScript(Entity):
     '''Scripts attached to the model:
 
@@ -16,7 +15,7 @@ class ModelScript(Entity):
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
-    base_url = DATA_SIM + '/modelscript/' + VERSION
+    pass
 
 
 @attributes({'modelScript': AttrOf(ModelScript)})
@@ -26,7 +25,7 @@ class SubCellularModel(ModelInstance):
     Args:
         modelScript(ModelScript): SubCellular model script such as mod file
     '''
-    base_url = DATA_SIM + '/subcellularmodel/' + VERSION
+    pass
 
 
 @attributes({'distribution': AttrOf(Distribution)})
@@ -36,7 +35,7 @@ class SynapseRelease(Release):
     Args:
         distribution(Distribution): Location of the synapse release/mod files.
     '''
-    base_url = DATA_SIM + '/synapserelease/' + VERSION
+    pass
 
 
 @attributes({'distribution': AttrOf(Distribution),
@@ -48,7 +47,7 @@ class EModelRelease(Release):
         distribution(Distribution): EModel release location provides a path to ``hoc`` files.
         emodelIndex(Distribution): EModel release index file.
     '''
-    base_url = DATA_SIM + '/emodelrelease/' + VERSION
+    pass
 
 
 @attributes({'subCellularMechanism': AttrOf(SubCellularModel, default=None),
@@ -63,7 +62,7 @@ class EModel(ModelInstance):
             or a zip file containing multiple ``hoc`` files.
         isPartOf(EModelRelease): The emodel release this emodel is part of.
     '''
-    base_url = DATA_SIM + '/emodel/' + VERSION
+    pass
 
 
 @attributes({'distribution': AttrOf(Distribution),
@@ -84,7 +83,7 @@ class MorphologyRelease(Release):
             morphology properties (MType, region ids) for the performance purposes. This attribute
             should provide a path to locate this file(such as neurondb.dat).
     '''
-    base_url = DATA_SIM + '/morphologyrelease/' + VERSION
+    pass
 
 
 @attributes({'distribution': AttrOf(Distribution, default=None),
@@ -99,7 +98,7 @@ class Morphology(Entity):
             should provide the path to it.
         isPartOf(MorphologyRelease): Release this morphology is part of.
     '''
-    base_url = DATA_SIM + '/morphology/' + VERSION
+    pass
 
 
 @attributes({'eModel': AttrOf(EModel, default=None),
@@ -114,7 +113,7 @@ class MEModel(ModelInstance):
         modelScript(ModelScript): Model script which instantiates neuron with specified morphology
             and electrical model.
     '''
-    base_url = DATA_SIM + '/memodel/' + VERSION
+    pass
 
 
 @attributes({'emodelRelease': AttrOf(EModelRelease),
@@ -128,4 +127,4 @@ class MEModelRelease(Release):
         morphologyRelease(MorphologyRelease): morphology model release
         memodelIndex(Distribution): optional morpho-electrical model index
     '''
-    base_url = DATA_SIM + '/memodelrelease/' + VERSION
+    pass

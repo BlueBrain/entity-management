@@ -11,9 +11,7 @@ from pprint import pprint
 from six import iteritems
 from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
-import attr
-
-from entity_management.settings import JSLD_ID, JSLD_REV
+from entity_management.settings import JSLD_ID
 
 L = logging.getLogger(__name__)
 
@@ -58,41 +56,56 @@ def get_uuid_from_url(url):
 
 
 @_log_nexus_exception
-def save(entity):
-    '''Save entity, return new instance with uuid, rev, deprecated fields updated'''
-    response = requests.post(entity.base_url,
+def save(base_url, payload):
+    '''Save entity, return json response
+
+    Args:
+        base_url(str): Base url of the entity which will be saved.
+        payload(dict): Json-ld serialization of the entity.
+
+    Returns:
+        Json response.
+    '''
+    response = requests.post(base_url,
                              headers={'accept': 'application/ld+json'},
-                             json=entity.as_json_ld())
+                             json=payload)
     response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return attr.evolve(entity,
-                       uuid=get_uuid_from_url(js[JSLD_ID]),
-                       rev=js[JSLD_REV])
+    return response.json(object_hook=_byteify)
 
 
 @_log_nexus_exception
-def update(entity):
-    '''Update entity, return new instance with uuid, rev, deprecated fields updated'''
-    response = requests.put('%s/%s' % (entity.base_url, entity.uuid),
+def update(base_url, uuid, rev, payload):
+    '''Update entity, return json response
+
+    Args:
+        base_url(str): Base url of the entity which will be updated.
+        uuid(str): UUID of the entity.
+        rev(int): Revision number.
+        payload(dict): Json-ld serialization of the entity.
+
+    Returns:
+        Json response.
+    '''
+    assert uuid is not None
+    assert rev > 0
+    response = requests.put('%s/%s' % (base_url, uuid),
                             headers={'accept': 'application/ld+json'},
-                            params={'rev': entity.rev},
-                            json=entity.as_json_ld())
+                            params={'rev': rev},
+                            json=payload)
     response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return attr.evolve(entity, rev=js[JSLD_REV])
+    return response.json(object_hook=_byteify)
 
 
 @_log_nexus_exception
-def deprecate(entity):
-    '''Mark entity as deprecated, return new instance with deprecated field updated'''
-    assert entity.uuid is not None
-    assert entity.rev > 0
-    response = requests.delete('%s/%s' % (entity.base_url, entity.uuid),
+def deprecate(base_url, uuid, rev):
+    '''Mark entity as deprecated, return json response'''
+    assert uuid is not None
+    assert rev > 0
+    response = requests.delete('%s/%s' % (base_url, uuid),
                                headers={'accept': 'application/ld+json'},
-                               params={'rev': entity.rev})
+                               params={'rev': rev})
     response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return attr.evolve(entity, rev=js[JSLD_REV], deprecated=True)
+    return response.json(object_hook=_byteify)
 
 
 @_log_nexus_exception
@@ -108,15 +121,14 @@ def attach(base_url, uuid, rev, file_name, data, content_type):
             with the download url.
 
     Returns:
-        New instance with uuid, rev, deprecated fields updated.
+        Json response.
     '''
     response = requests.put('%s/%s/attachment' % (base_url, uuid),
                             headers={'accept': 'application/ld+json'},
                             params={'rev': rev},
                             files={'file': (file_name, data, content_type)})
     response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return js
+    return response.json(object_hook=_byteify)
 
 
 @_log_nexus_exception

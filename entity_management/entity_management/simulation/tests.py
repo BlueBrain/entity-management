@@ -207,7 +207,7 @@ MORPHOLOGY_PUT_JSLD = {
 
 @responses.activate
 def test_load_morphology_release_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease.from_uuid(UUID)
@@ -220,9 +220,9 @@ def test_load_morphology_release_by_uuid():
 
 @responses.activate
 def test_load_morphology_release_by_name():
-    responses.add(responses.GET, MorphologyRelease.base_url,
+    responses.add(responses.GET, MorphologyRelease._base_url,
             json=MORPHOLOGY_RELEASE_JSLD_FILTER)
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease.from_name(UUID)
@@ -235,15 +235,15 @@ def test_load_morphology_release_by_name():
 
 @responses.activate
 def test_update_morphology_release():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
-    responses.add(responses.PUT, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.PUT, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD_UPDATE)
 
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
     assert morphology_release.name == 'Morphology Release'
-    assert morphology_release.rev == 1
+    assert morphology_release._rev == 1
 
     new_url =  'file:///distribution/newUrl'
 
@@ -252,15 +252,15 @@ def test_update_morphology_release():
 
     morphology_release = morphology_release.save()
 
-    assert morphology_release.uuid == UUID
+    assert morphology_release._uuid == UUID
     assert morphology_release.name == 'Morphology Release'
     assert morphology_release.distribution.downloadURL == new_url
-    assert morphology_release.rev == 2
+    assert morphology_release._rev == 2
 
 
 @responses.activate
 def test_save_morphology_release():
-    responses.add(responses.POST, '%s' % MorphologyRelease.base_url,
+    responses.add(responses.POST, '%s' % MorphologyRelease._base_url,
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease(name='MorphologyRelease',
@@ -268,34 +268,34 @@ def test_save_morphology_release():
                                           morphologyIndex=base.Distribution(downloadURL='url'))
     morphology_release = morphology_release.save()
 
-    assert morphology_release.uuid is not None
-    assert morphology_release.rev is not None
+    assert morphology_release._uuid is not None
+    assert morphology_release._rev is not None
 
 
 @responses.activate
 def test_deprecate_morphology_release():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
-    responses.add(responses.DELETE, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.DELETE, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD_DELETE)
 
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
     assert morphology_release.name == 'Morphology Release'
-    assert morphology_release.rev == 1
-    assert morphology_release.deprecated == False
+    assert morphology_release._rev == 1
+    assert morphology_release._deprecated == False
 
     morphology_release = morphology_release.deprecate()
 
-    assert morphology_release.uuid is not None
+    assert morphology_release._uuid is not None
     assert morphology_release.name == 'Morphology Release'
-    assert morphology_release.rev == 2
-    assert morphology_release.deprecated == True
+    assert morphology_release._rev == 2
+    assert morphology_release._deprecated == True
 
 
 @responses.activate
-def test_create_emodel_release():
-    responses.add(responses.POST, EModelRelease.base_url,
+def test_save_emodel_release():
+    responses.add(responses.POST, EModelRelease._base_url,
             json=EMODEL_RELEASE_JSLD_CREATE)
 
     emodel_release = EModelRelease(
@@ -304,9 +304,9 @@ def test_create_emodel_release():
             emodelIndex=base.Distribution(downloadURL='url'))
     emodel_release = emodel_release.save()
 
-    assert emodel_release.uuid is not None
+    assert emodel_release._uuid is not None
     assert emodel_release.name == 'EModelRelease'
-    assert emodel_release.rev == 1
+    assert emodel_release._rev == 1
 
 
 def test_create_detailed_circuit():
@@ -355,21 +355,13 @@ def test_create_detailed_circuit():
     assert circuit is not None
 
 
-def test_dict_merg():
-    assert {} == base._merge()
-    assert {} == base._merge({})
-    assert {1: 2} == base._merge({1: 2})
-    assert {1: 2, 'a': 'b'} == base._merge({'a': 'b'}, {1: 2})
-    assert {1: 2, 'a': 'c'} == base._merge({'a': 'b'}, {1: 2}, {'a': 'c'})
-
-
 @responses.activate
 def test_lazy_load_memodel_release_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
-    responses.add(responses.GET, '%s/%s' % (EModelRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (EModelRelease._base_url, UUID),
             json=EMODEL_RELEASE_JSLD)
-    responses.add(responses.GET, '%s/%s' % (MEModelRelease.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MEModelRelease._base_url, UUID),
             json=MEMODEL_RELEASE_JSLD)
 
     memodel_release = MEModelRelease.from_uuid(UUID)
@@ -382,20 +374,20 @@ def test_lazy_load_memodel_release_by_uuid():
 
 @responses.activate
 def test_morphology_attachment():
-    responses.add(responses.GET, '%s/%s' % (Morphology.base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (Morphology._base_url, UUID),
             json=MORPHOLOGY_JSLD)
-    responses.add(responses.PUT, '%s/%s/attachment' % (Morphology.base_url, UUID),
+    responses.add(responses.PUT, '%s/%s/attachment' % (Morphology._base_url, UUID),
             json=MORPHOLOGY_PUT_JSLD)
 
     morphology = Morphology.from_uuid(UUID)
 
     assert morphology.name == 'Morphology'
-    assert morphology.rev == 1
+    assert morphology._rev == 1
 
     morphology = morphology.attach('file_name', StringIO(u'hello'), 'text/plain')
 
     assert morphology.name == 'Morphology'
-    assert morphology.rev == 2
+    assert morphology._rev == 2
     assert morphology.distribution.downloadURL == 'https://bbp-nexus.epfl.ch/dev/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment'
     assert morphology.distribution.contentSize['value'] == 121440
     assert morphology.distribution.contentSize['unit'] == 'byte'

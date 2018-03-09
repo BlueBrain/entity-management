@@ -148,12 +148,12 @@ from entity_management.simulation.circuit import (CellPlacement, EdgeCollection,
 
 # -------------------------------------------------------------------------------------------------
 
-morphology_release = MorphologyRelease.from_name('2017 Morphology release')
-
+morphology_release_name = '2017 Morphology release'
+morphology_release = MorphologyRelease.from_name(morphology_release_name)
 if morphology_release is None:
     pprint('MorphologyRelease creating...')
     morphology_release = MorphologyRelease(
-        name='2017 Morphology release',
+        name=morphology_release_name,
         description='Morphology release used for the O1.V6 and S1.V6',
         distribution=Distribution(
             # FIXME

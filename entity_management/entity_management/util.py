@@ -44,9 +44,10 @@ class AttrOf(object):
         return self.fn()
 
 
-def attributes(attr_dict):
+def attributes(attr_dict=None):
     '''decorator to simplify creation of classes that have args and kwargs'''
-    assert attr_dict is not None # should be called with some dictionary of attributes
+    if attr_dict is None:
+        attr_dict = {} # just inherit attributes from parent class
 
     def wrap(cls):
         '''wraps'''

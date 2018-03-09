@@ -1,6 +1,5 @@
 '''Circuit related entities'''
 from entity_management.util import attributes, AttrOf
-from entity_management.settings import DATA_SIM, VERSION
 from entity_management.base import (Entity, ModelInstance, Distribution)
 from entity_management.simulation.cell import MEModelRelease, SynapseRelease
 
@@ -12,7 +11,7 @@ class CellPlacement(Entity):
     Args
         distribution(Distribution): Location of the cell placement file.
     '''
-    base_url = DATA_SIM + '/cellplacement/' + VERSION
+    pass
 
 
 @attributes({'memodelRelease': AttrOf(MEModelRelease),
@@ -24,7 +23,7 @@ class NodeCollection(Entity):
         memodelRelease(MEModelRelease): MEModel release this node collection is using.
         cellPlacement(CellPlacement): Cell placement which is used in this node collection.
     '''
-    base_url = DATA_SIM + '/nodecollection/' + VERSION
+    pass
 
 
 @attributes({'edgePopulation': AttrOf(Distribution),
@@ -37,7 +36,7 @@ class EdgeCollection(Entity):
         files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
-    base_url = DATA_SIM + '/edgecollection/' + VERSION
+    pass
 
 
 @attributes({'distribution': AttrOf(Distribution)})
@@ -47,7 +46,7 @@ class Target(Entity):
     Args
         distribution(Distribution): Location of the target file.
     '''
-    base_url = DATA_SIM + '/target/' + VERSION
+    pass
 
 
 @attributes({'nodeCollection': AttrOf(NodeCollection),
@@ -61,4 +60,4 @@ class DetailedCircuit(ModelInstance):
         edgeCollection(EdgeCollection): Edge collection.
         target(Target): Target.
     '''
-    base_url = DATA_SIM + '/detailedcircuit/' + VERSION
+    pass

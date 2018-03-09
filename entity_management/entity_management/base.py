@@ -5,13 +5,12 @@ import six
 from inspect import getmro
 
 import attr
-from attr.validators import instance_of, optional
-
-from uuid import UUID
 
 from entity_management import nexus
-from entity_management.util import optional_of, _attrs_pos, _merge, _attrs_kw, _clean_up_dict
-from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX
+from entity_management.util import _clean_up_dict
+from entity_management.util import attributes, AttrOf
+from entity_management.settings import (DATA_SIM, VERSION, JSLD_ID, JSLD_REV, JSLD_DEPRECATED,
+                                        ENTITY_CTX, NSG_CTX)
 
 
 def _deserialize_json_to_datatype(data_type, data_raw):
@@ -40,10 +39,10 @@ def _deserialize_json_to_datatype(data_type, data_raw):
             return result_list
     elif issubclass(data_type, Identifiable):
         # make lazy proxy for identifiable object
-        obj = Identifiable(uuid=nexus.get_uuid_from_url(data_raw[JSLD_ID]))
-        object.__setattr__(obj, '_proxied_type', data_type)
-        object.__setattr__(obj, 'types', ['nsg:Entity', 'nsg:' + data_type.__name__])
-        return obj
+        obj = Identifiable()
+        return obj.evolve(_proxied_type=data_type,
+                          _types=['nsg:Entity', 'nsg:' + data_type.__name__],
+                          _uuid=nexus.get_uuid_from_url(data_raw[JSLD_ID]))
     elif isinstance(data_raw, dict):
         return data_type(**_clean_up_dict(data_raw))
     else:
@@ -117,7 +116,13 @@ def _list_of(type_):
 
 class _IdentifiableMeta(type):
     '''Make Identifiable behave as it's _proxied_type, _proxied_type is set by json-ld
-    deserialization'''
+    deserialization.
+    Initialize class variable _base_url.'''
+
+    def __init__(cls, name, bases, attrs):
+        cls._base_url = DATA_SIM + '/' + name.lower() + '/' + VERSION
+        super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
+
     def __instancecheck__(cls, inst):
         ''''''
         if hasattr(inst, '_proxied_type'):
@@ -129,15 +134,7 @@ class _IdentifiableMeta(type):
             return cls == type(inst)
 
 
-@attr.s(these={
-    'uuid': attr.ib(
-        type=str,
-        validator=optional(lambda inst, attr, value: UUID(value)),
-        default=None),
-    'types': attr.ib(
-        init=False,
-        default=attr.Factory(
-            lambda self: ['nsg:Entity', 'nsg:' + type(self).__name__], takes_self=True))})
+@attributes()
 class Identifiable(Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
@@ -147,16 +144,20 @@ class Identifiable(Frozen):
 
     __metaclass__ = _IdentifiableMeta
 
+    def __attrs_post_init__(self):
+        object.__setattr__(self, '_types', ['nsg:Entity', 'nsg:' + type(self).__name__])
+
     def __getattr__(self, name):
         if type(self) == Identifiable: # isinstance is overriden in metaclass which is true for
                                        # all subclasses of Identifiable
             # Identifiable instances behave like proxies, set it up and then forward attr request
             if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
                                                        # and that will cause recursion to _getattr_
-                object.__setattr__(self, '_proxied_object', self._proxied_type.from_uuid(self.uuid))
+                object.__setattr__(self, '_proxied_object',
+                                   self._proxied_type.from_uuid(self._uuid))
             if self._proxied_object is None:
                 raise ValueError('Unable to find proxied entity for uuid:%s and %s' %
-                                 (self.uuid, self._proxied_type))
+                                 (self._uuid, self._proxied_type))
             return getattr(self._proxied_object, name)
         else:
             # subclasses of Identifiable just raise if arrived in __getattr__
@@ -174,34 +175,80 @@ class Identifiable(Frozen):
             attrs_from_obj = set(self.__dict__)
         return sorted(attrs_from_mro | attrs_from_obj)
 
+    @classmethod
+    def from_uuid(cls, uuid):
+        '''Load entity from UUID.'''
+        js = nexus.load_by_uuid(cls._base_url, uuid) # pylint: disable=no-member
+
+        # prepare all entity init args
+        init_args = {}
+        for field in attr.fields(cls):
+            attr_name = field.name
+            raw = js.get(attr_name)
+            if field.init and raw is not None:
+                type_ = field.type
+                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw)
+
+        obj = cls(**init_args)
+        return obj.evolve(_uuid=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
+
+    def evolve(self, **changes):
+        '''Create new instance of the frozen(immutable) object with *changes* applied.
+
+        Args:
+            changes: Keyword changes in the new copy, should be a subset of class
+                constructor(__init__) keyword arguments.
+        Returns:
+            New instance of the same class with changes applied.
+        '''
+
+        hidden_attrs = {}
+        # copy hidden attrs values from changes(remove with pop) else from original if present
+        for attr_name in ['_uuid', '_rev', '_deprecated', '_types', '_proxied_type',
+                          '_proxied_object']:
+            attr_value = Ellipsis
+
+            # take value from original if present
+            if attr_name in self.__dict__:            # can't use hasattr as it will call getattr
+                attr_value = getattr(self, attr_name) # and that will cause recursion to _getattr_
+
+            # prefer value explicitly provided in changes
+            attr_value = changes.pop(attr_name, attr_value)
+
+            if attr_value is not Ellipsis:
+                hidden_attrs[attr_name] = attr_value
+
+        obj = super(Identifiable, self).evolve(**changes)
+
+        for attr_name in hidden_attrs:
+            object.__setattr__(obj, attr_name, hidden_attrs[attr_name])
+
+        return obj
+
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
-        @type is filled from the self.types
+        @type is filled from the self._types
         '''
-        attributes = attr.fields(type(self))
+        attrs = attr.fields(type(self))
         rv = {}
-        essential_attrs = lambda attribute, value: value and attribute.name not in (
-                'uuid', 'rev', 'types', 'deprecated')
-        for attribute in attributes:
+        for attribute in attrs:
             attr_value = getattr(self, attribute.name)
             attr_name = attribute.name
-            if not essential_attrs(attribute, attr_value):
-                continue
             if attr.has(type(attr_value)):
                 if issubclass(type(attr_value), Identifiable):
-                    rv[attr_name] = {'@id': '%s/%s' % (attr_value.base_url, attr_value.uuid),
-                                     '@type': attr_value.types,
+                    rv[attr_name] = {'@id': '%s/%s' % (getattr(attr_value, '_base_url'),
+                                                       getattr(attr_value, '_uuid')),
+                                     '@type': getattr(attr_value, '_types'),
                                      'name': 'dummy'} # TODO remove when nexus starts using
                                                       # graph traversal for validation
                 else:
                     rv[attr_name] = attr.asdict(
                             attr_value,
-                            recurse=True,
-                            filter=essential_attrs)
+                            recurse=True)
             elif isinstance(attr_value, (tuple, list, set)):
                 rv[attr_name] = [
-                        attr.asdict(i, recurse=True, filter=essential_attrs)
+                        attr.asdict(i, recurse=True)
                         if attr.has(type(i)) else i
                         for i in attr_value]
             elif isinstance(attr_value, dict):
@@ -224,114 +271,17 @@ class Identifiable(Frozen):
                               'nodeCollection': {'@id': 'nsg:nodeCollection'},
                               'isPartOf': {'@id': 'dcterms:isPartOf'},
                           }]
-        rv['@type'] = self.types # pylint: disable=no-member
+        rv['@type'] = self._types
         return rv
 
 
-@attr.s(these=_merge(
-    {'name': attr.ib(type=str, validator=instance_of(str))},
-    _attrs_pos(Identifiable),
-    {'description': attr.ib(type=str, validator=optional_of(str), default=None),
-     'rev': attr.ib(type=int, validator=optional_of(int), default=None),
-     'deprecated': attr.ib(type=bool, validator=optional_of(bool), default=None)},
-    _attrs_kw(Identifiable)))
-class Entity(Identifiable):
-    '''Base abstract class for many things having `name` and `description`
-
-    Args:
-        name(str): Required entity name which can later be used for retrieval.
-        description(str): Short description of the entity.
-    '''
-    base_url = None
-
-    @classmethod
-    def from_uuid(cls, uuid):
-        '''Load entity from UUID.'''
-        js = nexus.load_by_uuid(cls.base_url, uuid)
-
-        # prepare all entity init args
-        init_args = {}
-        for field in attr.fields(cls):
-            attr_name = field.name
-            raw = js.get(attr_name)
-            if field.init and raw is not None:
-                type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw)
-
-        entity = cls(uuid=js[JSLD_ID],
-                     rev=js[JSLD_REV],
-                     deprecated=js[JSLD_DEPRECATED],
-                     **init_args)
-        return entity
-
-    @classmethod
-    def from_name(cls, name):
-        '''Load entity from name.'''
-        uuid = nexus.find_uuid_by_name(cls.base_url, name)
-        if uuid:
-            return cls.from_uuid(uuid)
-        else:
-            return None
-
-    def save(self):
-        '''Save or update entity.'''
-        if self.uuid: # pylint: disable=no-member
-            return nexus.update(self)
-        else:
-            return nexus.save(self)
-
-    def deprecate(self):
-        '''Mark entity as deprecated.
-        Deprecated entities are not possible to retrieve by name.'''
-        assert self.uuid is not None # pylint: disable=no-member
-        return nexus.deprecate(self)
-
-    def attach(self, file_name, data, content_type='text/html'):
-        '''Attach binary data to entity.
-        Attached data downloadURL and other metadata will be available in ``distribution``.
-
-        Args:
-            file_name(str): Original file name.
-            data(file): File like data stream.
-            content_type(str): Content type with which attachment will be delivered when
-                accessed with the download url. Default value is `text/html`.
-
-        Returns:
-            New instance with distribution attribute updated.
-        '''
-        assert self.uuid is not None # pylint: disable=no-member
-        js = nexus.attach(self.base_url, self.uuid, self.rev, file_name, data, content_type)
-        return attr.evolve(self,
-                           uuid=nexus.get_uuid_from_url(js[JSLD_ID]),
-                           rev=js[JSLD_REV],
-                           distribution=_deserialize_json_to_datatype(
-                               Distribution, js['distribution'][0]))
-
-
-@attr.s(these=_merge(
-    _attrs_pos(Entity),
-    _attrs_kw(Entity)))
-class Release(Entity):
-    '''Release base entity'''
-    pass
-
-
-@attr.s(these=_merge(
-    _attrs_pos(Entity),
-    {'modelOf': attr.ib(type=str, validator=optional_of(str), default=None)},
-    _attrs_kw(Entity)))
-class ModelInstance(Entity):
-    '''Model instance collection'''
-    pass
-
-
-@attr.s(these={
-    'downloadURL': attr.ib(type=str, validator=optional_of(str), default=None),
-    'accessURL': attr.ib(type=str, validator=optional_of(str), default=None),
-    'contentSize': attr.ib(type=dict, validator=optional_of(dict), default=None),
-    'digest': attr.ib(type=dict, validator=optional_of(dict), default=None),
-    'mediaType': attr.ib(type=str, validator=optional_of(str), default=None),
-    'originalFileName': attr.ib(type=str, validator=optional_of(str), default=None),
+@attributes({
+    'downloadURL': AttrOf(str, default=None),
+    'accessURL': AttrOf(str, default=None),
+    'contentSize': AttrOf(dict, default=None),
+    'digest': AttrOf(dict, default=None),
+    'mediaType': AttrOf(str, default=None),
+    'originalFileName': AttrOf(str, default=None),
     })
 class Distribution(Frozen):
     '''External resource representations,
@@ -350,3 +300,71 @@ class Distribution(Frozen):
     def __attrs_post_init__(self):
         if not self.downloadURL and not self.accessURL: # pylint: disable=no-member
             raise ValueError('downloadURL or accessURL must be provided')
+
+
+@attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str, default=None),
+    'distribution': AttrOf(Distribution, default=None)
+    })
+class Entity(Identifiable):
+    '''Base abstract class for many things having `name` and `description`
+
+    Args:
+        name(str): Required entity name which can later be used for retrieval.
+        description(str): Short description of the entity.
+    '''
+
+    @classmethod
+    def from_name(cls, name):
+        '''Load entity from name.'''
+        uuid = nexus.find_uuid_by_name(cls._base_url, name) # pylint: disable=no-member
+        if uuid:
+            return cls.from_uuid(uuid)
+        else:
+            return None
+
+    def save(self):
+        '''Save or update entity.'''
+        if hasattr(self, '_uuid') and self._uuid:
+            js = nexus.update(self._base_url, self._uuid, self._rev, self.as_json_ld())
+        else:
+            js = nexus.save(self._base_url, self.as_json_ld())
+        return self.evolve(_uuid=nexus.get_uuid_from_url(js[JSLD_ID]), _rev=js[JSLD_REV])
+
+    def deprecate(self):
+        '''Mark entity as deprecated.
+        Deprecated entities are not possible to retrieve by name.'''
+        assert self._uuid is not None
+        js = nexus.deprecate(self._base_url, self._uuid, self._rev)
+        return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
+
+    def attach(self, file_name, data, content_type='text/html'):
+        '''Attach binary data to entity.
+        Attached data downloadURL and other metadata will be available in ``distribution``.
+
+        Args:
+            file_name(str): Original file name.
+            data(file): File like data stream.
+            content_type(str): Content type with which attachment will be delivered when
+                accessed with the download url. Default value is `text/html`.
+
+        Returns:
+            New instance with distribution attribute updated.
+        '''
+        assert self._uuid is not None # pylint: disable=no-member
+        js = nexus.attach(self._base_url, self._uuid, self._rev, file_name, data, content_type)
+        return self.evolve(_rev=js[JSLD_REV], distribution=_deserialize_json_to_datatype(
+            Distribution, js['distribution'][0]))
+
+
+@attributes()
+class Release(Entity):
+    '''Release base entity'''
+    pass
+
+
+@attributes({'modelOf': AttrOf(str, default=None)})
+class ModelInstance(Entity):
+    '''Model instance collection'''
+    pass
