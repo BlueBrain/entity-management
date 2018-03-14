@@ -1,15 +1,12 @@
 '''Cell related entities'''
 from entity_management.util import attributes, AttrOf
 from entity_management.base import Distribution
-from entity_management.sim import Entity, Release, ModelInstance
+from entity_management.sim import Entity, Release, ModelInstance, ModelScript
 
 
 @attributes()
-class ModelScript(Entity):
-    '''Scripts attached to the model:
-
-    * For :class:`SubCellularModel` (modelScript) is a ``mod`` file.
-    * For :class:`EModel` (modelScript) is a ``hoc``, ``neuroml`` file.
+class SubCellularModelScript(ModelScript):
+    '''Scripts attached to the model: ``mod`` file.
 
     Args:
         distribution(Distribution): If model script is provided at the external location then
@@ -19,12 +16,24 @@ class ModelScript(Entity):
     pass
 
 
-@attributes({'modelScript': AttrOf(ModelScript)})
+@attributes()
+class EModelScript(ModelScript):
+    '''Scripts attached to the model: ``hoc``, ``neuroml`` file.
+
+    Args:
+        distribution(Distribution): If model script is provided at the external location then
+            distribution should provide the path to that location. Otherwise model script must
+            be in the attachment of the entity.
+    '''
+    pass
+
+
+@attributes({'modelScript': AttrOf(SubCellularModelScript)})
 class SubCellularModel(ModelInstance):
     '''SubCellular model
 
     Args:
-        modelScript(ModelScript): SubCellular model script such as mod file
+        modelScript(SubCellularModelScript): SubCellular model script such as mod file
     '''
     pass
 
@@ -52,14 +61,14 @@ class EModelRelease(Release):
 
 
 @attributes({'subCellularMechanism': AttrOf(SubCellularModel, default=None),
-             'modelScript': AttrOf(ModelScript, default=None),
+             'modelScript': AttrOf(EModelScript, default=None),
              'isPartOf': AttrOf(EModelRelease, default=None)})
 class EModel(ModelInstance):
     '''Electrical model
 
     Args:
         subCellularMechanism(SubCellularModel): SubCellular mechanism.
-        modelScript(ModelScript): Model script. Script defining neuron model, e.g. a ``hoc`` file,
+        modelScript(EModelScript): Model script. Script defining neuron model, e.g. a ``hoc`` file,
             or a zip file containing multiple ``hoc`` files.
         isPartOf(EModelRelease): The emodel release this emodel is part of.
     '''
@@ -104,14 +113,14 @@ class Morphology(Entity):
 
 @attributes({'eModel': AttrOf(EModel, default=None),
              'morphology': AttrOf(Morphology, default=None),
-             'modelScript': AttrOf(ModelScript, default=None)})
+             'modelScript': AttrOf(EModelScript, default=None)})
 class MEModel(ModelInstance):
     '''Detailed Neuron model with morphology and electrical models.
 
     Args:
         eModel(EModel): Electrical model.
         morphology(Morphology): Neuron morphology.
-        modelScript(ModelScript): Model script which instantiates neuron with specified morphology
+        modelScript(EModelScript): Model script which instantiates neuron with specified morphology
             and electrical model.
     '''
     pass

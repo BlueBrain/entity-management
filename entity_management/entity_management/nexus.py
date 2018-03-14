@@ -157,7 +157,7 @@ def attach(base_url, uuid, rev, file_name, data, content_type):
 @_log_nexus_exception
 def load_by_uuid(base_url, uuid):
     '''Load Entity from the base url with appended uuid'''
-    response = requests.get('%s/%s' % (base_url, uuid))
+    response = requests.get('%s/%s' % (base_url, uuid), headers=_get_headers())
     # if not found then return None
     if response.status_code == 404:
         return None
@@ -170,9 +170,11 @@ def load_by_uuid(base_url, uuid):
 @_log_nexus_exception
 def find_uuid_by_name(base_url, name):
     '''Lookup not deprecated entity uuid from the base url with the name filter'''
-    response = requests.get(base_url, params={
-        'deprecated': 'false',
-        'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
+    response = requests.get(base_url,
+                            headers=_get_headers(),
+                            params={
+                                'deprecated': 'false',
+                                'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
     # if not found then return None
     if response.status_code == 404:
         return None

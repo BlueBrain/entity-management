@@ -6,8 +6,7 @@ from datetime import datetime
 from inspect import getmro
 
 import attr
-
-import dateutil.parser as datetime_parser
+import dateutil
 
 from entity_management import nexus
 from entity_management.util import _clean_up_dict
@@ -43,15 +42,17 @@ def _deserialize_json_to_datatype(data_type, data_raw):
     elif issubclass(data_type, Identifiable):
         # make lazy proxy for identifiable object
         obj = Identifiable()
+        url = data_raw[JSLD_ID]
+        data_type = nexus.get_type(url)
         # pylint: disable=protected-access
         return obj.evolve(_proxied_type=data_type,
                           _types=['%s:Entity' % data_type._type_namespace,
                                   '%s:%s' % (data_type._type_namespace, data_type.__name__)],
-                          _uuid=nexus.get_uuid_from_url(data_raw[JSLD_ID]))
+                          _uuid=nexus.get_uuid_from_url(url))
     elif isinstance(data_raw, dict):
         return data_type(**_clean_up_dict(data_raw))
     elif isinstance(data_raw, datetime):
-        return datetime_parser.parse(data_raw)
+        return dateutil.parser.parse(data_raw)
     else:
         return data_type(data_raw)
 
@@ -108,7 +109,9 @@ class Identifiable(Frozen):
     # to make it behave like proxy to underlying Entity instance
 
     __metaclass__ = _IdentifiableMeta
-    _type_namespace = ''
+
+    # entity namespace which should be used for json-ld @type attribute
+    _type_namespace = '' # Entity classes from specific domains will override this
 
     @property
     def base_url(self):

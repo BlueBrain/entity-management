@@ -1,11 +1,4 @@
-from mock import patch, Mock
-from nose.tools import raises
-
 import attr
-
-from pprint import pprint
-
-import entity_management.nexus as nexus
 
 from entity_management import util
 

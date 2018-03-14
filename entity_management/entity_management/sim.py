@@ -48,3 +48,9 @@ class Release(Entity):
 class ModelInstance(Entity):
     '''Model instance collection'''
     pass
+
+
+@attributes()
+class ModelScript(Entity):
+    '''Base entity for the scripts attached to the model.'''
+    pass

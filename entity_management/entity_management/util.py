@@ -108,10 +108,10 @@ class AttrOf(object):
     '''Create an object with self.is_positional(Bool) and self.fn(Callable) that will be used
     to create an attr.ib by invoking Callable. is_positional signifies that attribute will have
     no default value and will appear in class init method as positional argument else it will
-    be kwarg
+    be kwarg.
 
     This is needed so that @attributes decorator can create the attr.ib's in order
-    because they have a counter inside that is used to order them
+    because they have a counter inside that is used to order them.
     '''
 
     def __init__(self, type_, optional=Ellipsis, default=Ellipsis):
