@@ -6,8 +6,8 @@ from entity_management.simulation.cell import MEModelRelease, SynapseRelease
 
 
 @attributes({'distribution': AttrOf(Distribution)})
-class CellPlacement(Entity):
-    '''Cell placement provides locationd of the MVD3 file with cell properties.
+class CircuitCellProperties(Entity):
+    '''Cell properties provides locationd of the MVD3 file with cell properties.
 
     Args
         distribution(Distribution): Location of the cell placement file.
@@ -16,13 +16,14 @@ class CellPlacement(Entity):
 
 
 @attributes({'memodelRelease': AttrOf(MEModelRelease),
-             'cellPlacement': AttrOf(CellPlacement)})
+             'circuitCellProperties': AttrOf(CircuitCellProperties)})
 class NodeCollection(Entity):
     '''Node collection represents circuit nodes(positions, orientations)
 
     Args:
         memodelRelease(MEModelRelease): MEModel release this node collection is using.
-        cellPlacement(CellPlacement): Cell placement which is used in this node collection.
+        circuitCellProperties(CircuitCellProperties): Cell properties which are used in this node
+                                                      collection.
     '''
     pass
 

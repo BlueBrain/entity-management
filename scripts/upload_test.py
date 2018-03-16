@@ -10,7 +10,7 @@ from entity_management.prov import Agent, Activity
 from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
                                                EModel, SubCellularModel, ModelScript, Morphology)
 from entity_management.simulation.circuit import (NodeCollection, SynapseRelease, EdgeCollection,
-                                                  CellPlacement, Target, DetailedCircuit)
+                                                  CircuitCellProperties, Target, DetailedCircuit)
 
 
 agent_name = 'NSE'
@@ -128,18 +128,18 @@ if memodel_release is None:
     pprint('MEModelRelease created: MEModel Release')
 
 
-cell_placement_name = 'CellPlacement'
-cell_placement = CellPlacement.from_name(cell_placement_name)
-if cell_placement is None:
-    pprint('CellPlacement creating...')
-    cell_placement = CellPlacement(
-            name=cell_placement_name,
-            description=cell_placement_name + ' description',
+circuit_cell_properties_name = 'CircuitCellProperties'
+circuit_cell_properties = CircuitCellProperties.from_name(circuit_cell_properties_name)
+if circuit_cell_properties is None:
+    pprint('CircuitCellProperties creating...')
+    circuit_cell_properties = CircuitCellProperties(
+            name=circuit_cell_properties_name,
+            description=circuit_cell_properties_name + ' description',
             distribution=Distribution(
-                downloadURL='file:///cell/placement/distribution',
+                downloadURL='file:///cell/properties/distribution',
                 mediaType='application/neuroml'))
-    cell_placement.save()
-    pprint('CellPlacement created: ' + cell_placement_name)
+    circuit_cell_properties.save()
+    pprint('CircuitCellProperties created: ' + circuit_cell_properties_name)
 
 
 node_collection_name = 'NodeCollection'
@@ -150,7 +150,7 @@ if node_collection is None:
             name=node_collection_name,
             description='NodeCollection description',
             memodelRelease=memodel_release,
-            cellPlacement=cell_placement)
+            circuitCellProperties=circuit_cell_properties)
     pprint(node_collection.as_json_ld())
     node_collection.save()
     pprint('NodeCollection created' + node_collection_name)

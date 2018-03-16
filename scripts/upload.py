@@ -6,8 +6,8 @@ from pprint import pprint
 from entity_management.base import Distribution
 from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
                                                SynapseRelease)
-from entity_management.simulation.circuit import (CellPlacement, EdgeCollection, NodeCollection,
-                                                  Target, DetailedCircuit)
+from entity_management.simulation.circuit import (CircuitCellProperties, EdgeCollection,
+                                                  NodeCollection, Target, DetailedCircuit)
 
 
 # Skip v5 at the moment
@@ -32,19 +32,19 @@ from entity_management.simulation.circuit import (CellPlacement, EdgeCollection,
 #     morphology_release = morphology_release.save()
 #     pprint('MorphologyRelease created: 2012 Morphology release')
 #
-# cell_placement_name = 'O1.v5 cell placement'
-# cell_placement = CellPlacement.from_name(cell_placement_name)
-# if cell_placement is None:
-#     pprint('CellPlacement creating...')
-#     cell_placement = CellPlacement(
-#             name=cell_placement_name,
-#             description=cell_placement_name + ' description',
+# circuit_cell_properties_name = 'O1.v5 cell placement'
+# circuit_cell_properties = CircuitCellProperties.from_name(circuit_cell_properties_name)
+# if circuit_cell_properties is None:
+#     pprint('CircuitCellProperties creating...')
+#     circuit_cell_properties = CircuitCellProperties(
+#             name=circuit_cell_properties_name,
+#             description=circuit_cell_properties_name + ' description',
 #             distribution=Distribution(
 #                 downloadURL='file:///gpfs/bbp.cscs.ch/project/proj1/circuits/'
 #                             'SomatosensoryCxS1-v5.r0/O1/merged_circuit/circuit.mvd2',
 #                 mediaType='application/mvd2'))
-#     cell_placement = cell_placement.save()
-#     pprint('CellPlacement created: ' + cell_placement_name)
+#     circuit_cell_properties = circuit_cell_properties.save()
+#     pprint('CircuitCellProperties created: ' + circuit_cell_properties_name)
 #
 #
 # emodel_release_name = 'O1.v5 emodel release'
@@ -117,7 +117,7 @@ from entity_management.simulation.circuit import (CellPlacement, EdgeCollection,
 #             name=node_collection_name,
 #             description=node_collection_name,
 #             memodelRelease=memodel_release,
-#             cellPlacement=cell_placement)
+#             circuitCellProperties=circuit_cell_properties)
 #     node_collection = node_collection.save()
 #     pprint('NodeCollection created' + node_collection_name)
 #
@@ -168,19 +168,19 @@ if morphology_release is None:
     pprint('MorphologyRelease created: 2017 Morphology release')
 
 
-cell_placement_name = 'O1.V6a cell placement'
-cell_placement = CellPlacement.from_name(cell_placement_name)
-if cell_placement is None:
-    pprint('CellPlacement creating...')
-    cell_placement = CellPlacement(
-            name=cell_placement_name,
-            description=cell_placement_name + ' description',
+circuit_cell_properties_name = 'O1.V6a cell placement'
+circuit_cell_properties = CircuitCellProperties.from_name(circuit_cell_properties_name)
+if circuit_cell_properties is None:
+    pprint('CircuitCellProperties creating...')
+    circuit_cell_properties = CircuitCellProperties(
+            name=circuit_cell_properties_name,
+            description=circuit_cell_properties_name + ' description',
             distribution=Distribution(
                 downloadURL='file:///gpfs/bbp.cscs.ch/project/proj64/circuits/O1.v6a/'
                             '20171212/circuit.mvd3',
                 mediaType='application/mvd3'))
-    cell_placement = cell_placement.save()
-    pprint('CellPlacement created: ' + cell_placement_name)
+    circuit_cell_properties = circuit_cell_properties.save()
+    pprint('CircuitCellProperties created: ' + circuit_cell_properties_name)
 
 
 emodel_release_name = 'O1.V6a emodel release'
@@ -254,7 +254,7 @@ if node_collection is None:
             name=node_collection_name,
             description=node_collection_name,
             memodelRelease=memodel_release,
-            cellPlacement=cell_placement)
+            circuitCellProperties=circuit_cell_properties)
     node_collection = node_collection.save()
     pprint('NodeCollection created' + node_collection_name)
 
@@ -285,19 +285,19 @@ if circuit is None:
 
 # -------------------------------------------------------------------------------------------------
 
-cell_placement_name = 'S1.V6a cell placement'
-cell_placement = CellPlacement.from_name(cell_placement_name)
-if cell_placement is None:
-    pprint('CellPlacement creating...')
-    cell_placement = CellPlacement(
-            name=cell_placement_name,
-            description=cell_placement_name + ' description',
+circuit_cell_properties_name = 'S1.V6a cell placement'
+circuit_cell_properties = CircuitCellProperties.from_name(circuit_cell_properties_name)
+if circuit_cell_properties is None:
+    pprint('CircuitCellProperties creating...')
+    circuit_cell_properties = CircuitCellProperties(
+            name=circuit_cell_properties_name,
+            description=circuit_cell_properties_name + ' description',
             distribution=Distribution(
                 downloadURL='file:///gpfs/bbp.cscs.ch/project/proj64/circuits/S1.v6a/20171206/'
                             'circuit.mvd3',
                 mediaType='application/mvd3'))
-    cell_placement = cell_placement.save()
-    pprint('CellPlacement created: ' + cell_placement_name)
+    circuit_cell_properties = circuit_cell_properties.save()
+    pprint('CircuitCellProperties created: ' + circuit_cell_properties_name)
 
 
 edge_collection_name = 'S1.V6a edge collection'
@@ -323,7 +323,7 @@ if node_collection is None:
             name=node_collection_name,
             description=node_collection_name,
             memodelRelease=memodel_release,
-            cellPlacement=cell_placement)
+            circuitCellProperties=circuit_cell_properties)
     node_collection = node_collection.save()
     pprint('NodeCollection created' + node_collection_name)
 

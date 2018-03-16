@@ -11,7 +11,7 @@ import entity_management.nexus as nexus
 
 from entity_management import base
 from entity_management.simulation.circuit import (DetailedCircuit, NodeCollection,
-        SynapseRelease, EdgeCollection, Target, CellPlacement)
+        SynapseRelease, EdgeCollection, Target, CircuitCellProperties)
 from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
@@ -339,14 +339,14 @@ def test_create_detailed_circuit():
             emodelRelease=emodelRelease,
             memodelIndex=base.Distribution(downloadURL='url'))
 
-    cellPlacement = CellPlacement(
-            name='CellPlacement',
+    circuitCellProperties = CircuitCellProperties(
+            name='CircuitCellProperties',
             distribution=base.Distribution(downloadURL='url'))
 
     nodeCollection = NodeCollection(
             name='NodeCollection',
             memodelRelease=memodelRelease,
-            cellPlacement=cellPlacement)
+            circuitCellProperties=circuitCellProperties)
 
     synapseRelease = SynapseRelease(
             name='SynapseRelease',
