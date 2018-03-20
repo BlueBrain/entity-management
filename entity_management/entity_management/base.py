@@ -161,9 +161,14 @@ class Identifiable(Frozen):
         return sorted(attrs_from_mro | attrs_from_obj)
 
     @classmethod
-    def from_uuid(cls, uuid):
-        '''Load entity from UUID.'''
-        js = nexus.load_by_uuid(cls._base_url, uuid) # pylint: disable=no-member
+    def from_uuid(cls, uuid, token=None):
+        '''
+        Args:
+            uuid(str): UUID of the entity to load.
+            token(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        Load entity from UUID.'''
+        js = nexus.load_by_uuid(cls._base_url, uuid, token) # pylint: disable=no-member
 
         # prepare all entity init args
         init_args = {}
@@ -178,27 +183,45 @@ class Identifiable(Frozen):
         return obj.evolve(_uuid=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
 
     @classmethod
-    def from_name(cls, name):
-        '''Load entity from name.'''
-        uuid = nexus.find_uuid_by_name(cls._base_url, name) # pylint: disable=no-member
+    def from_name(cls, name, token=None):
+        '''Load entity from name.
+
+        Args:
+            name(str): Name of the entity to load.
+            token(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        '''
+        uuid = nexus.find_uuid_by_name(cls._base_url, name, token) # pylint: disable=no-member
         if uuid:
-            return cls.from_uuid(uuid)
+            return cls.from_uuid(uuid, token)
         else:
             return None
 
-    def save(self):
-        '''Save or update entity.'''
+    def save(self, token=None):
+        '''Save or update entity.
+
+        Args:
+            token(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        Returns:
+            New instance of the same class with revision updated.
+        '''
         if hasattr(self, '_uuid') and self._uuid:
-            js = nexus.update(self._base_url, self._uuid, self._rev, self.as_json_ld())
+            js = nexus.update(self._base_url, self._uuid, self._rev, self.as_json_ld(), token)
         else:
-            js = nexus.save(self._base_url, self.as_json_ld())
+            js = nexus.save(self._base_url, self.as_json_ld(), token)
         return self.evolve(_uuid=nexus.get_uuid_from_url(js[JSLD_ID]), _rev=js[JSLD_REV])
 
-    def deprecate(self):
+    def deprecate(self, token=None):
         '''Mark entity as deprecated.
-        Deprecated entities are not possible to retrieve by name.'''
+        Deprecated entities are not possible to retrieve by name.
+
+        Args:
+            token(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        '''
         assert self._uuid is not None
-        js = nexus.deprecate(self._base_url, self._uuid, self._rev)
+        js = nexus.deprecate(self._base_url, self._uuid, self._rev, token)
         return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
 
     def evolve(self, **changes):

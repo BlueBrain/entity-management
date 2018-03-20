@@ -11,7 +11,7 @@ from pprint import pprint
 from six import iteritems
 from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
-from entity_management.settings import JSLD_ID, TOKEN
+from entity_management.settings import JSLD_ID
 
 L = logging.getLogger(__name__)
 
@@ -31,11 +31,11 @@ def get_type(url):
     return None
 
 
-def _get_headers():
-    '''Get headers with additional authorization header if NEXUS_TOKE env variable had value'''
+def _get_headers(token):
+    '''Get headers with additional authorization header if token is not None'''
     headers = {'accept': 'application/ld+json'}
-    if TOKEN is not None:
-        headers['authorization'] = 'bearer %s' % TOKEN
+    if token is not None:
+        headers['authorization'] = token
     return headers
 
 
@@ -79,25 +79,26 @@ def get_uuid_from_url(url):
 
 
 @_log_nexus_exception
-def save(base_url, payload):
+def save(base_url, payload, token=None):
     '''Save entity, return json response
 
     Args:
         base_url(str): Base url of the entity which will be saved.
         payload(dict): Json-ld serialization of the entity.
+        token(str): Optional OAuth token.
 
     Returns:
         Json response.
     '''
     response = requests.post(base_url,
-                             headers=_get_headers(),
+                             headers=_get_headers(token),
                              json=payload)
     response.raise_for_status()
     return response.json(object_hook=_byteify)
 
 
 @_log_nexus_exception
-def update(base_url, uuid, rev, payload):
+def update(base_url, uuid, rev, payload, token=None):
     '''Update entity, return json response
 
     Args:
@@ -105,6 +106,7 @@ def update(base_url, uuid, rev, payload):
         uuid(str): UUID of the entity.
         rev(int): Revision number.
         payload(dict): Json-ld serialization of the entity.
+        token(str): Optional OAuth token.
 
     Returns:
         Json response.
@@ -112,7 +114,7 @@ def update(base_url, uuid, rev, payload):
     assert uuid is not None
     assert rev > 0
     response = requests.put('%s/%s' % (base_url, uuid),
-                            headers=_get_headers(),
+                            headers=_get_headers(token),
                             params={'rev': rev},
                             json=payload)
     response.raise_for_status()
@@ -120,19 +122,19 @@ def update(base_url, uuid, rev, payload):
 
 
 @_log_nexus_exception
-def deprecate(base_url, uuid, rev):
+def deprecate(base_url, uuid, rev, token=None):
     '''Mark entity as deprecated, return json response'''
     assert uuid is not None
     assert rev > 0
     response = requests.delete('%s/%s' % (base_url, uuid),
-                               headers=_get_headers(),
+                               headers=_get_headers(token),
                                params={'rev': rev})
     response.raise_for_status()
     return response.json(object_hook=_byteify)
 
 
 @_log_nexus_exception
-def attach(base_url, uuid, rev, file_name, data, content_type):
+def attach(base_url, uuid, rev, file_name, data, content_type, token=None):
     '''Attach binary to the entity.
 
     Args:
@@ -142,12 +144,13 @@ def attach(base_url, uuid, rev, file_name, data, content_type):
         data(file): File like data stream.
         content_type(str): Content type with which attachment will be delivered when accessed
             with the download url.
+        token(str): Optional OAuth token.
 
     Returns:
         Json response.
     '''
     response = requests.put('%s/%s/attachment' % (base_url, uuid),
-                            headers=_get_headers(),
+                            headers=_get_headers(token),
                             params={'rev': rev},
                             files={'file': (file_name, data, content_type)})
     response.raise_for_status()
@@ -155,9 +158,9 @@ def attach(base_url, uuid, rev, file_name, data, content_type):
 
 
 @_log_nexus_exception
-def load_by_uuid(base_url, uuid):
+def load_by_uuid(base_url, uuid, token=None):
     '''Load Entity from the base url with appended uuid'''
-    response = requests.get('%s/%s' % (base_url, uuid), headers=_get_headers())
+    response = requests.get('%s/%s' % (base_url, uuid), headers=_get_headers(token))
     # if not found then return None
     if response.status_code == 404:
         return None
@@ -168,10 +171,10 @@ def load_by_uuid(base_url, uuid):
 
 
 @_log_nexus_exception
-def find_uuid_by_name(base_url, name):
+def find_uuid_by_name(base_url, name, token=None):
     '''Lookup not deprecated entity uuid from the base url with the name filter'''
     response = requests.get(base_url,
-                            headers=_get_headers(),
+                            headers=_get_headers(token),
                             params={
                                 'deprecated': 'false',
                                 'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
@@ -187,8 +190,24 @@ def find_uuid_by_name(base_url, name):
     return get_uuid_from_url(js['results'][0]['resultId'])
 
 
-def load_by_url(url):
+@_log_nexus_exception
+def collection_by_name(base_url, name, token=None):
+    '''Lookup not deprecated entities from the base url with the name filter'''
+    response = requests.get(base_url,
+                            headers=_get_headers(token),
+                            params={
+                                'deprecated': 'false',
+                                'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
+    # if not found then return []
+    if response.status_code == 404:
+        return []
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    return [load_by_url(entity.resultId) for entity in js['results']]
+
+
+def load_by_url(url, token=None):
     '''Load Entity from url'''
     uuid = get_uuid_from_url(url)
     cls = get_type(url)
-    return cls.from_uuid(uuid)
+    return cls.from_uuid(uuid, token)
