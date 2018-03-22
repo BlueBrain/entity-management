@@ -12,7 +12,7 @@ import entity_management.nexus as nexus
 from entity_management import base
 from entity_management.simulation.circuit import (DetailedCircuit, NodeCollection,
         SynapseRelease, EdgeCollection, Target, CircuitCellProperties)
-from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology)
+from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology, MEModel)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 
@@ -408,3 +408,8 @@ def test_morphology_attachment():
     assert morphology.distribution.digest['algorithm'] == 'SHA-256'
     assert morphology.distribution.mediaType == 'text/plain'
     assert morphology.distribution.originalFileName == 'file_name'
+
+
+def test_identifiable_instance():
+    memodel = MEModel(name='dummy')
+    assert isinstance(memodel, base.Identifiable)

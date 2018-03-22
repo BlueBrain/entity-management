@@ -19,7 +19,7 @@ class Entity(Identifiable):
     '''
     _type_namespace = 'nsg'
 
-    def attach(self, file_name, data, content_type='text/html'):
+    def attach(self, file_name, data, content_type='text/html', token=None):
         '''Attach binary data to entity.
         Attached data downloadURL and other metadata will be available in ``distribution``.
 
@@ -33,7 +33,8 @@ class Entity(Identifiable):
             New instance with distribution attribute updated.
         '''
         assert self._uuid is not None # pylint: disable=no-member
-        js = nexus.attach(self._base_url, self._uuid, self._rev, file_name, data, content_type)
+        js = nexus.attach(self._base_url, self._uuid, self._rev,
+                          file_name, data, content_type, token)
         return self.evolve(_rev=js[JSLD_REV], distribution=_deserialize_json_to_datatype(
             Distribution, js['distribution'][0]))
 

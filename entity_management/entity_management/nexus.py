@@ -8,7 +8,7 @@ import sys
 from functools import wraps
 from pprint import pprint
 
-from six import iteritems
+from six import iteritems, text_type, PY2
 from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
 from entity_management.settings import JSLD_ID
@@ -42,8 +42,8 @@ def _get_headers(token):
 def _byteify(data, ignore_dicts=False):
     '''Use to convert unicode strings to str while loading json'''
     # if this is a unicode string, return its string representation
-    if isinstance(data, unicode):
-        return data.encode('utf-8')
+    if isinstance(data, text_type):
+        return data.encode('utf-8') if PY2 else data
     # if this is a list of values, return list of byteified values
     if isinstance(data, list):
         return [_byteify(item, ignore_dicts=True) for item in data]

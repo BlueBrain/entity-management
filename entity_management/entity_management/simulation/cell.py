@@ -1,4 +1,6 @@
 '''Cell related entities'''
+import typing
+
 from entity_management.util import attributes, AttrOf
 from entity_management.base import Distribution
 from entity_management.sim import Entity, Release, ModelInstance, ModelScript
@@ -35,7 +37,7 @@ class SubCellularModel(ModelInstance):
     Args:
         modelScript(SubCellularModelScript): SubCellular model script such as mod file
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'distribution': AttrOf(Distribution)})
@@ -60,7 +62,7 @@ class EModelRelease(Release):
     pass
 
 
-@attributes({'subCellularMechanism': AttrOf(SubCellularModel, default=None),
+@attributes({'subCellularMechanism': AttrOf(typing.List[SubCellularModel], default=None),
              'modelScript': AttrOf(EModelScript, default=None),
              'isPartOf': AttrOf(EModelRelease, default=None)})
 class EModel(ModelInstance):
@@ -72,7 +74,7 @@ class EModel(ModelInstance):
             or a zip file containing multiple ``hoc`` files.
         isPartOf(EModelRelease): The emodel release this emodel is part of.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'distribution': AttrOf(Distribution),
@@ -108,7 +110,7 @@ class Morphology(Entity):
             should provide the path to it.
         isPartOf(MorphologyRelease): Release this morphology is part of.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'eModel': AttrOf(EModel, default=None),
@@ -123,7 +125,7 @@ class MEModel(ModelInstance):
         modelScript(EModelScript): Model script which instantiates neuron with specified morphology
             and electrical model.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'emodelRelease': AttrOf(EModelRelease),

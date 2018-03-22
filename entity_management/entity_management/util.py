@@ -1,5 +1,6 @@
 '''Utilities'''
 
+import typing
 import six
 import attr
 from attr import validators
@@ -115,17 +116,22 @@ class AttrOf(object):
     '''
 
     def __init__(self, type_, optional=Ellipsis, default=Ellipsis):
-        validator = None
-        if optional is Ellipsis:
-            if default is Ellipsis:
-                validator = subclass_of(type_)
-            elif default is None:
-                validator = optional_of(type_)
+        if isinstance(type_, typing.GenericMeta):
+            # the collection was explicitly specified in attr.ib
+            # like typing.List[Distribution]
+            assert type_.__extra__ == list
+            validator = _list_of(type_.__args__[0])
         else:
-            if optional is False:
-                validator = subclass_of(type_)
+            if optional is Ellipsis:
+                if default is Ellipsis:
+                    validator = subclass_of(type_)
+                elif default is None:
+                    validator = optional_of(type_)
             else:
-                validator = optional_of(type_)
+                if optional is False:
+                    validator = subclass_of(type_)
+                else:
+                    validator = optional_of(type_)
 
         if default is Ellipsis: # no default value -> positional arg
             self.is_positional = True

@@ -3,7 +3,7 @@
 import ast
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 ############ VERSION FINDING
@@ -49,8 +49,7 @@ setup(
     extras_require={
         'extension_tests': TESTS_REQUIRE,
     },
-    packages=['entity_management',
-              ],
+    packages=find_packages(),
     include_package_data=True,
     author="NSE Team",
     author_email="bbp-ou-nse@groupes.epfl.ch",

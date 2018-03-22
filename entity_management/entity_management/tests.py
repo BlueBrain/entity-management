@@ -12,7 +12,6 @@ def test_dict_merg():
 
 
 def test_attrs_utils():
-
     # define attrs class
     @attr.s
     class Abc(object):

@@ -15,30 +15,40 @@ from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_R
                                         JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX)
 
 
-def _deserialize_json_to_datatype(data_type, data_raw):
+def _deserialize_list(data_type, data_raw):
+    '''Deserialize list of json elements'''
+    result_list = []
+    # find the type of collection element
+    if isinstance(data_type, typing.GenericMeta):
+        # the collection was explicitly specified in attr.ib
+        # like typing.List[Distribution]
+        assert data_type.__extra__ == list
+        list_element_type = data_type.__args__[0]
+    else:
+        # nexus returns a collection of one element
+        # element type is the type specified in attr.ib
+        list_element_type = data_type
+    for data_element in data_raw:
+        data = _deserialize_json_to_datatype(list_element_type, data_element)
+        if data is not None:
+            result_list.append(data)
+    # if only one then probably nexus is just responding with the collection for single element
+    # TODO check this with nexus it might be a bug on their side
+    if not len(result_list):
+        return None
+    elif len(result_list) == 1:
+        return result_list[0]
+    else:
+        return result_list
+
+
+def _deserialize_json_to_datatype(data_type, data_raw, token=None):
     '''Deserialize raw data json to data_type'''
+    if data_raw is None:
+        return None
     # first check if it is a collection
     if isinstance(data_raw, list):
-        result_list = []
-        # find the type of collection element
-        if isinstance(data_type, typing.GenericMeta):
-            # the collection was explicitly specified in attr.ib
-            # like typing.List[Distribution]
-            assert data_type.__extra__ == list
-            list_element_type = data_type.__args__[0]
-        else:
-            # nexus returns a collection of one element
-            # element type is the type specified in attr.ib
-            list_element_type = data_type
-        for data_element in data_raw:
-            data = _deserialize_json_to_datatype(list_element_type, data_element)
-            result_list.append(data)
-        # if only one then probably nexus is just responding with the collection for single element
-        # TODO check this with nexus it might be a bug on their side
-        if len(result_list) == 1:
-            return result_list[0]
-        else:
-            return result_list
+        return _deserialize_list(data_type, data_raw)
     elif issubclass(data_type, Identifiable):
         # make lazy proxy for identifiable object
         obj = Identifiable()
@@ -46,6 +56,7 @@ def _deserialize_json_to_datatype(data_type, data_raw):
         data_type = nexus.get_type(url)
         # pylint: disable=protected-access
         return obj.evolve(_proxied_type=data_type,
+                          _proxied_token=token,
                           _types=['%s:Entity' % data_type._type_namespace,
                                   '%s:%s' % (data_type._type_namespace, data_type.__name__)],
                           _uuid=nexus.get_uuid_from_url(url))
@@ -55,6 +66,18 @@ def _deserialize_json_to_datatype(data_type, data_raw):
         return dateutil.parser.parse(data_raw)
     else:
         return data_type(data_raw)
+
+
+def _serialize_obj(value):
+    '''Serialize object'''
+    if isinstance(value, Identifiable):
+        return {'@id': '%s/%s' % (value.base_url, value.uuid),
+                '@type': value.types,
+                'name': 'dummy'} # remove when nexus starts using graph traversal for validation
+    elif attr.has(type(value)):
+        return attr.asdict(value, recurse=True)
+    else:
+        return value
 
 
 @attr.s(frozen=True)
@@ -94,22 +117,23 @@ class _IdentifiableMeta(type):
         if hasattr(inst, '_proxied_type'):
             # if instance has _proxied_type then it is a proxy
             # compare to proxied type
-            return cls == inst._proxied_type # pylint: disable=protected-access
+            for c in getmro(inst._proxied_type): # pylint: disable=protected-access
+                if c == cls:
+                    return True
         else:
             # fallback to default check
-            return cls == type(inst)
+            for c in getmro(type(inst)):
+                if c == cls:
+                    return True
+        return False
 
 
+@six.add_metaclass(_IdentifiableMeta)
 @attributes()
 class Identifiable(Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
     requests to that entity.'''
-    # Identifiable can be used on its own but json-ld deserialization will set _proxied_type
-    # to make it behave like proxy to underlying Entity instance
-
-    __metaclass__ = _IdentifiableMeta
-
     # entity namespace which should be used for json-ld @type attribute
     _type_namespace = '' # Entity classes from specific domains will override this
 
@@ -139,7 +163,7 @@ class Identifiable(Frozen):
             if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
                                                        # and that will cause recursion to _getattr_
                 object.__setattr__(self, '_proxied_object',
-                                   self._proxied_type.from_uuid(self._uuid))
+                                   self._proxied_type.from_uuid(self._uuid, self._proxied_token))
             if self._proxied_object is None:
                 raise ValueError('Unable to find proxied entity for uuid:%s and %s' %
                                  (self._uuid, self._proxied_type))
@@ -177,7 +201,7 @@ class Identifiable(Frozen):
             raw = js.get(attr_name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw)
+                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, token)
 
         obj = cls(**init_args)
         return obj.evolve(_uuid=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
@@ -237,7 +261,7 @@ class Identifiable(Frozen):
         hidden_attrs = {}
         # copy hidden attrs values from changes(remove with pop) else from original if present
         for attr_name in ['_uuid', '_rev', '_deprecated', '_types', '_proxied_type',
-                          '_proxied_object']:
+                          '_proxied_object', '_proxied_token']:
             attr_value = Ellipsis
 
             # take value from original if present
@@ -267,39 +291,39 @@ class Identifiable(Frozen):
         for attribute in attrs:
             attr_value = getattr(self, attribute.name)
             attr_name = attribute.name
-            if attr.has(type(attr_value)):
-                if issubclass(type(attr_value), Identifiable):
-                    rv[attr_name] = {'@id': '%s/%s' % (attr_value.base_url, attr_value.uuid),
-                                     '@type': attr_value.types,
-                                     'name': 'dummy'} # TODO remove when nexus starts using
-                                                      # graph traversal for validation
-                else:
-                    rv[attr_name] = attr.asdict(
-                            attr_value,
-                            recurse=True)
-            elif isinstance(attr_value, (tuple, list, set)):
-                rv[attr_name] = [
-                        attr.asdict(i, recurse=True)
-                        if attr.has(type(i)) else i
-                        for i in attr_value]
+            if isinstance(attr_value, (tuple, list, set)):
+                rv[attr_name] = [_serialize_obj(i) for i in attr_value]
             elif isinstance(attr_value, dict):
                 rv[attr_name] = dict((
                     attr.asdict(kk) if attr.has(type(kk)) else kk,
                     attr.asdict(vv) if attr.has(type(vv)) else vv)
                     for kk, vv in six.iteritems(attr_value))
             else:
-                rv[attr_name] = attr_value
+                rv[attr_name] = _serialize_obj(attr_value)
         rv['@context'] = [ENTITY_CTX, NSG_CTX,
                           {
                               'accessURL': {'@id': 'schema:accessURL', '@type': '@id'},
                               'downloadURL': {'@id': 'schema:downloadURL', '@type': '@id'},
                               'distribution': {'@id': 'schema:distribution'},
                               'mediaType': {'@id': 'schema:mediaType', },
+                              'modelScript': {'@id': 'nsg:modelScript'},
+                              'emodelIndex': {'@id': 'nsg:emodelIndex'},
+                              'subCellularMechanism': {'@id': 'nsg:subCellularMechanism'},
+                              'morphologyIndex': {'@id': 'nsg:morphologyIndex'},
+                              'eModel': {'@id': 'nsg:eModel'},
+                              'emodelRelease': {'@id': 'nsg:emodelRelease'},
+                              'morphologyRelease': {'@id': 'nsg:morphologyRelease'},
+                              'memodelIndex': {'@id': 'nsg:memodelIndex'},
                               'cellPlacement': {'@id': 'nsg:cellPlacement'},
                               'memodelRelease': {'@id': 'nsg:memodelRelease'},
+                              'circuitCellProperties': {'@id': 'nsg:circuitCellProperties'},
+                              'edgePopulation': {'@id': 'nsg:edgePopulation'},
                               'property': {'@id': 'nsg:property'},
                               'synapseRelease': {'@id': 'nsg:synapseRelease'},
                               'nodeCollection': {'@id': 'nsg:nodeCollection'},
+                              'edgeCollection': {'@id': 'nsg:edgeCollection'},
+                              'target': {'@id': 'nsg:target'},
+                              'morphology': {'@id': 'nsg:morphology'},
                               'isPartOf': {'@id': 'dcterms:isPartOf'},
                               'wasRevisionOf': {'@id': 'prov:wasRevisionOf'},
                           }]
