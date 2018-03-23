@@ -15,7 +15,7 @@ from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_R
                                         JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX)
 
 
-def _deserialize_list(data_type, data_raw):
+def _deserialize_list(data_type, data_raw, token):
     '''Deserialize list of json elements'''
     result_list = []
     # find the type of collection element
@@ -29,7 +29,7 @@ def _deserialize_list(data_type, data_raw):
         # element type is the type specified in attr.ib
         list_element_type = data_type
     for data_element in data_raw:
-        data = _deserialize_json_to_datatype(list_element_type, data_element)
+        data = _deserialize_json_to_datatype(list_element_type, data_element, token)
         if data is not None:
             result_list.append(data)
     # if only one then probably nexus is just responding with the collection for single element
@@ -48,7 +48,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         return None
     # first check if it is a collection
     if isinstance(data_raw, list):
-        return _deserialize_list(data_type, data_raw)
+        return _deserialize_list(data_type, data_raw, token)
     elif issubclass(data_type, Identifiable):
         # make lazy proxy for identifiable object
         obj = Identifiable()
@@ -113,19 +113,13 @@ class _IdentifiableMeta(type):
         super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
 
     def __instancecheck__(cls, inst):
-        ''''''
+        '''If instance has _proxied_type then it is a proxy and instance check should be done
+        against proxied type'''
         if hasattr(inst, '_proxied_type'):
-            # if instance has _proxied_type then it is a proxy
-            # compare to proxied type
-            for c in getmro(inst._proxied_type): # pylint: disable=protected-access
-                if c == cls:
-                    return True
+            mro = getmro(inst._proxied_type) # pylint: disable=protected-access
         else:
-            # fallback to default check
-            for c in getmro(type(inst)):
-                if c == cls:
-                    return True
-        return False
+            mro = getmro(type(inst))
+        return any(c == cls for c in mro)
 
 
 @six.add_metaclass(_IdentifiableMeta)

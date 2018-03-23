@@ -4,6 +4,8 @@ from __future__ import print_function
 import logging
 import requests
 import sys
+import os
+import shutil
 
 from functools import wraps
 from pprint import pprint
@@ -155,6 +157,28 @@ def attach(base_url, uuid, rev, file_name, data, content_type, token=None):
                             files={'file': (file_name, data, content_type)})
     response.raise_for_status()
     return response.json(object_hook=_byteify)
+
+
+@_log_nexus_exception
+def download(url, path, file_name, token=None):
+    '''Download entity attachment.
+
+    Args:
+        url(str): Url of the attachment.
+        path(str): Path where to save the file.
+        file_name(str): File name.
+        token(str): Optional OAuth token.
+
+    Returns:
+        Raw response.
+    '''
+    response = requests.get(url, headers={'authorization': token} if token else {}, stream=True)
+    try:
+        response.raise_for_status()
+        with open(os.path.join(path, file_name), 'wb') as f:
+            shutil.copyfileobj(response.raw, f)
+    finally:
+        response.close()
 
 
 @_log_nexus_exception

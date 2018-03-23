@@ -28,6 +28,7 @@ class Entity(Identifiable):
             data(file): File like data stream.
             content_type(str): Content type with which attachment will be delivered when
                 accessed with the download url. Default value is `text/html`.
+            token(str): Optional OAuth token.
 
         Returns:
             New instance with distribution attribute updated.
@@ -37,6 +38,18 @@ class Entity(Identifiable):
                           file_name, data, content_type, token)
         return self.evolve(_rev=js[JSLD_REV], distribution=_deserialize_json_to_datatype(
             Distribution, js['distribution'][0]))
+
+    def download(self, path, token=None):
+        '''Download attachment of the entity and save it on the path with the originalFileName.
+
+        Args:
+            path(str): Path where to save the file. File name will be taken from distribution
+                originalFileName.
+            token(str): Optional OAuth token.
+        '''
+        file_name = self.distribution.originalFileName
+        url = self.distribution.downloadURL
+        nexus.download(url, path, file_name, token)
 
 
 @attributes()
