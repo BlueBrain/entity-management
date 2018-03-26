@@ -1,6 +1,7 @@
 '''Provenance entities'''
 from entity_management import nexus
-from entity_management.base import Identifiable, Distribution, _deserialize_json_to_datatype
+from entity_management.base import (Identifiable, Distribution, OntologyTerm,
+                                    _deserialize_json_to_datatype)
 from entity_management.util import attributes, AttrOf
 from entity_management.settings import JSLD_REV
 
@@ -58,9 +59,17 @@ class Release(Entity):
     pass
 
 
-@attributes({'modelOf': AttrOf(str, default=None)})
+@attributes({'modelOf': AttrOf(str, default=None),
+             'brainRegion': AttrOf(OntologyTerm, default=None),
+             'species': AttrOf(OntologyTerm, default=None)})
 class ModelInstance(Entity):
-    '''Model instance collection'''
+    '''Abstract model instance.
+
+    Args:
+        modelOf(str): Specifies the model.
+        brainRegion(OntologyTerm): Brain region ontology term.
+        species(OntologyTerm): Species ontology term.
+    '''
     pass
 
 

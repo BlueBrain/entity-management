@@ -411,5 +411,8 @@ def test_morphology_attachment():
 
 
 def test_identifiable_instance():
-    memodel = MEModel(name='dummy')
+    memodel = MEModel(name='dummy', species=base.OntologyTerm(url='url', label='label'))
+    js = memodel.as_json_ld()
+    assert js['species']['@id'] == 'url'
+    assert js['species']['label'] == 'label'
     assert isinstance(memodel, base.Identifiable)

@@ -74,6 +74,9 @@ def _serialize_obj(value):
         return {'@id': '%s/%s' % (value.base_url, value.uuid),
                 '@type': value.types,
                 'name': 'dummy'} # remove when nexus starts using graph traversal for validation
+    elif isinstance(value, OntologyTerm):
+        return {'@id': value.url,
+                'label': value.label}
     elif attr.has(type(value)):
         return attr.asdict(value, recurse=True)
     else:
@@ -300,24 +303,6 @@ class Identifiable(Frozen):
                               'downloadURL': {'@id': 'schema:downloadURL', '@type': '@id'},
                               'distribution': {'@id': 'schema:distribution'},
                               'mediaType': {'@id': 'schema:mediaType', },
-                              'modelScript': {'@id': 'nsg:modelScript'},
-                              'emodelIndex': {'@id': 'nsg:emodelIndex'},
-                              'subCellularMechanism': {'@id': 'nsg:subCellularMechanism'},
-                              'morphologyIndex': {'@id': 'nsg:morphologyIndex'},
-                              'eModel': {'@id': 'nsg:eModel'},
-                              'emodelRelease': {'@id': 'nsg:emodelRelease'},
-                              'morphologyRelease': {'@id': 'nsg:morphologyRelease'},
-                              'memodelIndex': {'@id': 'nsg:memodelIndex'},
-                              'cellPlacement': {'@id': 'nsg:cellPlacement'},
-                              'memodelRelease': {'@id': 'nsg:memodelRelease'},
-                              'circuitCellProperties': {'@id': 'nsg:circuitCellProperties'},
-                              'edgePopulation': {'@id': 'nsg:edgePopulation'},
-                              'property': {'@id': 'nsg:property'},
-                              'synapseRelease': {'@id': 'nsg:synapseRelease'},
-                              'nodeCollection': {'@id': 'nsg:nodeCollection'},
-                              'edgeCollection': {'@id': 'nsg:edgeCollection'},
-                              'target': {'@id': 'nsg:target'},
-                              'morphology': {'@id': 'nsg:morphology'},
                               'isPartOf': {'@id': 'dcterms:isPartOf'},
                               'wasRevisionOf': {'@id': 'prov:wasRevisionOf'},
                           }]
@@ -350,3 +335,17 @@ class Distribution(Frozen):
     def __attrs_post_init__(self):
         if not self.downloadURL and not self.accessURL: # pylint: disable=no-member
             raise ValueError('downloadURL or accessURL must be provided')
+
+
+@attributes({
+    'url': AttrOf(str),
+    'label': AttrOf(str),
+    })
+class OntologyTerm(Frozen):
+    '''Ontology term such as brain region or species
+
+    Args:
+        url(str): Ontology term url identifier.
+        label(str): Label for the ontology term.
+    '''
+    pass

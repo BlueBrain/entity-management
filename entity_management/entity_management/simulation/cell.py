@@ -123,7 +123,9 @@ class MEModel(ModelInstance):
         eModel(EModel): Electrical model.
         morphology(Morphology): Neuron morphology.
         modelScript(EModelScript): Model script which instantiates neuron with specified morphology
-            and electrical model.
+            and electrical model. Expected to have single NEURON template with the first argument
+            being the folder where neuron morphology is located. Template is responsible for
+            loading that morphology from the folder specified in the first template argument.
     '''
     _url_version = 'v0.1.1'
 
