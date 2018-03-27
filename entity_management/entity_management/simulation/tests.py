@@ -204,6 +204,30 @@ MORPHOLOGY_PUT_JSLD = {
     'nxv:rev': 2
 }
 
+MEMODEL_JSLD = {
+    '@context': ['https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0',
+                 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0'],
+    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodel/v0.1.1/' + UUID,
+    '@type': ['nsg:Entity', 'nsg:MEModel'],
+    'brainRegion': {'@id': 'http://uri.interlex.org/paxinos/uris/rat/labels/322',
+                    'label': 'field CA1 of the hippocampus'},
+    'species': {'@id': 'http://purl.obolibrary.org/obo/NCBITaxon_10116',
+                'label': 'Rattus norvegicus'},
+    'distribution': [None],
+    'eModel': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodel/v0.1.1/9b8e44fa-664c-4490-97bd-91ae19ce596e',
+               '@type': ['nsg:Entity', 'nsg:EModel'],
+               'name': 'dummy'},
+    'modelScript': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelscript/v0.1.0/9fb15ef7-36fa-43d3-aa61-f1d0a7344ea7',
+                    '@type': ['nsg:Entity', 'nsg:EModelScript'],
+                    'name': 'dummy'},
+    'morphology': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.1/baeda23e-b868-4bae-a48d-98ff069b3a70',
+                   '@type': ['nsg:Entity', 'nsg:Morphology'],
+                   'name': 'dummy'},
+    'name': 'name',
+    'nxv:deprecated': False,
+    'nxv:rev': 1
+}
+
 
 @responses.activate
 def test_load_morphology_release_by_url():
@@ -408,6 +432,17 @@ def test_morphology_attachment():
     assert morphology.distribution.digest['algorithm'] == 'SHA-256'
     assert morphology.distribution.mediaType == 'text/plain'
     assert morphology.distribution.originalFileName == 'file_name'
+
+
+@responses.activate
+def test_memodel_by_uuid():
+    responses.add(responses.GET, '%s/%s' % (MEModel._base_url, UUID), json=MEMODEL_JSLD)
+    memodel = MEModel.from_uuid(UUID)
+    js = memodel.as_json_ld()
+    assert js['species']['@id'] == 'http://purl.obolibrary.org/obo/NCBITaxon_10116'
+    assert js['species']['label'] == 'Rattus norvegicus'
+    assert js['brainRegion']['@id'] == 'http://uri.interlex.org/paxinos/uris/rat/labels/322'
+    assert js['brainRegion']['label'] == 'field CA1 of the hippocampus'
 
 
 def test_identifiable_instance():

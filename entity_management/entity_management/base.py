@@ -45,27 +45,30 @@ def _deserialize_list(data_type, data_raw, token):
 def _deserialize_json_to_datatype(data_type, data_raw, token=None):
     '''Deserialize raw data json to data_type'''
     if data_raw is None:
-        return None
-    # first check if it is a collection
-    if isinstance(data_raw, list):
-        return _deserialize_list(data_type, data_raw, token)
+        value = None
+    elif isinstance(data_raw, list):
+        value = _deserialize_list(data_type, data_raw, token)
     elif issubclass(data_type, Identifiable):
         # make lazy proxy for identifiable object
         obj = Identifiable()
         url = data_raw[JSLD_ID]
         data_type = nexus.get_type(url)
         # pylint: disable=protected-access
-        return obj.evolve(_proxied_type=data_type,
-                          _proxied_token=token,
-                          _types=['%s:Entity' % data_type._type_namespace,
-                                  '%s:%s' % (data_type._type_namespace, data_type.__name__)],
-                          _uuid=nexus.get_uuid_from_url(url))
+        value = obj.evolve(_proxied_type=data_type,
+                           _proxied_token=token,
+                           _types=['%s:Entity' % data_type._type_namespace,
+                                   '%s:%s' % (data_type._type_namespace, data_type.__name__)],
+                           _uuid=nexus.get_uuid_from_url(url))
+    elif issubclass(data_type, OntologyTerm):
+        value = data_type(url=data_raw['@id'], label=data_raw['label'])
     elif isinstance(data_raw, dict):
-        return data_type(**_clean_up_dict(data_raw))
+        value = data_type(**_clean_up_dict(data_raw))
     elif isinstance(data_raw, datetime):
-        return dateutil.parser.parse(data_raw)
+        value = dateutil.parser.parse(data_raw)
     else:
-        return data_type(data_raw)
+        value = data_type(data_raw)
+
+    return value
 
 
 def _serialize_obj(value):
