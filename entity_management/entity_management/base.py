@@ -6,7 +6,7 @@ from datetime import datetime
 from inspect import getmro
 
 import attr
-import dateutil
+from dateutil.parser import parse
 
 from entity_management import nexus
 from entity_management.util import _clean_up_dict
@@ -63,8 +63,8 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         value = data_type(url=data_raw['@id'], label=data_raw['label'])
     elif isinstance(data_raw, dict):
         value = data_type(**_clean_up_dict(data_raw))
-    elif isinstance(data_raw, datetime):
-        value = dateutil.parser.parse(data_raw)
+    elif data_type == datetime:
+        value = parse(data_raw)
     else:
         value = data_type(data_raw)
 
@@ -75,11 +75,12 @@ def _serialize_obj(value):
     '''Serialize object'''
     if isinstance(value, Identifiable):
         return {'@id': '%s/%s' % (value.base_url, value.uuid),
-                '@type': value.types,
-                'name': 'dummy'} # remove when nexus starts using graph traversal for validation
+                '@type': value.types}
     elif isinstance(value, OntologyTerm):
         return {'@id': value.url,
                 'label': value.label}
+    elif isinstance(value, datetime):
+        return value.isoformat()
     elif attr.has(type(value)):
         return attr.asdict(value, recurse=True)
     else:
@@ -89,6 +90,10 @@ def _serialize_obj(value):
 @attr.s(frozen=True)
 class Frozen(object):
     '''Utility class making derived classed immutable. Use `evolve` method to introduce changes.'''
+
+    def _force_attr(self, attribute, value):
+        '''Helper method to enforce attribute value on frozen instance'''
+        object.__setattr__(self, attribute, value)
 
     def evolve(self, **changes):
         '''Create new instance of the frozen(immutable) object with *changes* applied.
@@ -111,9 +116,10 @@ class _IdentifiableMeta(type):
     def __init__(cls, name, bases, attrs):
         # initialize base_url
         version = getattr(cls, '_url_version', VERSION)
-        url_org_domain = getattr(cls, '_url_org_domain', '/' + ORG + '/simulation')
+        url_org = getattr(cls, '_url_org', ORG)
+        url_domain = getattr(cls, '_url_domain', 'simulation')
 
-        cls._base_url = '%s%s/%s/%s' % (BASE_DATA, url_org_domain, name.lower(), version)
+        cls._base_url = '%s/%s/%s/%s/%s' % (BASE_DATA, url_org, url_domain, name.lower(), version)
         nexus.register_type(cls._base_url, cls)
 
         super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
@@ -153,8 +159,7 @@ class Identifiable(Frozen):
         return self._types
 
     def __attrs_post_init__(self):
-        object.__setattr__(self, '_types', ['%s:Entity' % self._type_namespace,
-                                            '%s:%s' % (self._type_namespace, type(self).__name__)])
+        self._force_attr('_types', ['%s:%s' % (self._type_namespace, type(self).__name__)])
 
     def __getattr__(self, name):
         # isinstance is overriden in metaclass which is true for all subclasses of Identifiable
@@ -162,8 +167,8 @@ class Identifiable(Frozen):
             # Identifiable instances behave like proxies, set it up and then forward attr request
             if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
                                                        # and that will cause recursion to _getattr_
-                object.__setattr__(self, '_proxied_object',
-                                   self._proxied_type.from_uuid(self._uuid, self._proxied_token))
+                self._force_attr('_proxied_object',
+                                 self._proxied_type.from_uuid(self._uuid, self._proxied_token))
             if self._proxied_object is None:
                 raise ValueError('Unable to find proxied entity for uuid:%s and %s' %
                                  (self._uuid, self._proxied_type))
@@ -277,7 +282,7 @@ class Identifiable(Frozen):
         obj = super(Identifiable, self).evolve(**changes)
 
         for attr_name in hidden_attrs:
-            object.__setattr__(obj, attr_name, hidden_attrs[attr_name])
+            obj._force_attr(attr_name, hidden_attrs[attr_name]) # pylint: disable=protected-access
 
         return obj
 

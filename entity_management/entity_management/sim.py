@@ -20,6 +20,10 @@ class Entity(Identifiable):
     '''
     _type_namespace = 'nsg'
 
+    def __attrs_post_init__(self):
+        super(Entity, self).__attrs_post_init__()
+        self._types.append('prov:Entity')
+
     def attach(self, file_name, data, content_type='text/html', token=None):
         '''Attach binary data to entity.
         Attached data downloadURL and other metadata will be available in ``distribution``.

@@ -10,6 +10,7 @@ from pprint import pprint
 import entity_management.nexus as nexus
 
 from entity_management import base
+from entity_management import prov
 from entity_management.simulation.circuit import (DetailedCircuit, NodeCollection,
         SynapseRelease, EdgeCollection, Target, CircuitCellProperties)
 from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology, MEModel)
@@ -228,6 +229,25 @@ MEMODEL_JSLD = {
     'nxv:rev': 1
 }
 
+ACTIVITY_JSLD = {
+    '@context': ['https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0',
+                 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0'],
+    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/core/activity/v0.1.0/' + UUID,
+    '@type': ['nsg:Activity', 'prov:Activity'],
+    'nxv:deprecated': False,
+    'nxv:rev': 1,
+    'startedAtTime': '2018-03-27T16:04:35.886105',
+    'used': {
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodel/v0.1.1/43ea1788-4f7f-4b7c-8b36-416bc672db1f',
+        '@type': ['nsg:MEModel', 'prov:Entity']
+    },
+    'wasStartedBy': {
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/core/agent/v0.1.0/d019e443-5e48-4300-80da-19476d5fe795',
+        '@type': ['nsg:Agent', 'prov:Agent']
+    }
+}
+
+
 
 @responses.activate
 def test_load_morphology_release_by_url():
@@ -443,6 +463,21 @@ def test_memodel_by_uuid():
     assert js['species']['label'] == 'Rattus norvegicus'
     assert js['brainRegion']['@id'] == 'http://uri.interlex.org/paxinos/uris/rat/labels/322'
     assert js['brainRegion']['label'] == 'field CA1 of the hippocampus'
+
+
+@responses.activate
+def test_prov_activity_by_uuid():
+    responses.add(responses.GET, '%s/%s' % (prov.Activity._base_url, UUID), json=ACTIVITY_JSLD)
+    activity = prov.Activity.from_uuid(UUID)
+    assert activity.startedAtTime.year == 2018
+    assert activity.startedAtTime.month == 3
+    assert activity.startedAtTime.day == 27
+    assert activity.startedAtTime.hour == 16
+    assert activity.startedAtTime.minute == 4
+    assert activity.startedAtTime.second == 35
+
+    js = activity.as_json_ld()
+    assert js['startedAtTime'] == '2018-03-27T16:04:35.886105'
 
 
 def test_identifiable_instance():

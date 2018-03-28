@@ -2,6 +2,7 @@
 '''Upload data to nexus'''
 import os
 
+from entity_management.prov import Agent
 from entity_management.base import OntologyTerm
 from entity_management.simulation.cell import (SubCellularModelScript, SubCellularModel,
                                                EModelScript, EModel, Morphology, MEModel)
@@ -14,6 +15,12 @@ BRAIN_REGION = OntologyTerm(url='http://uri.interlex.org/paxinos/uris/rat/labels
                             label='field CA1 of the hippocampus')
 SPECIES = OntologyTerm(url='http://purl.obolibrary.org/obo/NCBITaxon_10116',
                        label='Rattus norvegicus')
+
+agent_name = 'NSE'
+agent = Agent.from_name(agent_name, TOKEN)
+if agent is None:
+    agent = Agent(name=agent_name)
+    agent = agent.save(TOKEN)
 
 mod_files = 'scripts/hbp-bsp-models/mod_files'
 sub_cellular_models = {}

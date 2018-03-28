@@ -18,4 +18,3 @@ ENTITY_CTX = NSG_CTX
 BASE_SCHEMAS = BASE + '/schemas'
 
 BASE_DATA = BASE + '/data'
-DATA_SIM = BASE_DATA + '/' + ORG + '/simulation'
