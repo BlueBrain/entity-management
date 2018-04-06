@@ -13,7 +13,7 @@ COVER_PACKAGES=entity_management
 DOC_MODULES=entity_management/doc
 DOC_REPO=--doc-repo ssh://bbpcode.epfl.ch/infra/jekylltest
 
-DOC_REQS?=sphinx==1.6.7 sphinxcontrib-napoleon==0.6.1
+DOC_REQS?=sphinx==1.7.2 sphinxcontrib-napoleon==0.6.1
 
 PYTHON_PIP_VERSION=pip==9.0.1
 

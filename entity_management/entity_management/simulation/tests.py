@@ -11,6 +11,7 @@ import entity_management.nexus as nexus
 
 from entity_management import base
 from entity_management import prov
+from entity_management import sim
 from entity_management.simulation.circuit import (DetailedCircuit, NodeCollection,
         SynapseRelease, EdgeCollection, Target, CircuitCellProperties)
 from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology, MEModel)
@@ -43,8 +44,8 @@ MORPHOLOGY_RELEASE_JSLD = {
         "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID
     },
     "morphologyIndex": {
-        "downloadURL": "file:///morphology/index/url",
-        "mediaType": "media type"
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
+        '@type': ['nsg:ModelReleaseIndex']
     },
     "name": "Morphology Release",
     "nxv:deprecated": False,
@@ -96,6 +97,12 @@ EMODEL_RELEASE_JSLD_CREATE = {
     '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/' + UUID
 }
 
+MODEL_RELEASE_INDEX_JSLD_CREATE = {
+    '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0',
+    'nxv:rev': 1,
+    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.0/' + UUID
+}
+
 EMODEL_RELEASE_JSLD = {
     "@context": [
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/core/entity/v0.1.0",
@@ -114,8 +121,8 @@ EMODEL_RELEASE_JSLD = {
         }
     ],
     "emodelIndex": {
-        "downloadURL": "file:///emodelIndex",
-        "mediaType": "application/swc,application/neurolucida,application/h5,application/neuroml"
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
+        '@type': ['nsg:ModelReleaseIndex']
     },
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
@@ -141,7 +148,7 @@ MEMODEL_RELEASE_JSLD = {
         "nsg:MEModelRelease"
     ],
     "emodelRelease": {
-        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/" + UUID,
+        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.1/" + UUID,
         "@type": [
             "nsg:Entity",
             "nsg:EModelRelease"
@@ -155,11 +162,11 @@ MEMODEL_RELEASE_JSLD = {
         "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID
     },
     "memodelIndex": {
-        "downloadURL": "file:///memodelIndex",
-        "mediaType": "application/swc,application/neurolucida,application/h5,application/neuroml"
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
+        '@type': ['nsg:ModelReleaseIndex']
     },
     "morphologyRelease": {
-        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID,
+        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID,
         "@type": [
             "nsg:Entity",
             "nsg:MorphologyRelease"
@@ -258,8 +265,6 @@ def test_load_morphology_release_by_url():
 
     assert morphology_release.description == 'test description'
     assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
-    assert morphology_release.morphologyIndex.downloadURL == 'file:///morphology/index/url'
-    assert morphology_release.morphologyIndex.mediaType == 'media type'
 
 
 @responses.activate
@@ -271,8 +276,6 @@ def test_load_morphology_release_by_uuid():
 
     assert morphology_release.description == 'test description'
     assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
-    assert morphology_release.morphologyIndex.downloadURL == 'file:///morphology/index/url'
-    assert morphology_release.morphologyIndex.mediaType == 'media type'
 
 
 @responses.activate
@@ -286,8 +289,6 @@ def test_load_morphology_release_by_name():
 
     assert morphology_release.description == 'test description'
     assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
-    assert morphology_release.morphologyIndex.downloadURL == 'file:///morphology/index/url'
-    assert morphology_release.morphologyIndex.mediaType == 'media type'
 
 
 @responses.activate
@@ -321,8 +322,7 @@ def test_save_morphology_release():
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease(name='MorphologyRelease',
-                                          distribution=base.Distribution(downloadURL='url'),
-                                          morphologyIndex=base.Distribution(downloadURL='url'))
+                                           distribution=base.Distribution(downloadURL='url'))
     morphology_release = morphology_release.save()
 
     assert morphology_release._uuid is not None
@@ -352,13 +352,21 @@ def test_deprecate_morphology_release():
 
 @responses.activate
 def test_save_emodel_release():
+    responses.add(responses.POST, sim.ModelReleaseIndex._base_url,
+                  json=MODEL_RELEASE_INDEX_JSLD_CREATE)
     responses.add(responses.POST, EModelRelease._base_url,
-            json=EMODEL_RELEASE_JSLD_CREATE)
+                  json=EMODEL_RELEASE_JSLD_CREATE)
+
+    emodel_index = sim.ModelReleaseIndex(
+            name='index',
+            distribution=base.Distribution(downloadURL='url'))
+    emodel_index = emodel_index.save()
 
     emodel_release = EModelRelease(
             name='EModelRelease',
             distribution=base.Distribution(downloadURL='url'),
-            emodelIndex=base.Distribution(downloadURL='url'))
+            emodelIndex=emodel_index)
+
     emodel_release = emodel_release.save()
 
     assert emodel_release._uuid is not None
@@ -367,21 +375,27 @@ def test_save_emodel_release():
 
 
 def test_create_detailed_circuit():
+    morphology_index = sim.ModelReleaseIndex(name='index',
+                                             distribution=base.Distribution(downloadURL='url'))
     morphology_release = MorphologyRelease(
             name='MorphologyRelease',
             distribution=base.Distribution(downloadURL='distr url'),
-            morphologyIndex=base.Distribution(downloadURL='url'))
+            morphologyIndex=morphology_index)
 
+    emodel_index = sim.ModelReleaseIndex(name='index',
+                                         distribution=base.Distribution(downloadURL='url'))
     emodelRelease = EModelRelease(
             name='EModelRelease',
             distribution=base.Distribution(downloadURL='url'),
-            emodelIndex=base.Distribution(downloadURL='url'))
+            emodelIndex=emodel_index)
 
+    memodel_index = sim.ModelReleaseIndex(name='index',
+                                          distribution=base.Distribution(downloadURL='url'))
     memodelRelease = MEModelRelease(
             name='MEModelRelease',
             morphologyRelease=morphology_release,
             emodelRelease=emodelRelease,
-            memodelIndex=base.Distribution(downloadURL='url'))
+            memodelIndex=memodel_index)
 
     circuitCellProperties = CircuitCellProperties(
             name='CircuitCellProperties',
@@ -424,7 +438,6 @@ def test_lazy_load_memodel_release_by_uuid():
     memodel_release = MEModelRelease.from_uuid(UUID)
 
     assert memodel_release.name == 'MEModel Release'
-    assert memodel_release.memodelIndex.downloadURL == 'file:///memodelIndex'
     assert memodel_release.emodelRelease.name == 'EModel Release'
     assert memodel_release.morphologyRelease.name == 'Morphology Release'
 

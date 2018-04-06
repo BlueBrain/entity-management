@@ -1,4 +1,4 @@
-'''Provenance entities'''
+'''Simulation domain base entities'''
 from entity_management import nexus
 from entity_management.base import (Identifiable, Distribution, OntologyTerm,
                                     _deserialize_json_to_datatype)
@@ -57,12 +57,6 @@ class Entity(Identifiable):
         nexus.download(url, path, file_name, token)
 
 
-@attributes()
-class Release(Entity):
-    '''Release base entity'''
-    pass
-
-
 @attributes({'modelOf': AttrOf(str, default=None),
              'brainRegion': AttrOf(OntologyTerm, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
@@ -77,7 +71,20 @@ class ModelInstance(Entity):
     pass
 
 
+@attributes({'brainRegion': AttrOf(OntologyTerm, default=None),
+             'species': AttrOf(OntologyTerm, default=None)})
+class ModelRelease(Entity):
+    '''Release base entity'''
+    _url_version = 'v0.1.1'
+
+
 @attributes()
 class ModelScript(Entity):
     '''Base entity for the scripts attached to the model.'''
     pass
+
+
+@attributes()
+class ModelReleaseIndex(Entity):
+    '''Index files attached to release entities'''
+    _url_version = 'v0.1.1'

@@ -69,7 +69,7 @@ def _log_nexus_exception(func):
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
             print('NEXUS ERROR>>>', file=sys.stderr)
-            pprint(e.response.json(object_hook=_byteify), stream=sys.stderr)
+            pprint(e.response.text, stream=sys.stderr)
             print('<<<', file=sys.stderr)
             raise
     return wrapper

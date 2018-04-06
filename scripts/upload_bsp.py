@@ -5,7 +5,8 @@ import os
 from entity_management.prov import Agent
 from entity_management.base import OntologyTerm
 from entity_management.simulation.cell import (SubCellularModelScript, SubCellularModel,
-                                               EModelScript, EModel, Morphology, MEModel)
+                                               EModelScript, EModel, Morphology, MEModel,
+                                               SynapseRelease)
 
 
 TOKEN = os.getenv('NEXUS_TOKEN')
@@ -22,6 +23,16 @@ if agent is None:
     agent = Agent(name=agent_name)
     agent = agent.save(TOKEN)
 
+
+name = 'Hippocampus synapse release'
+synapse_release = SynapseRelease.from_name(name, TOKEN)
+if synapse_release is None:
+    synapse_release = SynapseRelease(name=name,
+                                     brainRegion=BRAIN_REGION,
+                                     species=SPECIES)
+    synapse_release = synapse_release.save(TOKEN)
+
+
 mod_files = 'scripts/hbp-bsp-models/mod_files'
 sub_cellular_models = {}
 for mod_name in os.listdir(mod_files):
@@ -37,6 +48,7 @@ for mod_name in os.listdir(mod_files):
         with open(mod_file) as f:
             model_script.attach(mod_name, f, 'application/neuron-mod', TOKEN)
         model = SubCellularModel(name=name,
+                                 isPartOf=synapse_release,
                                  modelScript=model_script,
                                  brainRegion=BRAIN_REGION,
                                  species=SPECIES)

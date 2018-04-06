@@ -1,14 +1,20 @@
-'''Provenance entities'''
+'''
+Provenance entities
+
+.. inheritance-diagram:: entity_management.prov
+   :top-classes: entity_management.prov.Entity
+   :parts: 2
+'''
 from datetime import datetime
 
-import entity_management.sim as sim
+from entity_management import sim
 from entity_management.base import Identifiable
 from entity_management.util import attributes, AttrOf
 
 
 @attributes()
 class Entity(Identifiable):
-    '''Base abstract class for core Enitities'''
+    '''Base class for core Enitities'''
     _type_namespace = 'nsg'
     _url_domain = 'core'
 

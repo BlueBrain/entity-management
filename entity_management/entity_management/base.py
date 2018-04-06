@@ -1,4 +1,10 @@
-'''Base simulation entities'''
+'''
+Base simulation entities
+
+.. inheritance-diagram:: entity_management.base entity_management.sim.Entity
+                         entity_management.prov.Entity
+   :parts: 2
+'''
 import typing
 import six
 
@@ -305,15 +311,7 @@ class Identifiable(Frozen):
                     for kk, vv in six.iteritems(attr_value))
             else:
                 rv[attr_name] = _serialize_obj(attr_value)
-        rv['@context'] = [ENTITY_CTX, NSG_CTX,
-                          {
-                              'accessURL': {'@id': 'schema:accessURL', '@type': '@id'},
-                              'downloadURL': {'@id': 'schema:downloadURL', '@type': '@id'},
-                              'distribution': {'@id': 'schema:distribution'},
-                              'mediaType': {'@id': 'schema:mediaType', },
-                              'isPartOf': {'@id': 'dcterms:isPartOf'},
-                              'wasRevisionOf': {'@id': 'prov:wasRevisionOf'},
-                          }]
+        rv['@context'] = [ENTITY_CTX, NSG_CTX]
         rv['@type'] = self._types
         return rv
 
