@@ -120,7 +120,12 @@ class AttrOf(object):
             # the collection was explicitly specified in attr.ib
             # like typing.List[Distribution]
             assert type_.__extra__ == list
-            validator = _list_of(type_.__args__[0])
+            list_element_type = type_.__args__[0]
+            if type(list_element_type) == type(typing.Union):
+                types = list_element_type.__args__
+                validator = _list_of(types)
+            else:
+                validator = _list_of(type_.__args__[0])
         else:
             if optional is Ellipsis:
                 if default is Ellipsis:

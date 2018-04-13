@@ -15,7 +15,8 @@ DOC_REPO=--doc-repo ssh://bbpcode.epfl.ch/infra/jekylltest
 
 DOC_REQS?=sphinx==1.7.2 sphinxcontrib-napoleon==0.6.1
 
-PYTHON_PIP_VERSION=pip==9.0.1
+PYTHON_PIP_VERSION=pip==9.0.3
+SETUPTOOLS_VERSION=setuptools==39.0.1
 
 OPTIONAL_FEATURES:='[extension_tests]'
 

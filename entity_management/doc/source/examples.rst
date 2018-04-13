@@ -27,23 +27,23 @@ Create brain region and species :class:`ontology terms<entity_management.base.On
                            label='Rattus norvegicus')
 
 
-Synapse release
-***************
+IonChannelMechanismRelease
+**************************
 
-Prepare the mod file release object(:class:`SynapseRelease<entity_management.simulation.cell.SynapseRelease>`):
+Prepare the mod file release object(:class:`IonChannelMechanismRelease<entity_management.simulation.cell.IonChannelMechanismRelease>`):
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import SynapseRelease
+    from entity_management.simulation.cell import IonChannelMechanismRelease
 
-    synapse_release = SynapseRelease(name='Release', brainRegion=BRAIN_REGION, species=SPECIES)
-    synapse_release = synapse_release.save(TOKEN)
+    mod_release = IonChannelMechanismRelease(name='Release', brainRegion=BRAIN_REGION, species=SPECIES)
+    mod_release = mod_release.publish(use_auth=TOKEN)
 
 
 Channel mechanisms
 ******************
 
-Create and upload the mod file which is part of synapse release:
+Create and upload the mod file which is part of ion channel mechanism(mod_release) or synapse release:
 
 .. code-block:: python
 
@@ -51,15 +51,15 @@ Create and upload the mod file which is part of synapse release:
 
     mechanisms = []
     model_script = SubCellularModelScript(name='Script name', description='Some description')
-    model_script = model_script.save(TOKEN)
+    model_script = model_script.publish(use_auth=TOKEN)
     with open('cacumm.mod') as f:
-        model_script.attach('cacumm.mod', f, 'application/neuron-mod', TOKEN)
+        model_script.attach('cacumm.mod', f, 'application/neuron-mod', use_auth=TOKEN)
     model = SubCellularModel(name='cacumm',
-                             isPartOf=synapse_release,
+                             isPartOf=[mod_release],
                              modelScript=model_script,
                              brainRegion=BRAIN_REGION,
                              species=SPECIES)
-    model = model.save(TOKEN)
+    model = model.publish(use_auth=TOKEN)
     mechanisms.append(model)
 
 
@@ -73,9 +73,9 @@ Create :class:`emodel script <entity_management.simulation.cell.EModelScript>` e
     from entity_management.simulation.cell import EModelScript
 
     emodel_script = EModelScript(name='Cell hoc model script')
-    emodel_script = emodel_script.save(TOKEN)
+    emodel_script = emodel_script.publish(use_auth=TOKEN)
     with open(hoc_file) as f:
-        emodel_script.attach('cell.hoc', f, 'application/neuron-hoc', TOKEN)
+        emodel_script.attach('cell.hoc', f, 'application/neuron-hoc', use_auth=TOKEN)
 
 
 Neuron morphology
@@ -91,9 +91,9 @@ Create :class:`morphology <entity_management.simulation.cell.Morphology>` with t
                             description='Morphology description',
                             brainRegion=BRAIN_REGION,
                             species=SPECIES)
-    morphology = morphology.save(TOKEN)
+    morphology = morphology.publish(use_auth=TOKEN)
     with open('/path/to/morphology.asc') as f:
-        morphology.attach('morphology.asc', f, 'application/neurolucida', TOKEN)
+        morphology.attach('morphology.asc', f, 'application/neurolucida', use_auth=TOKEN)
 
 
 Cell emodel
@@ -109,7 +109,7 @@ Create :class:`emodel <entity_management.simulation.cell.EModel>` with required 
                     subCellularMechanism=mechanisms,
                     brainRegion=BRAIN_REGION,
                     species=SPECIES)
-    emodel = emodel.save(TOKEN)
+    emodel = emodel.publish(use_auth=TOKEN)
 
 
 Cell memodel
@@ -129,7 +129,7 @@ and model instantiation hoc script:
                       modelScript=emodel_script,
                       brainRegion=BRAIN_REGION,
                       species=SPECIES)
-    memodel = memodel.save(TOKEN)
+    memodel = memodel.publish(use_auth=TOKEN)
 
 
 Quering entities
@@ -142,7 +142,7 @@ Retrieve entity by UUID
 
     from entity_management.simulation.cell import MEModel
 
-    memodel = MEModel.from_uuid('546ffb86-370e-4e6b-9e4f-20e7d3e979d0', TOKEN)
+    memodel = MEModel.from_uuid('546ffb86-370e-4e6b-9e4f-20e7d3e979d0', use_auth=TOKEN)
 
 
 Retrieve entity by Name
@@ -152,7 +152,7 @@ Retrieve entity by Name
 
     from entity_management.simulation.cell import MEModel
 
-    memodel = MEModel.from_name('Model name', TOKEN)
+    memodel = MEModel.from_name('Model name', use_auth=TOKEN)
 
 
 Retrieve memodel by name and save in a folder
@@ -168,8 +168,8 @@ The code below will save single cell model represented by
     model_dir = 'model_dir'
     os.makedirs(model_dir)
 
-    memodel = MEModel.from_name('Model name', TOKEN)
+    memodel = MEModel.from_name('Model name', use_auth=TOKEN)
     if memodel is not None:
-        memodel.modelScript.download(model_dir, TOKEN)
-        memodel.morphology.download(model_dir, TOKEN)
-        [s.modelScript.download(model_dir, TOKEN) for s in memodel.eModel.subCellularMechanism]
+        memodel.mainModelScript.download(model_dir, use_auth=TOKEN)
+        memodel.morphology.download(model_dir, use_auth=TOKEN)
+        [s.modelScript.download(model_dir, use_auth=TOKEN) for s in memodel.eModel.subCellularMechanism]

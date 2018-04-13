@@ -42,7 +42,8 @@ def _deserialize_list(data_type, data_raw, token):
     # TODO check this with nexus it might be a bug on their side
     if not len(result_list):
         return None
-    elif len(result_list) == 1:
+    # do not use collection for single elements unless it was explicitly specified as typing.List
+    elif len(result_list) == 1 and not isinstance(data_type, typing.GenericMeta):
         return result_list[0]
     else:
         return result_list
@@ -54,7 +55,11 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         value = None
     elif isinstance(data_raw, list):
         value = _deserialize_list(data_type, data_raw, token)
-    elif issubclass(data_type, Identifiable):
+    elif (# in case we have bunch of the Identifiable types as a Union
+            (type(data_type) == type(typing.Union)
+                and all(issubclass(cls, Identifiable) for cls in data_type.__args__))
+            # or we have just Identifiable
+            or issubclass(data_type, Identifiable)):
         # make lazy proxy for identifiable object
         obj = Identifiable()
         url = data_raw[JSLD_ID]
@@ -66,7 +71,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
                                    '%s:%s' % (data_type._type_namespace, data_type.__name__)],
                            _uuid=nexus.get_uuid_from_url(url))
     elif issubclass(data_type, OntologyTerm):
-        value = data_type(url=data_raw['@id'], label=data_raw['label'])
+        value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
     elif isinstance(data_raw, dict):
         value = data_type(**_clean_up_dict(data_raw))
     elif data_type == datetime:
@@ -80,10 +85,10 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
 def _serialize_obj(value):
     '''Serialize object'''
     if isinstance(value, Identifiable):
-        return {'@id': '%s/%s' % (value.base_url, value.uuid),
+        return {JSLD_ID: '%s/%s' % (value.base_url, value.uuid),
                 '@type': value.types}
     elif isinstance(value, OntologyTerm):
-        return {'@id': value.url,
+        return {JSLD_ID: value.url,
                 'label': value.label}
     elif isinstance(value, datetime):
         return value.isoformat()
@@ -196,14 +201,14 @@ class Identifiable(Frozen):
         return sorted(attrs_from_mro | attrs_from_obj)
 
     @classmethod
-    def from_uuid(cls, uuid, token=None):
+    def from_uuid(cls, uuid, use_auth=None):
         '''
         Args:
             uuid(str): UUID of the entity to load.
-            token(str): OAuth token in case access is restricted.
+            use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         Load entity from UUID.'''
-        js = nexus.load_by_uuid(cls._base_url, uuid, token) # pylint: disable=no-member
+        js = nexus.load_by_uuid(cls._base_url, uuid, use_auth) # pylint: disable=no-member
 
         # prepare all entity init args
         init_args = {}
@@ -212,51 +217,53 @@ class Identifiable(Frozen):
             raw = js.get(attr_name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, token)
+                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, use_auth)
 
         obj = cls(**init_args)
         return obj.evolve(_uuid=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
 
     @classmethod
-    def from_name(cls, name, token=None):
+    def from_name(cls, name, use_auth=None):
         '''Load entity from name.
 
         Args:
             name(str): Name of the entity to load.
-            token(str): OAuth token in case access is restricted.
+            use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        uuid = nexus.find_uuid_by_name(cls._base_url, name, token) # pylint: disable=no-member
+        # pylint: disable=no-member
+        uuid = nexus.find_uuid_by_name(cls._base_url, name, use_auth)
         if uuid:
-            return cls.from_uuid(uuid, token)
+            return cls.from_uuid(uuid, use_auth)
         else:
             return None
 
-    def save(self, token=None):
-        '''Save or update entity.
+    def publish(self, use_auth=None):
+        '''Save or update entity in nexus. Makes a remote call to nexus instance to persist
+        entity attributes.
 
         Args:
-            token(str): OAuth token in case access is restricted.
+            use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         Returns:
             New instance of the same class with revision updated.
         '''
         if hasattr(self, '_uuid') and self._uuid:
-            js = nexus.update(self._base_url, self._uuid, self._rev, self.as_json_ld(), token)
+            js = nexus.update(self._base_url, self._uuid, self._rev, self.as_json_ld(), use_auth)
         else:
-            js = nexus.save(self._base_url, self.as_json_ld(), token)
+            js = nexus.save(self._base_url, self.as_json_ld(), use_auth)
         return self.evolve(_uuid=nexus.get_uuid_from_url(js[JSLD_ID]), _rev=js[JSLD_REV])
 
-    def deprecate(self, token=None):
+    def deprecate(self, use_auth=None):
         '''Mark entity as deprecated.
         Deprecated entities are not possible to retrieve by name.
 
         Args:
-            token(str): OAuth token in case access is restricted.
+            use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         assert self._uuid is not None
-        js = nexus.deprecate(self._base_url, self._uuid, self._rev, token)
+        js = nexus.deprecate(self._base_url, self._uuid, self._rev, use_auth)
         return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
 
     def evolve(self, **changes):
@@ -341,6 +348,23 @@ class Distribution(Frozen):
     def __attrs_post_init__(self):
         if not self.downloadURL and not self.accessURL: # pylint: disable=no-member
             raise ValueError('downloadURL or accessURL must be provided')
+
+
+@attributes({
+    'value': AttrOf(str),
+    'unitCode': AttrOf(str),
+    })
+class QuantitativeValue(Frozen):
+    '''External resource representations,
+    this can be a file or a folder on gpfs
+
+    Args:
+        value(str): Value.
+        unitCode(str): The unit of measurement given using the UN/CEFACT Common Code (3 characters)
+            or a URL. Other codes than the UN/CEFACT Common Code may be used with a prefix followed
+            by a colon.
+    '''
+    pass
 
 
 @attributes({

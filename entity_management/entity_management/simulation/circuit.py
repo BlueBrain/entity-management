@@ -9,7 +9,7 @@ from entity_management.simulation.cell import MEModelRelease, SynapseRelease
 class CircuitCellProperties(Entity):
     '''Cell properties provides locationd of the MVD3 file with cell properties.
 
-    Args
+    Args:
         distribution(Distribution): Location of the cell placement file.
     '''
     pass
@@ -33,9 +33,9 @@ class NodeCollection(Entity):
 class EdgeCollection(Entity):
     '''Edge collection represents circuit connectivity(synapses, projections)
 
-    Args
+    Args:
         edgePopulation(Distribution): Distribution providing path to the collection of nrn
-        files or syn2.
+            files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
     pass
@@ -45,7 +45,7 @@ class EdgeCollection(Entity):
 class Target(Entity):
     '''Location of the text file defining cell targets (i.e. named collections of cell GIDs)
 
-    Args
+    Args:
         distribution(Distribution): Location of the target file.
     '''
     pass
@@ -57,7 +57,7 @@ class Target(Entity):
 class DetailedCircuit(ModelInstance):
     '''Detailed circuit
 
-    Args
+    Args:
         nodeCollection(NodeCollection): Node collection.
         edgeCollection(EdgeCollection): Edge collection.
         target(Target): Target.

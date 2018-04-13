@@ -7,8 +7,11 @@ Provenance entities
 '''
 from datetime import datetime
 
+from typing import List, Union
+
 from entity_management import sim
-from entity_management.base import Identifiable
+from entity_management.simulation import cell
+from entity_management.base import Identifiable, QuantitativeValue
 from entity_management.util import attributes, AttrOf
 
 
@@ -33,6 +36,16 @@ class Agent(Entity):
     pass
 
 
+@attributes({'version': AttrOf(str)})
+class SoftwareAgent(Agent):
+    '''Software agent
+
+    Args:
+        version(str): Version of the software used.
+    '''
+    pass
+
+
 @attributes({
     'used': AttrOf(sim.Entity),
     'generated': AttrOf(sim.Entity, default=None),
@@ -53,3 +66,22 @@ class Activity(Entity):
         super(Activity, self).__attrs_post_init__()
         if self.startedAtTime is None:
             self._force_attr('startedAtTime', datetime.utcnow())
+
+
+@attributes({
+    'used': AttrOf(cell.Morphology),
+    'generated': AttrOf(cell.EModel),
+    'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]]),
+    'bestScore': AttrOf(QuantitativeValue, default=None)
+    })
+class EModelBuilding(Activity):
+    '''EModel building activity.
+
+    Args:
+        bestScore(QuantitativeValue): Best score.
+        used(cell.Morphology): Morphology which was used to generate the emodel.
+        generated(cell.EModel): EModel which was produced.
+        wasAssociatedWith(List[Union[Agent, SoftwareAgent]]): Agents associated with
+            this activity.
+    '''
+    _url_domain = 'simulation'

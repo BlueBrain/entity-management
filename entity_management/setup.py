@@ -40,6 +40,7 @@ setup(
     name="entity-management",
     version=VERSION,
     install_requires=[
+        'typing;python_version<"3"',
         'requests>=2.18,<3.0',
         'attrs',
         'six',

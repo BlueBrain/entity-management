@@ -1,5 +1,5 @@
 '''Cell related entities'''
-import typing
+from typing import List, Union
 
 from entity_management.util import attributes, AttrOf
 from entity_management.base import Distribution
@@ -40,16 +40,25 @@ class SynapseRelease(ModelRelease):
     _url_version = 'v0.1.1'
 
 
+@attributes()
+class IonChannelMechanismRelease(ModelRelease):
+    '''Ion channel models release represents a collection of mod files.
+    '''
+    _url_version = 'v0.1.2'
+
+
 @attributes({'modelScript': AttrOf(SubCellularModelScript),
-             'isPartOf': AttrOf(SynapseRelease, default=None)})
+             'isPartOf': AttrOf(List[Union[IonChannelMechanismRelease, SynapseRelease]],
+                                default=None)})
 class SubCellularModel(ModelInstance):
     '''SubCellular model
 
     Args:
         modelScript(SubCellularModelScript): SubCellular model script such as mod file
-        isPartOf(SynapseRelease): The synapse release this model is part of.
+        isPartOf(List[Union[IonChannelMechanismRelease, SynapseRelease]]): Optional list of synapse
+            releases or ion channel releases this model is part of.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(Distribution),
@@ -64,17 +73,15 @@ class EModelRelease(ModelRelease):
     _url_version = 'v0.1.1'
 
 
-@attributes({'subCellularMechanism': AttrOf(typing.List[SubCellularModel], default=None),
-             'modelScript': AttrOf(EModelScript, default=None),
-             'isPartOf': AttrOf(EModelRelease, default=None)})
+@attributes({'subCellularMechanism': AttrOf(List[SubCellularModel], default=None),
+             'modelScript': AttrOf(List[EModelScript], default=None)})
 class EModel(ModelInstance):
     '''Electrical model
 
     Args:
-        subCellularMechanism(SubCellularModel): SubCellular mechanism.
-        modelScript(EModelScript): Model script. Script defining neuron model, e.g. a ``hoc`` file,
-            or a zip file containing multiple ``hoc`` files.
-        isPartOf(EModelRelease): The emodel release this emodel is part of.
+        subCellularMechanism(List[SubCellularModel]): SubCellular mechanism collection.
+        modelScript(List[EModelScript]): Model script collection. Scripts defining neuron model,
+            e.g. a ``hoc`` files.
     '''
     _url_version = 'v0.1.1'
 
@@ -129,20 +136,19 @@ class MEModelRelease(ModelRelease):
     _url_version = 'v0.1.1'
 
 
-@attributes({'eModel': AttrOf(EModel, default=None),
-             'morphology': AttrOf(Morphology, default=None),
-             'modelScript': AttrOf(EModelScript, default=None),
-             'isPartOf': AttrOf(MEModelRelease, default=None)})
+@attributes({'eModel': AttrOf(EModel),
+             'morphology': AttrOf(Morphology),
+             'mainModelScript': AttrOf(EModelScript)})
 class MEModel(ModelInstance):
     '''Detailed Neuron model with morphology and electrical models.
 
     Args:
         eModel(EModel): Electrical model.
         morphology(Morphology): Neuron morphology.
-        modelScript(EModelScript): Model script which instantiates neuron with specified morphology
-            and electrical model. Expected to have single NEURON template with the first argument
-            being the folder where neuron morphology is located. Template is responsible for
-            loading that morphology from the folder specified in the first template argument.
-        isPartOf(MEModelRelease): The memodel release this memodel is part of.
+        mainModelScript(EModelScript): Model script which instantiates neuron with specified
+            morphology and electrical model. Expected to have single NEURON template with the
+            first argument being the folder where neuron morphology is located. Template is
+            responsible for loading that morphology from the folder specified in the first
+            template argument.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
