@@ -1,18 +1,13 @@
 #!/usr/bin/env python
 '''Upload data to nexus
 Prerequisites in scripts folder:
-    (cd scripts && git clone https://github.com/lbologna/bsp_data_repository.git)
-    (cd scripts/bsp_data_repository &&
-    find . -name '*.zip'
-    -exec unzip '{}' -x '*.pdf' -x '*.pkl' -x '*.json' -x '*.txt' -d ../models/ ';')
-    cp -r /gpfs/bbp.cscs.ch/project/proj66/home/vangeit/src/NeuroMLExport/\
-            cellmodels/SuppWebsite.mousify/output.20180316/memodel_dirs scripts/
+    * Prepare scripts/memodel_dirs with mouse SSCx models
+    * Prepare scripts/memodel_mods with mouse SSCx mod files
 '''
 import os
-import json
 
 from entity_management.prov import Agent, SoftwareAgent, EModelBuilding
-from entity_management.base import OntologyTerm, Distribution
+from entity_management.base import OntologyTerm
 from entity_management.simulation.cell import (SubCellularModelScript, SubCellularModel,
                                                EModelScript, EModel, Morphology, MEModel,
                                                IonChannelMechanismRelease)
@@ -21,10 +16,10 @@ from entity_management.simulation.cell import (SubCellularModelScript, SubCellul
 TOKEN = os.getenv('NEXUS_TOKEN')
 
 
-BRAIN_REGION = OntologyTerm(url='http://uri.interlex.org/paxinos/uris/rat/labels/322',
-                            label='field CA1 of the hippocampus')
-SPECIES = OntologyTerm(url='http://purl.obolibrary.org/obo/NCBITaxon_10116',
-                       label='Rattus norvegicus')
+BRAIN_REGION = OntologyTerm(url='http://api.brain-map.org/api/v2/data/Structure/322',
+                            label='Primary somatosensory area')
+SPECIES = OntologyTerm(url='http://purl.obolibrary.org/obo/NCBITaxon_10088',
+                       label='Mouse')
 
 
 agent_name = 'NSE'
@@ -35,25 +30,24 @@ if agent is None:
 
 
 bluepyopt = 'BluePyOpt'
-bluepyopt_agent = SoftwareAgent.from_name(bluepyopt, TOKEN)
+bluepyopt_version = '1.6.27'
+bluepyopt_agent = SoftwareAgent.from_name(bluepyopt, use_auth=TOKEN)
 if bluepyopt_agent is None:
-    bluepyopt_agent = SoftwareAgent(name=bluepyopt, version='1.5.29')
+    bluepyopt_agent = SoftwareAgent(name=bluepyopt, version=bluepyopt_version)
     bluepyopt_agent = bluepyopt_agent.publish(TOKEN)
 
 
-name = 'Hippocampus ion channel mechanism release'
+name = 'Mouse SSCx ion channel mechanism release'
 mod_release = IonChannelMechanismRelease.from_name(name, TOKEN)
 if mod_release is None:
-    print('Creating IonChannelMechanismRelease: %s' % name)
     mod_release = IonChannelMechanismRelease(
             name=name,
-            distribution=Distribution(
-                accessURL='https://github.com/cnr-ibf-pa/hbp-bsp-models/releases/tag/v1.0.1'),
             brainRegion=BRAIN_REGION,
             species=SPECIES)
     mod_release = mod_release.publish(TOKEN)
 
-mod_files = 'scripts/hbp-bsp-models/mod_files'
+
+mod_files = 'scripts/memodel_mods'
 sub_cellular_models = {}
 for mod_name in os.listdir(mod_files):
     mod_file = '%s/%s' % (mod_files, mod_name)
@@ -76,14 +70,18 @@ for mod_name in os.listdir(mod_files):
     sub_cellular_models[name] = model
 
 
-bsp_data_repository = 'scripts/bsp_data_repository/optimizations'
-models_dir = 'scripts/models'
-for model_name in os.listdir(models_dir):
-    model_dir = '%s/%s' % (models_dir, model_name)
-    if os.path.isdir(model_dir):
-        with open('%s/%s/%s_meta.json' % (bsp_data_repository, model_name, model_name)) as f:
-            meta_info = json.load(f)
-        best_cell = str(meta_info['best_cell'])
+models_dir = 'scripts/memodel_dirs'
+for model_dir, dirs, files in os.walk(models_dir):
+    if 'mechanisms' in dirs and 'morphology' in dirs:
+        hoc_files = [f for f in files if f.endswith('.hoc')]
+        hoc_files.remove('constants.hoc')
+        hoc_files.remove('createsimulation.hoc')
+        hoc_files.remove('run.hoc')
+        assert len(hoc_files) == 1
+        hoc_name = hoc_files[0]
+        hoc_file = '%s/%s' % (model_dir, hoc_name)
+
+        model_name = os.path.basename(model_dir)
 
         morphology_name = os.listdir('%s/morphology' % model_dir)[0]
         morphology_file = '%s/morphology/%s' % (model_dir, morphology_name)
@@ -99,26 +97,14 @@ for model_name in os.listdir(models_dir):
                       for m in os.listdir('%s/mechanisms' % model_dir)]
 
         emodel = EModel.from_name(model_name, TOKEN)
-
         if emodel is None:
-            model_scripts = []
-            for hoc_file in os.listdir('%s/checkpoints' % model_dir):
-                hoc_path = '%s/checkpoints/%s' % (model_dir, hoc_file)
-                assert os.path.isfile(hoc_path)
-                name, ext = os.path.splitext(hoc_file)
-                assert ext == '.hoc'
-
-                emodel_script = EModelScript(name=name)
-                emodel_script = emodel_script.publish(TOKEN)
-                with open(hoc_path) as f:
-                    emodel_script.attach(hoc_file, f, 'application/neuron-hoc', TOKEN)
-                model_scripts.append(emodel_script)
-
-                if hoc_file == best_cell:
-                    main_model_script = emodel_script # best_cell will be referenced from memodel
+            emodel_script = EModelScript(name=model_name)
+            emodel_script = emodel_script.publish(TOKEN)
+            with open(hoc_file) as f:
+                emodel_script.attach(hoc_name, f, 'application/neuron-hoc', TOKEN)
 
             emodel = EModel(name=model_name,
-                            modelScript=model_scripts,
+                            modelScript=[emodel_script],
                             subCellularMechanism=mechanisms,
                             brainRegion=BRAIN_REGION,
                             species=SPECIES)
@@ -135,7 +121,7 @@ for model_name in os.listdir(models_dir):
             memodel = MEModel(name=model_name,
                               eModel=emodel,
                               morphology=morphology,
-                              mainModelScript=main_model_script,
+                              mainModelScript=emodel_script,
                               brainRegion=BRAIN_REGION,
                               species=SPECIES)
             memodel = memodel.publish(TOKEN)
