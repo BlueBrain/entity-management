@@ -2,6 +2,8 @@
 import os
 
 JSLD_ID = '@id'
+JSLD_TYPE = '@type'
+JSLD_CTX = '@context'
 JSLD_REV = 'nxv:rev'
 JSLD_DEPRECATED = 'nxv:deprecated'
 

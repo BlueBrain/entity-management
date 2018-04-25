@@ -3,7 +3,8 @@ from typing import List, Union
 
 from entity_management.util import attributes, AttrOf
 from entity_management.base import Distribution
-from entity_management.sim import ModelRelease, ModelInstance, ModelScript, ModelReleaseIndex
+from entity_management.sim import (Entity, ModelRelease, ModelInstance, ModelScript,
+                                   ModelReleaseIndex)
 
 
 @attributes()
@@ -151,4 +152,10 @@ class MEModel(ModelInstance):
             responsible for loading that morphology from the folder specified in the first
             template argument.
     '''
+    _url_version = 'v0.1.2'
+
+
+@attributes()
+class SingleCellSimulationTrace(Entity):
+    '''Single cell simulation trace file'''
     _url_version = 'v0.1.2'

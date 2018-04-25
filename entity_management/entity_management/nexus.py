@@ -5,7 +5,6 @@ import logging
 import requests
 import sys
 import os
-import shutil
 
 from functools import wraps
 from pprint import pprint
@@ -13,7 +12,7 @@ from pprint import pprint
 from six import iteritems, text_type, PY2
 from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
-from entity_management.settings import JSLD_ID
+from entity_management.settings import BASE, NSG_CTX
 
 L = logging.getLogger(__name__)
 
@@ -100,12 +99,11 @@ def save(base_url, payload, token=None):
 
 
 @_log_nexus_exception
-def update(base_url, uuid, rev, payload, token=None):
+def update(id_url, rev, payload, token=None):
     '''Update entity, return json response
 
     Args:
-        base_url(str): Base url of the entity which will be updated.
-        uuid(str): UUID of the entity.
+        id_url(str): Url of the entity which will be updated.
         rev(int): Revision number.
         payload(dict): Json-ld serialization of the entity.
         token(str): Optional OAuth token.
@@ -113,9 +111,9 @@ def update(base_url, uuid, rev, payload, token=None):
     Returns:
         Json response.
     '''
-    assert uuid is not None
+    assert id_url is not None
     assert rev > 0
-    response = requests.put('%s/%s' % (base_url, uuid),
+    response = requests.put(id_url,
                             headers=_get_headers(token),
                             params={'rev': rev},
                             json=payload)
@@ -124,11 +122,11 @@ def update(base_url, uuid, rev, payload, token=None):
 
 
 @_log_nexus_exception
-def deprecate(base_url, uuid, rev, token=None):
+def deprecate(id_url, rev, token=None):
     '''Mark entity as deprecated, return json response'''
-    assert uuid is not None
+    assert id_url is not None
     assert rev > 0
-    response = requests.delete('%s/%s' % (base_url, uuid),
+    response = requests.delete(id_url,
                                headers=_get_headers(token),
                                params={'rev': rev})
     response.raise_for_status()
@@ -136,12 +134,11 @@ def deprecate(base_url, uuid, rev, token=None):
 
 
 @_log_nexus_exception
-def attach(base_url, uuid, rev, file_name, data, content_type, token=None):
+def attach(id_url, rev, file_name, data, content_type, token=None):
     '''Attach binary to the entity.
 
     Args:
-        base_url(str): Base url of the entity to which the attachment will be added.
-        uuid(str): UUID of the entity.
+        id_url(str): Url of the entity to which the attachment will be added.
         file_name(str): Original file name.
         data(file): File like data stream.
         content_type(str): Content type with which attachment will be delivered when accessed
@@ -151,7 +148,9 @@ def attach(base_url, uuid, rev, file_name, data, content_type, token=None):
     Returns:
         Json response.
     '''
-    response = requests.put('%s/%s/attachment' % (base_url, uuid),
+    assert id_url is not None
+    assert rev > 0
+    response = requests.put('%s/attachment' % id_url,
                             headers=_get_headers(token),
                             params={'rev': rev},
                             files={'file': (file_name, data, content_type)})
@@ -176,7 +175,8 @@ def download(url, path, file_name, token=None):
     try:
         response.raise_for_status()
         with open(os.path.join(path, file_name), 'wb') as f:
-            shutil.copyfileobj(response.raw, f)
+            for chunk in response.iter_content(chunk_size=1024):
+                f.write(chunk)
     finally:
         response.close()
 
@@ -190,7 +190,6 @@ def load_by_uuid(base_url, uuid, token=None):
         return None
     response.raise_for_status()
     js = response.json(object_hook=_byteify)
-    js[JSLD_ID] = get_uuid_from_url(js[JSLD_ID])
     return js
 
 
@@ -215,23 +214,40 @@ def find_uuid_by_name(base_url, name, token=None):
 
 
 @_log_nexus_exception
-def collection_by_name(base_url, name, token=None):
-    '''Lookup not deprecated entities from the base url with the name filter'''
-    response = requests.get(base_url,
-                            headers=_get_headers(token),
-                            params={
-                                'deprecated': 'false',
-                                'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
-    # if not found then return []
+# def find_by(cls, token=None, **properties): FIXME uncomment when properties will be clear
+def find_by(cls, token=None):
+    '''Lookup not deprecated entity uuid from the base url with the name filter'''
+    props = []
+    # 'path':"name","value":"%s"} % name}) FIXME one of the properties will be name
+    response = requests.post('%s/queries' % BASE,
+                             headers=_get_headers(token),
+                             json={
+                                 '@context': NSG_CTX,
+                                 'resource': 'instances',
+                                 'deprecated': False,
+                                 'filter': {
+                                     'op': 'and',
+                                     'value': [{'op': 'eq', 'path': 'rdf:type', 'value': cls}]
+                                     + props
+                                     }
+                                 },
+                             allow_redirects=False)
+
+    # query successful follow redirect
+    if response.status_code == 308:
+        location = response.headers.get('location')
+        return location
+    response.raise_for_status()
+    return None
+
+
+@_log_nexus_exception
+def load_by_url(url, token=None):
+    '''Load json-ld from url'''
+    response = requests.get(url, headers=_get_headers(token))
+    # if not found then return None
     if response.status_code == 404:
-        return []
+        return None
     response.raise_for_status()
     js = response.json(object_hook=_byteify)
-    return [load_by_url(entity.resultId) for entity in js['results']]
-
-
-def load_by_url(url, token=None):
-    '''Load Entity from url'''
-    uuid = get_uuid_from_url(url)
-    cls = get_type(url)
-    return cls.from_uuid(uuid, token)
+    return js

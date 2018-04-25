@@ -25,7 +25,7 @@ MORPHOLOGY_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID,
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID,
     "@type": [
         "nsg:Entity",
         "nsg:MorphologyRelease"
@@ -39,10 +39,10 @@ MORPHOLOGY_RELEASE_JSLD = {
     ],
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID + "/incoming",
-        "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID + "/outgoing",
-        "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.0",
-        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID
+        "incoming": "%s/%s/incoming" % (MorphologyRelease._base_url, UUID),
+        "outgoing": "%s/%s/outgoing" % (MorphologyRelease._base_url, UUID),
+        "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.1",
+        "self": "%s/%s" % (MorphologyRelease._base_url, UUID)
     },
     "morphologyIndex": {
         '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
@@ -58,13 +58,13 @@ MORPHOLOGY_RELEASE_JSLD = {
 
 MORPHOLOGY_RELEASE_JSLD_UPDATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID,
+    "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
     "nxv:rev": 2
     }
 
 MORPHOLOGY_RELEASE_JSLD_DELETE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.0/" + UUID,
+    "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
     "nxv:rev": 2
     }
 
@@ -184,7 +184,7 @@ MORPHOLOGY_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/" + UUID,
+    "@id": "%s/%s" % (Morphology._base_url, UUID),
     "@type": [
         "nsg:Entity",
         "nsg:Morphology"
@@ -262,7 +262,7 @@ def test_load_morphology_release_by_url():
     url = '%s/%s' % (MorphologyRelease._base_url, UUID)
     responses.add(responses.GET, url, json=MORPHOLOGY_RELEASE_JSLD)
 
-    morphology_release = nexus.load_by_url(url)
+    morphology_release = MorphologyRelease.from_url(url)
 
     assert morphology_release.description == 'test description'
     assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
@@ -311,7 +311,7 @@ def test_update_morphology_release():
 
     morphology_release = morphology_release.publish()
 
-    assert morphology_release._uuid == UUID
+    assert morphology_release._id == '%s/%s' % (MorphologyRelease._base_url, UUID)
     assert morphology_release.name == 'Morphology Release'
     assert morphology_release.distribution.downloadURL == new_url
     assert morphology_release._rev == 2
@@ -326,7 +326,7 @@ def test_publish_morphology_release():
                                            distribution=base.Distribution(downloadURL='url'))
     morphology_release = morphology_release.publish()
 
-    assert morphology_release._uuid is not None
+    assert morphology_release._id is not None
     assert morphology_release._rev is not None
 
 
@@ -345,8 +345,8 @@ def test_deprecate_morphology_release():
 
     morphology_release = morphology_release.deprecate()
 
-    assert morphology_release._uuid is not None
     assert morphology_release.name == 'Morphology Release'
+    assert morphology_release._id is not None
     assert morphology_release._rev == 2
     assert morphology_release._deprecated == True
 
@@ -370,7 +370,7 @@ def test_publish_emodel_release():
 
     emodel_release = emodel_release.publish()
 
-    assert emodel_release._uuid is not None
+    assert emodel_release._id is not None
     assert emodel_release.name == 'EModelRelease'
     assert emodel_release._rev == 1
 

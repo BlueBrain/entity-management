@@ -26,14 +26,14 @@ for mod_name in os.listdir(mod_files):
     model = SubCellularModel.from_name(name, TOKEN)
     if model is None:
         model_script = SubCellularModelScript(name=name)
-        model_script = model_script.save(TOKEN)
+        model_script = model_script.publish(TOKEN)
         with open(mod_file) as f:
             model_script.attach(mod_name, f, 'application/neuron-mod', TOKEN)
         model = SubCellularModel(name=name,
                                  modelScript=model_script,
                                  # brainRegion=BRAIN_REGION,
                                  species=SPECIES)
-        model = model.save(TOKEN)
+        model = model.publish(TOKEN)
     mechanisms.append(model)
 
 
@@ -46,7 +46,7 @@ assert os.path.isfile(hoc_file)
 emodel_script = EModelScript.from_name(model_name, TOKEN)
 if emodel_script is None:
     emodel_script = EModelScript(name=model_name)
-    emodel_script = emodel_script.save(TOKEN)
+    emodel_script = emodel_script.publish(TOKEN)
     with open(hoc_file) as f:
         emodel_script.attach('cell.hoc', f, 'application/neuron-hoc', TOKEN)
 
@@ -54,7 +54,7 @@ morphology_name = 'R281HI-6-6-16_ventralneuron'
 morphology = Morphology.from_name(morphology_name, TOKEN)
 if morphology is None:
     morphology = Morphology(name=morphology_name)
-    morphology = morphology.save(TOKEN)
+    morphology = morphology.publish(TOKEN)
 
     morphology_file = os.path.expanduser(
             '/gpfs/bbp.cscs.ch/project/proj55/singlecell/e-models/morphology/'
@@ -69,7 +69,7 @@ if emodel is None:
                     subCellularMechanism=mechanisms,
                     # brainRegion=BRAIN_REGION,
                     species=SPECIES)
-    emodel = emodel.save(TOKEN)
+    emodel = emodel.publish(TOKEN)
 
 memodel = MEModel.from_name(model_name, TOKEN)
 if memodel is None:
@@ -79,4 +79,4 @@ if memodel is None:
                       mainModelScript=emodel_script,
                       # brainRegion=BRAIN_REGION,
                       species=SPECIES)
-    memodel = memodel.save(TOKEN)
+    memodel = memodel.publish(TOKEN)

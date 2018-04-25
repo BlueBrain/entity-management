@@ -23,7 +23,7 @@ class Entity(Identifiable):
 
     def __attrs_post_init__(self):
         super(Entity, self).__attrs_post_init__()
-        self._types.append('prov:%s' % type(self).__name__)
+        self._type.append('prov:%s' % type(self).__name__)
 
 
 @attributes({'name': AttrOf(str)})
@@ -85,3 +85,4 @@ class EModelBuilding(Activity):
             this activity.
     '''
     _url_domain = 'simulation'
+    _url_version = 'v0.1.2'

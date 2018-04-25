@@ -7,6 +7,8 @@ Base simulation entities
 '''
 import typing
 import six
+from six.moves.urllib.parse import (urlsplit, # pylint: disable=import-error,no-name-in-module
+                                    parse_qsl, urlunsplit, urlencode)
 
 from datetime import datetime
 from inspect import getmro
@@ -18,7 +20,53 @@ from entity_management import nexus
 from entity_management.util import _clean_up_dict
 from entity_management.util import attributes, AttrOf
 from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_REV,
-                                        JSLD_DEPRECATED, ENTITY_CTX, NSG_CTX)
+                                        JSLD_DEPRECATED, JSLD_CTX, JSLD_TYPE, ENTITY_CTX, NSG_CTX)
+
+
+@attr.s
+class NexusResultsIterator(object):
+    '''Nexus paginated results iterator'''
+    cls = attr.ib()
+    url = attr.ib()
+    token = attr.ib()
+    item_index = attr.ib(type=int, default=0)
+    total_items = attr.ib(type=int, default=None)
+    page = attr.ib(default=None)
+    page_from = attr.ib(type=int, default=None)
+    page_size = attr.ib(type=int, default=None)
+
+    def __attrs_post_init__(self):
+        self._fetch_page()
+
+    def __iter__(self):
+        return self
+
+    def _fetch_page(self):
+        '''Fetch nexus result from url and deserialize it to self.page list of entities'''
+        split_url = urlsplit(self.url)
+        query_params = dict(parse_qsl(split_url.query))
+        self.page_from = int(query_params['from'])
+        self.page_size = int(query_params['size'])
+
+        js = nexus.load_by_url(self.url, self.token)
+        self.page = [self.cls.from_url(entity['resultId'], self.token) # pylint: disable=no-member
+                     for entity in js['results']]
+        assert self.page_size == len(self.page)
+        self.total_items = int(js['total'])
+
+    def next(self):
+        '''Return next entity from the paginated result set, fetch next page if required'''
+        split_url = urlsplit(self.url)
+        if self.item_index < self.total_items:
+            if self.page_from + self.page_size == self.item_index:
+                self.url = urlunsplit(split_url._replace( # pylint: disable=protected-access
+                        query=urlencode({'from': self.item_index, 'size': self.page_size})))
+                self._fetch_page()
+            entity = self.page[self.item_index - self.page_from]
+            self.item_index += 1
+            return entity
+        else:
+            raise StopIteration()
 
 
 def _deserialize_list(data_type, data_raw, token):
@@ -67,9 +115,9 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         # pylint: disable=protected-access
         value = obj.evolve(_proxied_type=data_type,
                            _proxied_token=token,
-                           _types=['%s:Entity' % data_type._type_namespace,
-                                   '%s:%s' % (data_type._type_namespace, data_type.__name__)],
-                           _uuid=nexus.get_uuid_from_url(url))
+                           _type=['%s:Entity' % data_type._type_namespace,
+                                  '%s:%s' % (data_type._type_namespace, data_type.__name__)],
+                           _id=url)
     elif issubclass(data_type, OntologyTerm):
         value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
     elif isinstance(data_raw, dict):
@@ -85,11 +133,9 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
 def _serialize_obj(value):
     '''Serialize object'''
     if isinstance(value, Identifiable):
-        return {JSLD_ID: '%s/%s' % (value.base_url, value.uuid),
-                '@type': value.types}
+        return {JSLD_ID: value.id, JSLD_TYPE: value.types}
     elif isinstance(value, OntologyTerm):
-        return {JSLD_ID: value.url,
-                'label': value.label}
+        return {JSLD_ID: value.url, 'label': value.label}
     elif isinstance(value, datetime):
         return value.isoformat()
     elif attr.has(type(value)):
@@ -160,29 +206,29 @@ class Identifiable(Frozen):
         return self._base_url
 
     @property
-    def uuid(self):
-        '''uuid'''
-        return self._uuid
+    def id(self):
+        '''id'''
+        return self._id
 
     @property
     def types(self):
         '''types'''
-        return self._types
+        return self._type
 
     def __attrs_post_init__(self):
-        self._force_attr('_types', ['%s:%s' % (self._type_namespace, type(self).__name__)])
+        self._force_attr('_type', ['%s:%s' % (self._type_namespace, type(self).__name__)])
 
     def __getattr__(self, name):
         # isinstance is overriden in metaclass which is true for all subclasses of Identifiable
-        if (type(self) == Identifiable and '_uuid' in self.__dict__):
+        if (type(self) == Identifiable and '_id' in self.__dict__):
             # Identifiable instances behave like proxies, set it up and then forward attr request
             if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
                                                        # and that will cause recursion to _getattr_
                 self._force_attr('_proxied_object',
-                                 self._proxied_type.from_uuid(self._uuid, self._proxied_token))
+                                 self._proxied_type.from_url(self._id, self._proxied_token))
             if self._proxied_object is None:
-                raise ValueError('Unable to find proxied entity for uuid:%s and %s' %
-                                 (self._uuid, self._proxied_type))
+                raise ValueError('Unable to find proxied entity for %s and %s' %
+                                 (self._id, self._proxied_type))
             return getattr(self._proxied_object, name)
         else:
             # subclasses of Identifiable just raise if arrived in __getattr__
@@ -201,14 +247,16 @@ class Identifiable(Frozen):
         return sorted(attrs_from_mro | attrs_from_obj)
 
     @classmethod
-    def from_uuid(cls, uuid, use_auth=None):
+    def from_url(cls, url, use_auth=None):
         '''
+        Load entity from URL.
+
         Args:
-            uuid(str): UUID of the entity to load.
+            url(str): URL of the entity to load.
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
-        Load entity from UUID.'''
-        js = nexus.load_by_uuid(cls._base_url, uuid, use_auth) # pylint: disable=no-member
+        '''
+        js = nexus.load_by_url(url, use_auth)
 
         # prepare all entity init args
         init_args = {}
@@ -220,7 +268,37 @@ class Identifiable(Frozen):
                 init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, use_auth)
 
         obj = cls(**init_args)
-        return obj.evolve(_uuid=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
+        return obj.evolve(_id=js[JSLD_ID],
+                          _rev=js[JSLD_REV],
+                          _deprecated=js[JSLD_DEPRECATED],
+                          _type=js[JSLD_TYPE])
+
+    @classmethod
+    def from_uuid(cls, uuid, use_auth=None):
+        '''
+        Load entity from UUID.
+
+        Args:
+            uuid(str): UUID of the entity to load.
+            use_auth(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        '''
+        js = nexus.load_by_uuid(cls._base_url, uuid, use_auth) # pylint: disable=no-member
+
+        if js is None:
+            return None
+
+        # prepare all entity init args
+        init_args = {}
+        for field in attr.fields(cls):
+            attr_name = field.name
+            raw = js.get(attr_name)
+            if field.init and raw is not None:
+                type_ = field.type
+                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, use_auth)
+
+        obj = cls(**init_args)
+        return obj.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
 
     @classmethod
     def from_name(cls, name, use_auth=None):
@@ -238,6 +316,15 @@ class Identifiable(Frozen):
         else:
             return None
 
+    @classmethod
+    def find_by(cls, use_auth=None, **properties):
+        '''Load entity from properties.'''
+        target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
+        location = nexus.find_by(target_class, token=use_auth, **properties)
+        if location is not None:
+            return NexusResultsIterator(cls, location, use_auth)
+        return None
+
     def publish(self, use_auth=None):
         '''Save or update entity in nexus. Makes a remote call to nexus instance to persist
         entity attributes.
@@ -248,11 +335,11 @@ class Identifiable(Frozen):
         Returns:
             New instance of the same class with revision updated.
         '''
-        if hasattr(self, '_uuid') and self._uuid:
-            js = nexus.update(self._base_url, self._uuid, self._rev, self.as_json_ld(), use_auth)
+        if hasattr(self, '_id') and self._id:
+            js = nexus.update(self._id, self._rev, self.as_json_ld(), use_auth)
         else:
             js = nexus.save(self._base_url, self.as_json_ld(), use_auth)
-        return self.evolve(_uuid=nexus.get_uuid_from_url(js[JSLD_ID]), _rev=js[JSLD_REV])
+        return self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
 
     def deprecate(self, use_auth=None):
         '''Mark entity as deprecated.
@@ -262,8 +349,7 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        assert self._uuid is not None
-        js = nexus.deprecate(self._base_url, self._uuid, self._rev, use_auth)
+        js = nexus.deprecate(self._id, self._rev, use_auth)
         return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
 
     def evolve(self, **changes):
@@ -278,7 +364,7 @@ class Identifiable(Frozen):
 
         hidden_attrs = {}
         # copy hidden attrs values from changes(remove with pop) else from original if present
-        for attr_name in ['_uuid', '_rev', '_deprecated', '_types', '_proxied_type',
+        for attr_name in ['_id', '_rev', '_deprecated', '_type', '_proxied_type',
                           '_proxied_object', '_proxied_token']:
             attr_value = Ellipsis
 
@@ -302,24 +388,25 @@ class Identifiable(Frozen):
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
-        @type is filled from the self._types
+        @type is filled from the self._type
         '''
         attrs = attr.fields(type(self))
         rv = {}
         for attribute in attrs:
             attr_value = getattr(self, attribute.name)
-            attr_name = attribute.name
-            if isinstance(attr_value, (tuple, list, set)):
-                rv[attr_name] = [_serialize_obj(i) for i in attr_value]
-            elif isinstance(attr_value, dict):
-                rv[attr_name] = dict((
-                    attr.asdict(kk) if attr.has(type(kk)) else kk,
-                    attr.asdict(vv) if attr.has(type(vv)) else vv)
-                    for kk, vv in six.iteritems(attr_value))
-            else:
-                rv[attr_name] = _serialize_obj(attr_value)
-        rv['@context'] = [ENTITY_CTX, NSG_CTX]
-        rv['@type'] = self._types
+            if attr_value is not None: # ignore empty values
+                attr_name = attribute.name
+                if isinstance(attr_value, (tuple, list, set)):
+                    rv[attr_name] = [_serialize_obj(i) for i in attr_value]
+                elif isinstance(attr_value, dict):
+                    rv[attr_name] = dict((
+                        attr.asdict(kk) if attr.has(type(kk)) else kk,
+                        attr.asdict(vv) if attr.has(type(vv)) else vv)
+                        for kk, vv in six.iteritems(attr_value))
+                else:
+                    rv[attr_name] = _serialize_obj(attr_value)
+        rv[JSLD_CTX] = [ENTITY_CTX, NSG_CTX]
+        rv[JSLD_TYPE] = self._type
         return rv
 
 

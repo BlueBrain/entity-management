@@ -114,6 +114,8 @@ for model_dir, dirs, files in os.walk(models_dir):
                                              wasAssociatedWith=[agent, bluepyopt_agent],
                                              wasStartedBy=agent)
             emodel_building = emodel_building.publish(TOKEN)
+        else:
+            emodel_script = emodel.modelScript[0]
 
         memodel = MEModel.from_name(model_name, TOKEN)
         if memodel is None:
