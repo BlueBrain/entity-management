@@ -139,7 +139,7 @@ def _serialize_obj(value):
     elif isinstance(value, datetime):
         return value.isoformat()
     elif attr.has(type(value)):
-        return attr.asdict(value, recurse=True)
+        return attr.asdict(value, recurse=True, filter=lambda _, value: value is not None)
     else:
         return value
 
