@@ -12,9 +12,9 @@ knowledge graph.
 
 Entity_management library provides methods to perform simple queries to nexus
 and retrieve data. In order to create data in nexus, instantiate the relevant
-python classes and invoke `save` method. When python classes are instantiated
+python classes and invoke `publish` method. When python classes are instantiated
 the best effort will be made to perform necessary validation so that nexus
-doesn't reject data when the `save` method is invoked. See: :doc:`examples`
+doesn't reject data when the `publish` method is invoked. See: :doc:`examples`
 
 Below you can find the class diagram of the entities available in the
 simulation domain. By clicking on the class, you'll be taken to the class

@@ -1,7 +1,7 @@
 '''Circuit related entities'''
 from entity_management.util import attributes, AttrOf
 from entity_management.base import Distribution
-from entity_management.sim import Entity, ModelInstance
+from entity_management.sim import Entity, ModelInstance, ModelReleaseIndex
 from entity_management.simulation.cell import MEModelRelease, SynapseRelease
 
 
@@ -25,10 +25,10 @@ class NodeCollection(Entity):
         circuitCellProperties(CircuitCellProperties): Cell properties which are used in this node
                                                       collection.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
-@attributes({'edgePopulation': AttrOf(Distribution),
+@attributes({'edgePopulation': AttrOf(ModelReleaseIndex), # FIXME make it work for now, check schema
              'synapseRelease': AttrOf(SynapseRelease)})
 class EdgeCollection(Entity):
     '''Edge collection represents circuit connectivity(synapses, projections)
@@ -38,7 +38,7 @@ class EdgeCollection(Entity):
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'distribution': AttrOf(Distribution)})
@@ -62,4 +62,4 @@ class DetailedCircuit(ModelInstance):
         edgeCollection(EdgeCollection): Edge collection.
         target(Target): Target.
     '''
-    pass
+    _url_version = 'v0.1.1'

@@ -410,9 +410,11 @@ def test_create_detailed_circuit():
     synapseRelease = SynapseRelease(
             name='SynapseRelease',
             distribution=base.Distribution(downloadURL='url'))
+    edgePopulation = sim.ModelReleaseIndex(name='index',
+                                           distribution=base.Distribution(accessURL='url'))
     edgeCollection = EdgeCollection(
             name='EdgeCollection',
-            edgePopulation=base.Distribution(accessURL='url'),
+            edgePopulation=edgePopulation,
             synapseRelease=synapseRelease)
 
     target = Target(name='Target', distribution=base.Distribution(downloadURL='url'))

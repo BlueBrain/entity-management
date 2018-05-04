@@ -8,5 +8,6 @@ API Documentation
    entity_management.prov
    entity_management.sim
    entity_management.mixins
+   entity_management.morphology
    entity_management.simulation.cell
    entity_management.simulation.circuit
