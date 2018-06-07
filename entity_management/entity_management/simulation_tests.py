@@ -9,13 +9,14 @@ from pprint import pprint
 
 import entity_management.nexus as nexus
 
-from entity_management import base
-from entity_management import prov
-from entity_management import sim
-from entity_management.simulation.circuit import (DetailedCircuit, NodeCollection,
-        SynapseRelease, EdgeCollection, Target, CircuitCellProperties)
-from entity_management.simulation.cell import (MEModelRelease, EModelRelease, MorphologyRelease, Morphology, MEModel,
-                                               IonChannelMechanismRelease, SubCellularModelScript, SubCellularModel)
+import entity_management.base as base
+import entity_management.core as core
+from entity_management.simulation import (DetailedCircuit, NodeCollection, ModelReleaseIndex,
+                                          SynapseRelease, EdgeCollection, Target,
+                                          CircuitCellProperties, MEModelRelease, EModelRelease,
+                                          MorphologyRelease, Morphology, MEModel,
+                                          IonChannelMechanismRelease, SubCellularModelScript,
+                                          SubCellularModel)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 
@@ -229,7 +230,7 @@ MEMODEL_JSLD = {
     'mainModelScript': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelscript/v0.1.0/baeda23e-b868-4bae-a48d-98ff069b3a70',
                         '@type': ['nsg:Entity', 'nsg:EModelScript'],
                         'name': 'dummy'},
-    'morphology': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.1/baeda23e-b868-4bae-a48d-98ff069b3a70',
+    'morphology': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/%s/baeda23e-b868-4bae-a48d-98ff069b3a70' % Morphology._url_version,
                    '@type': ['nsg:Entity', 'nsg:Morphology'],
                    'name': 'dummy'},
     'name': 'name',
@@ -244,6 +245,7 @@ ACTIVITY_JSLD = {
     '@type': ['nsg:Activity', 'prov:Activity'],
     'nxv:deprecated': False,
     'nxv:rev': 1,
+    'name': 'test activity',
     'startedAtTime': '2018-03-27T16:04:35.886105',
     'used': {
         '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodel/v0.1.2/43ea1788-4f7f-4b7c-8b36-416bc672db1f',
@@ -353,12 +355,12 @@ def test_deprecate_morphology_release():
 
 @responses.activate
 def test_publish_emodel_release():
-    responses.add(responses.POST, sim.ModelReleaseIndex._base_url,
+    responses.add(responses.POST, ModelReleaseIndex._base_url,
                   json=MODEL_RELEASE_INDEX_JSLD_CREATE)
     responses.add(responses.POST, EModelRelease._base_url,
                   json=EMODEL_RELEASE_JSLD_CREATE)
 
-    emodel_index = sim.ModelReleaseIndex(
+    emodel_index = ModelReleaseIndex(
             name='index',
             distribution=base.Distribution(downloadURL='url'))
     emodel_index = emodel_index.publish()
@@ -376,22 +378,22 @@ def test_publish_emodel_release():
 
 
 def test_create_detailed_circuit():
-    morphology_index = sim.ModelReleaseIndex(name='index',
-                                             distribution=base.Distribution(downloadURL='url'))
+    morphology_index = ModelReleaseIndex(name='index',
+                                         distribution=base.Distribution(downloadURL='url'))
     morphology_release = MorphologyRelease(
             name='MorphologyRelease',
             distribution=base.Distribution(downloadURL='distr url'),
             morphologyIndex=morphology_index)
 
-    emodel_index = sim.ModelReleaseIndex(name='index',
-                                         distribution=base.Distribution(downloadURL='url'))
+    emodel_index = ModelReleaseIndex(name='index',
+                                     distribution=base.Distribution(downloadURL='url'))
     emodelRelease = EModelRelease(
             name='EModelRelease',
             distribution=base.Distribution(downloadURL='url'),
             emodelIndex=emodel_index)
 
-    memodel_index = sim.ModelReleaseIndex(name='index',
-                                          distribution=base.Distribution(downloadURL='url'))
+    memodel_index = ModelReleaseIndex(name='index',
+                                      distribution=base.Distribution(downloadURL='url'))
     memodelRelease = MEModelRelease(
             name='MEModelRelease',
             morphologyRelease=morphology_release,
@@ -410,8 +412,8 @@ def test_create_detailed_circuit():
     synapseRelease = SynapseRelease(
             name='SynapseRelease',
             distribution=base.Distribution(downloadURL='url'))
-    edgePopulation = sim.ModelReleaseIndex(name='index',
-                                           distribution=base.Distribution(accessURL='url'))
+    edgePopulation = ModelReleaseIndex(name='index',
+                                       distribution=base.Distribution(accessURL='url'))
     edgeCollection = EdgeCollection(
             name='EdgeCollection',
             edgePopulation=edgePopulation,
@@ -483,8 +485,8 @@ def test_memodel_by_uuid():
 
 @responses.activate
 def test_prov_activity_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (prov.Activity._base_url, UUID), json=ACTIVITY_JSLD)
-    activity = prov.Activity.from_uuid(UUID)
+    responses.add(responses.GET, '%s/%s' % (core.Activity._base_url, UUID), json=ACTIVITY_JSLD)
+    activity = core.Activity.from_uuid(UUID)
     assert activity.startedAtTime.year == 2018
     assert activity.startedAtTime.month == 3
     assert activity.startedAtTime.day == 27

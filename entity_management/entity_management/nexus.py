@@ -214,22 +214,21 @@ def find_uuid_by_name(base_url, name, token=None):
 
 
 @_log_nexus_exception
-# def find_by(cls, token=None, **properties): FIXME uncomment when properties will be clear
-def find_by(cls, token=None):
-    '''Lookup not deprecated entity uuid from the base url with the name filter'''
+def find_by(cls, collection_address=None, token=None, **properties):
+    '''Find entities using NEXUS queries endpoint'''
     props = []
-    # 'path':"name","value":"%s"} % name}) FIXME one of the properties will be name
-    response = requests.post('%s/queries' % BASE,
+    props.append({'op': 'eq', 'path': 'rdf:type', 'value': cls})
+
+    for key, value in iteritems(properties):
+        props.append({'op': 'eq', 'path': 'schema:%s' % key, 'value': value})
+
+    response = requests.post('%s/queries%s' % (BASE, collection_address or ''),
                              headers=_get_headers(token),
                              json={
                                  '@context': NSG_CTX,
                                  'resource': 'instances',
                                  'deprecated': False,
-                                 'filter': {
-                                     'op': 'and',
-                                     'value': [{'op': 'eq', 'path': 'rdf:type', 'value': cls}]
-                                     + props
-                                     }
+                                 'filter': {'op': 'and', 'value': props}
                                  },
                              allow_redirects=False)
 

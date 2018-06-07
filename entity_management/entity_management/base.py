@@ -2,7 +2,7 @@
 Base simulation entities
 
 .. inheritance-diagram:: entity_management.base entity_management.sim.Entity
-                         entity_management.prov.Entity
+                         entity_management.core.Entity
    :parts: 2
 '''
 import typing
@@ -51,7 +51,6 @@ class NexusResultsIterator(object):
         js = nexus.load_by_url(self.url, self.token)
         self.page = [self.cls.from_url(entity['resultId'], self.token) # pylint: disable=no-member
                      for entity in js['results']]
-        assert self.page_size == len(self.page)
         self.total_items = int(js['total'])
 
     def next(self):
@@ -66,7 +65,7 @@ class NexusResultsIterator(object):
             self.item_index += 1
             return entity
         else:
-            raise StopIteration()
+            return
 
 
 def _deserialize_list(data_type, data_raw, token):
@@ -120,10 +119,10 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
                            _id=url)
     elif issubclass(data_type, OntologyTerm):
         value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
-    elif isinstance(data_raw, dict):
-        value = data_type(**_clean_up_dict(data_raw))
     elif data_type == datetime:
         value = parse(data_raw)
+    elif isinstance(data_raw, dict):
+        value = data_type(**_clean_up_dict(data_raw))
     else:
         value = data_type(data_raw)
 
@@ -196,7 +195,8 @@ class _IdentifiableMeta(type):
 class Identifiable(Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
-    requests to that entity.'''
+    requests to that entity.
+    '''
     # entity namespace which should be used for json-ld @type attribute
     _type_namespace = '' # Entity classes from specific domains will override this
 
@@ -317,10 +317,36 @@ class Identifiable(Frozen):
             return None
 
     @classmethod
-    def find_by(cls, use_auth=None, **properties):
-        '''Load entity from properties.'''
+    def find_by(cls, all_versions=False, all_domains=False, all_organizations=False,
+                use_auth=None, **properties):
+        '''Load entity from properties.
+
+        Args:
+            collection_address(str): Selected collection to list, filter or search;
+                for example: ``/myorg/mydomain``, ``/myorg/mydomain/myschema/v1.0.0``
+            use_auth(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        Returns:
+            Results iterator.
+        '''
+
+        # build collection address
+        version = getattr(cls, '_url_version', VERSION)
+        url_org = getattr(cls, '_url_org', ORG)
+        url_domain = getattr(cls, '_url_domain', 'simulation')
+        if all_versions:
+            collection_address = '/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower())
+        elif all_domains:
+            collection_address = '/%s' % url_org
+        elif all_organizations:
+            collection_address = None
+        else:
+            collection_address = '/%s/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower(),
+                                                   version)
+
         target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
-        location = nexus.find_by(target_class, token=use_auth, **properties)
+        location = nexus.find_by(cls=target_class, collection_address=collection_address,
+                                 token=use_auth, **properties)
         if location is not None:
             return NexusResultsIterator(cls, location, use_auth)
         return None
