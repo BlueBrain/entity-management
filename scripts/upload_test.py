@@ -6,11 +6,11 @@ from io import StringIO
 from pprint import pprint
 
 from entity_management.base import Distribution
-from entity_management.prov import Agent, Activity
-from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
-                                               EModel, SubCellularModel, ModelScript, Morphology)
-from entity_management.simulation.circuit import (NodeCollection, SynapseRelease, EdgeCollection,
-                                                  CircuitCellProperties, Target, DetailedCircuit)
+from entity_management.core import Agent, Activity
+from entity_management.simulation import (MorphologyRelease, EModelRelease, MEModelRelease,
+                                          EModel, SubCellularModel, ModelScript, Morphology,
+                                          NodeCollection, SynapseRelease, EdgeCollection,
+                                          CircuitCellProperties, Target, DetailedCircuit)
 
 
 agent_name = 'NSE'

@@ -33,7 +33,9 @@ VERSION = get_version(os.path.join(os.path.dirname(__file__),
 TESTS_REQUIRE = [
         'nose==1.3.0',
         'mock==1.0.1',
-        'responses'
+        'responses',
+        'sh',
+        'neurom',
         ]
 
 setup(

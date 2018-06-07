@@ -125,8 +125,8 @@ class MEModelRelease(ModelRelease):
 
 @attributes({'distribution': AttrOf(Distribution, default=None),
              'isPartOf': AttrOf(MorphologyRelease, default=None),
-             'view2d': AttrOf(Entity, default=None),
-             'view3d': AttrOf(Entity, default=None)})
+             'view2d': AttrOf(Identifiable, default=None),
+             'view3d': AttrOf(Identifiable, default=None)})
 class Morphology(ModelInstance):
     '''Neuron morphology.
     Actual morphology file can be stored as the attachment of this entity or stored at the location

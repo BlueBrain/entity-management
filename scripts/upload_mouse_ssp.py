@@ -6,11 +6,11 @@ Prerequisites in scripts folder:
 '''
 import os
 
-from entity_management.prov import Agent, SoftwareAgent, EModelBuilding
+from entity_management.core import Agent, SoftwareAgent
 from entity_management.base import OntologyTerm
-from entity_management.simulation.cell import (SubCellularModelScript, SubCellularModel,
-                                               EModelScript, EModel, Morphology, MEModel,
-                                               IonChannelMechanismRelease)
+from entity_management.simulation import (SubCellularModelScript, SubCellularModel, EModelBuilding,
+                                          EModelScript, EModel, Morphology, MEModel,
+                                          IonChannelMechanismRelease)
 
 
 TOKEN = os.getenv('NEXUS_TOKEN')
@@ -60,6 +60,7 @@ for mod_name in os.listdir(mod_files):
         model_script = SubCellularModelScript(name=name)
         model_script = model_script.publish(TOKEN)
         with open(mod_file) as f:
+            # pylint: disable=maybe-no-member
             model_script.attach(mod_name, f, 'application/neuron-mod', TOKEN)
         model = SubCellularModel(name=name,
                                  isPartOf=[mod_release],
@@ -91,6 +92,7 @@ for model_dir, dirs, files in os.walk(models_dir):
             morphology = Morphology(model_name)
             morphology = morphology.publish(TOKEN)
             with open(morphology_file) as f:
+                # pylint: disable=maybe-no-member
                 morphology.attach(morphology_name, f, 'application/neurolucida', TOKEN)
 
         mechanisms = [sub_cellular_models[os.path.splitext(m)[0]]
@@ -101,6 +103,7 @@ for model_dir, dirs, files in os.walk(models_dir):
             emodel_script = EModelScript(name=model_name)
             emodel_script = emodel_script.publish(TOKEN)
             with open(hoc_file) as f:
+                # pylint: disable=maybe-no-member
                 emodel_script.attach(hoc_name, f, 'application/neuron-hoc', TOKEN)
 
             emodel = EModel(name=model_name,

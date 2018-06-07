@@ -4,10 +4,9 @@
 from pprint import pprint
 
 from entity_management.base import Distribution
-from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
-                                               SynapseRelease)
-from entity_management.simulation.circuit import (CircuitCellProperties, EdgeCollection,
-                                                  NodeCollection, Target, DetailedCircuit)
+from entity_management.simulation import (MorphologyRelease, EModelRelease, MEModelRelease,
+                                          SynapseRelease, CircuitCellProperties, EdgeCollection,
+                                          NodeCollection, Target, DetailedCircuit)
 
 
 # Skip v5 at the moment

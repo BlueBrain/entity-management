@@ -3,8 +3,8 @@
 import os
 
 from entity_management.base import OntologyTerm
-from entity_management.simulation.cell import (SubCellularModelScript, SubCellularModel,
-                                               EModelScript, EModel, Morphology, MEModel)
+from entity_management.simulation import (SubCellularModelScript, SubCellularModel,
+                                          EModelScript, EModel, Morphology, MEModel)
 
 
 TOKEN = os.getenv('NEXUS_TOKEN')
@@ -28,6 +28,7 @@ for mod_name in os.listdir(mod_files):
         model_script = SubCellularModelScript(name=name)
         model_script = model_script.publish(TOKEN)
         with open(mod_file) as f:
+            # pylint: disable=maybe-no-member
             model_script.attach(mod_name, f, 'application/neuron-mod', TOKEN)
         model = SubCellularModel(name=name,
                                  modelScript=model_script,
@@ -48,6 +49,7 @@ if emodel_script is None:
     emodel_script = EModelScript(name=model_name)
     emodel_script = emodel_script.publish(TOKEN)
     with open(hoc_file) as f:
+        # pylint: disable=maybe-no-member
         emodel_script.attach('cell.hoc', f, 'application/neuron-hoc', TOKEN)
 
 morphology_name = 'R281HI-6-6-16_ventralneuron'
@@ -61,6 +63,7 @@ if morphology is None:
             'R281HI-6-6-16_ventralneuron.asc')
     assert os.path.isfile(morphology_file)
     with open(morphology_file) as f:
+        # pylint: disable=maybe-no-member
         morphology.attach('%s.asc' % morphology_name, f, 'application/neurolucida', TOKEN)
 
 emodel = EModel.from_name(model_name, TOKEN)

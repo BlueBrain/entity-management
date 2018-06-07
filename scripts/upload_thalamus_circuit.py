@@ -2,12 +2,10 @@
 '''Upload data to nexus'''
 import os
 
-from entity_management.sim import ModelReleaseIndex
 from entity_management.base import Distribution, OntologyTerm
-from entity_management.simulation.cell import (MorphologyRelease, EModelRelease, MEModelRelease,
-                                               SynapseRelease)
-from entity_management.simulation.circuit import (CircuitCellProperties, EdgeCollection,
-                                                  NodeCollection, Target, DetailedCircuit)
+from entity_management.simulation import (MorphologyRelease, EModelRelease, MEModelRelease,
+                                          SynapseRelease, ModelReleaseIndex, CircuitCellProperties,
+                                          EdgeCollection, NodeCollection, Target, DetailedCircuit)
 
 TOKEN = os.getenv('NEXUS_TOKEN')
 
