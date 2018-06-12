@@ -1,14 +1,17 @@
 '''
 Mixins to enhance entities
 '''
+import attr
+
 from entity_management import nexus
 from entity_management.util import attributes, AttrOf
-from entity_management.base import Frozen, Distribution, _deserialize_json_to_datatype
+from entity_management.base import Distribution, _deserialize_json_to_datatype
 from entity_management.settings import JSLD_REV
 
 
 @attributes({'distribution': AttrOf(Distribution, default=None)})
-class DistributionMixin(Frozen):
+@attr.s
+class DistributionMixin(object):
     '''Provide `distribution` attribute.
     attach/download corresponding operations on the distribution.
     '''

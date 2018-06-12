@@ -5,6 +5,7 @@ Loop through all the morphologies, deprecate the old one, create the new morphol
 with previews and update the links to this new morphology.
 '''
 import os
+import csv
 import requests
 import sh
 
@@ -40,10 +41,18 @@ def make_view2d(file_location):
         morph_tmp = NamedTemporaryFile()
         nrn = load_neuron(file_location)
         fig, ax = viewer.draw(nrn, mode='2d')
+
         ax.set_title('')
-        ax.set_xlabel('x $\\mu$m')
-        ax.set_ylabel('y $\\mu$m')
-        fig.savefig(morph_tmp.name, dpi=300, bbox_inches='tight', format='png')
+        ax.set_xlabel('x', labelpad=-15, position=(0, 0))
+        ax.set_ylabel('y', labelpad=-15, rotation=0, position=(0, 0))
+        ax.set_adjustable('datalim')
+        # make zero label with units and axis id
+        labels = ['0$\\mu$m' if tick == 0 else str(int(tick)) for tick in ax.get_xticks()]
+        ax.set_xticklabels(labels)
+        # make zero label with units and axis id
+        labels = ['0$\\mu$m' if tick == 0 else str(int(tick)) for tick in ax.get_yticks()]
+        ax.set_yticklabels(labels)
+        fig.savefig(morph_tmp.name, bbox_inches='tight', format='png')
         common.plt.close()
 
         view2d = Entity(name='view2d')
@@ -71,11 +80,9 @@ def make_view3d(file_location):
         pass
 
 
-def upgrade_morphology(name, file_name, file_location, brain_region, species, morpho_release):
+def upgrade_morphology(name, file_name, file_location, m_type, brain_region, species,
+                       morpho_release):
     '''Upgrade morphology with 2d/3d views and MorphologyRelease'''
-    view2d = make_view2d(file_location)
-    view3d = make_view3d(file_location)
-
     # find old morphology
     response = requests.get(
             'https://nexus-int.humanbrainproject.org/v0/data/brainsimulation/'
@@ -94,7 +101,11 @@ def upgrade_morphology(name, file_name, file_location, brain_region, species, mo
 
     # create new version of the morphology
     morphology = Morphology(name=name, brainRegion=brain_region, species=species,
-                            view2d=view2d, view3d=view3d, isPartOf=morpho_release)
+                            mType=OntologyTerm(url='https://morphotype.org/%s' % m_type,
+                                               label=m_type),
+                            view2d=make_view2d(file_location),
+                            view3d=make_view3d(file_location),
+                            isPartOf=morpho_release)
     morphology = morphology.publish(use_auth=TOKEN)
     with open(file_location) as f:
         # pylint: disable=maybe-no-member
@@ -127,24 +138,40 @@ def upgrade_morphology(name, file_name, file_location, brain_region, species, mo
     response.raise_for_status()
 
 
-models_dir = 'scripts/models'
-for model_name in os.listdir(models_dir):
-    model_dir = '%s/%s' % (models_dir, model_name)
-    if os.path.isdir(model_dir):
-        morphology_name = os.listdir('%s/morphology' % model_dir)[0]
-        morphology_file = '%s/morphology/%s' % (model_dir, morphology_name)
-        assert os.path.isfile(morphology_file)
+def main():
+    '''Script entry point'''
+    models_dir = 'scripts/models'
 
-        upgrade_morphology(model_name, morphology_name, morphology_file,
-                           HIPPOCAMPUS, RAT, RAT_RELEASE)
+    with open('scripts/neuronDB.dat') as f:
+        neuronDB = [i for i in csv.reader(f, delimiter='\t')]
 
-models_dir = 'scripts/memodel_dirs'
-for model_dir, dirs, files in os.walk(models_dir):
-    if 'mechanisms' in dirs and 'morphology' in dirs:
-        model_name = os.path.basename(model_dir)
+    for model_name in os.listdir(models_dir):
+        model_dir = '%s/%s' % (models_dir, model_name)
+        if os.path.isdir(model_dir):
+            morphology_name = os.listdir('%s/morphology' % model_dir)[0]
+            morphology_file = '%s/morphology/%s' % (model_dir, morphology_name)
+            assert os.path.isfile(morphology_file)
 
-        morphology_name = os.listdir('%s/morphology' % model_dir)[0]
-        morphology_file = '%s/morphology/%s' % (model_dir, morphology_name)
-        assert os.path.isfile(morphology_file)
-        upgrade_morphology(model_name, morphology_name, morphology_file,
-                           CORTEX, MOUSE, MOUSE_RELEASE)
+            morphology = os.path.splitext(morphology_name)[0]
+            m_type = next(i for i in neuronDB if i[0] == morphology)[2] # 3rd in neuronDB is mType
+
+            upgrade_morphology(model_name, morphology_name, morphology_file, m_type,
+                               HIPPOCAMPUS, RAT, RAT_RELEASE)
+
+    models_dir = 'scripts/memodel_dirs'
+    for model_dir, dirs, _ in os.walk(models_dir):
+        if 'mechanisms' in dirs and 'morphology' in dirs:
+            model_name = os.path.basename(model_dir)
+
+            morphology_name = os.listdir('%s/morphology' % model_dir)[0]
+            morphology_file = '%s/morphology/%s' % (model_dir, morphology_name)
+            assert os.path.isfile(morphology_file)
+
+            m_type = model_dir.split('/')[2] # mType is folder name in models_dir
+
+            upgrade_morphology(model_name, morphology_name, morphology_file, m_type,
+                               CORTEX, MOUSE, MOUSE_RELEASE)
+
+
+if __name__ == '__main__':
+    main()

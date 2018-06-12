@@ -1,7 +1,7 @@
 '''
 Base simulation entities
 
-.. inheritance-diagram:: entity_management.base entity_management.sim.Entity
+.. inheritance-diagram:: entity_management.base entity_management.simulation.Entity
                          entity_management.core.Entity
    :parts: 2
 '''
@@ -121,6 +121,12 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
     elif data_type == datetime:
         value = parse(data_raw)
+    elif issubclass(data_type, Frozen):
+        # nested obj literals should be deserialized before passed to composite obj constructor
+        value = data_type(
+                **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
+                    for k, v in six.iteritems(data_raw)
+                    if k in attr.fields_dict(data_type)})
     elif isinstance(data_raw, dict):
         value = data_type(**_clean_up_dict(data_raw))
     else:

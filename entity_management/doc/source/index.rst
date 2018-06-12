@@ -26,9 +26,9 @@ class is available under `Bases` section.
 
 **Simulation domain entities**:
 
-.. inheritance-diagram:: entity_management.sim entity_management.simulation.circuit entity_management.simulation.cell
-   :top-classes: entity_management.sim.Entity
-   :parts: 2
+.. inheritance-diagram:: entity_management.simulation
+   :top-classes: entity_management.simulation.Entity
+   :parts: 1
 
 
 **Nexus instance to use**:

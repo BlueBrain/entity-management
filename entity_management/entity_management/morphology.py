@@ -3,7 +3,7 @@ Experimental morphologies entities
 
 .. inheritance-diagram:: entity_management.morphology
    :top-classes: entity_management.morphology.Entity
-   :parts: 2
+   :parts: 1
 '''
 from entity_management.base import Distribution
 from entity_management.base import Identifiable

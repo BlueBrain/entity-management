@@ -124,6 +124,7 @@ class MEModelRelease(ModelRelease):
 
 
 @attributes({'distribution': AttrOf(Distribution, default=None),
+             'mType': AttrOf(OntologyTerm, default=None),
              'isPartOf': AttrOf(MorphologyRelease, default=None),
              'view2d': AttrOf(Identifiable, default=None),
              'view3d': AttrOf(Identifiable, default=None)})
@@ -135,11 +136,12 @@ class Morphology(ModelInstance):
     Args:
         distribution(Distribution): If morphology is stored at the external location distribution
             should provide the path to it.
+        mType(OntologyTerm): Morphological cell type.
         isPartOf(MorphologyRelease): Release this morphology is part of.
-        view2d(Entity): Morphology view in 2D.
-        view3d(Entity): Morphology view in 3D.
+        view2d(Identifiable): Morphology view in 2D.
+        view3d(Identifiable): Morphology view in 3D.
     '''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
 
 
 @attributes()
