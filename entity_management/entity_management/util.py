@@ -3,6 +3,8 @@
 import typing
 import six
 import attr
+import operator
+from inspect import getmro
 from attr import validators
 
 
@@ -149,6 +151,22 @@ class AttrOf(object):
         return self.fn()
 
 
+def _attrs_clone(cls, check_default):
+    '''Clone all mandatory/positional(check_default=eq) or optional/keyword(check_default=ne)
+    attr fields of the cls including parents. Return dictionary with name as key and as value
+    new attribute with cloned properties
+    '''
+    fields = {}
+    for parent_cls in reversed(getmro(cls)): # reverse mro to override fields correctly
+        if attr.has(parent_cls):
+            for field in attr.fields(parent_cls):
+                if field.init and check_default(field.default, attr.NOTHING):
+                    # clone field with name as dictionary key => skip it from slots
+                    fields[field.name] = attr.ib(**{slot: getattr(field, slot)
+                                                    for slot in field.__slots__ if slot != 'name'})
+    return fields
+
+
 def attributes(attr_dict=None):
     '''decorator to simplify creation of classes that have args and kwargs'''
     if attr_dict is None:
@@ -157,35 +175,13 @@ def attributes(attr_dict=None):
     def wrap(cls):
         '''wraps'''
         these = _merge(
-            _attrs_pos(cls),
+            _attrs_clone(cls, check_default=operator.eq),
             {k: v() for k, v in attr_dict.items() if v.is_positional},
             {k: v() for k, v in attr_dict.items() if not v.is_positional},
-            _attrs_kw(cls))
+            _attrs_clone(cls, check_default=operator.ne))
         return attr.attrs(cls, these=these)
 
     return wrap
-
-
-def _attrs_pos(cls):
-    '''Clone all mandatory/positional attr fields of the cls
-    Return dictionary with name as key and as value new attribute with cloned properties
-    '''
-    return {field.name: attr.ib(**{slot: getattr(field, slot) # name becomes key so skip it
-                                   for slot in field.__slots__ if slot != 'name'})
-            for field in attr.fields(cls)
-            # only fields which are part of __init__ and have NO default value
-            if field.init and field.default == attr.NOTHING}
-
-
-def _attrs_kw(cls):
-    '''Clone all optional/keyword attr fields of the cls.
-    Return dictionary with name as key and as value new attribute with cloned properties
-    '''
-    return {field.name: attr.ib(**{slot: getattr(field, slot) # name becomes key so skip it
-                                   for slot in field.__slots__ if slot != 'name'})
-            for field in attr.fields(cls)
-            # only fields which are part of __init__ and have default value
-            if field.init and field.default != attr.NOTHING}
 
 
 def _merge(*dicts):

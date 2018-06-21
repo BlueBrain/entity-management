@@ -1,3 +1,4 @@
+import operator
 import attr
 
 from entity_management import util
@@ -19,8 +20,8 @@ def test_attrs_utils():
         b = attr.ib(default=None) # optional keyword attribute with default value
 
     # split attributes defined on the class into mandatory/optional
-    pos = util._attrs_pos(Abc)
-    kw = util._attrs_kw(Abc)
+    pos = util._attrs_clone(Abc, operator.eq)
+    kw = util._attrs_clone(Abc, operator.ne)
 
     assert len(pos) == 1
     assert len(kw) == 1
