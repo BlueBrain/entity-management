@@ -10,6 +10,8 @@ from datetime import datetime
 from entity_management.base import Frozen, Identifiable, OntologyTerm
 from entity_management.util import attributes, AttrOf
 from entity_management.mixins import DistributionMixin
+from entity_management.core import Activity
+from entity_management.experiment import PatchedCell
 
 
 @attributes()
@@ -29,12 +31,14 @@ class StimulusType(Frozen):
     pass
 
 
-@attributes({'stimulus': AttrOf(StimulusType)})
-class StimulusExperiment(Entity):
+@attributes({'stimulus': AttrOf(StimulusType),
+             'used': AttrOf(PatchedCell)})
+class StimulusExperiment(Activity):
     '''StimulusExperiment
 
     Args:
         stimulus(OntologyTerm): doc.
+        used(PatchedCell): doc.
     '''
     pass
 
@@ -70,4 +74,4 @@ class Trace(DistributionMixin, Entity):
         qualifiedGeneration(TraceGeneration): Qualified trace generation.
         wasGeneratedBy(StimulusExperiment): Stimulus experiment that generated trace.
     '''
-    pass
+    _url_version = 'v1.0.0'

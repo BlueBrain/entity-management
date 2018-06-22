@@ -12,7 +12,7 @@ from pprint import pprint
 from six import iteritems, text_type, PY2
 from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
-from entity_management.settings import BASE, NSG_CTX
+from entity_management.settings import BASE, USERINFO, NSG_CTX
 
 L = logging.getLogger(__name__)
 
@@ -80,8 +80,8 @@ def get_uuid_from_url(url):
 
 
 @_log_nexus_exception
-def save(base_url, payload, token=None):
-    '''Save entity, return json response
+def create(base_url, payload, token=None):
+    '''Create entity, return json response
 
     Args:
         base_url(str): Base url of the entity which will be saved.
@@ -214,22 +214,19 @@ def find_uuid_by_name(base_url, name, token=None):
 
 
 @_log_nexus_exception
-def find_by(cls, collection_address=None, token=None, **properties):
+def find_by(collection_address=None, props=None, token=None):
     '''Find entities using NEXUS queries endpoint'''
-    props = []
-    props.append({'op': 'eq', 'path': 'rdf:type', 'value': cls})
-
-    for key, value in iteritems(properties):
-        props.append({'op': 'eq', 'path': 'schema:%s' % key, 'value': value})
+    if props is not None:
+        json = {'@context': NSG_CTX,
+                'resource': 'instances',
+                'deprecated': False,
+                'filter': {'op': 'and', 'value': props}}
+    else:
+        json = {'@context': NSG_CTX, 'resource': 'instances', 'deprecated': False}
 
     response = requests.post('%s/queries%s' % (BASE, collection_address or ''),
                              headers=_get_headers(token),
-                             json={
-                                 '@context': NSG_CTX,
-                                 'resource': 'instances',
-                                 'deprecated': False,
-                                 'filter': {'op': 'and', 'value': props}
-                                 },
+                             json=json,
                              allow_redirects=False)
 
     # query successful follow redirect
@@ -247,6 +244,16 @@ def load_by_url(url, token=None):
     # if not found then return None
     if response.status_code == 404:
         return None
+    response.raise_for_status()
+    js = response.json(object_hook=_byteify)
+    return js
+
+
+@_log_nexus_exception
+def get_current_agent(token):
+    '''Get user info'''
+    response = requests.get(USERINFO, headers={'accept': 'application/json',
+                                               'authorization': token})
     response.raise_for_status()
     js = response.json(object_hook=_byteify)
     return js

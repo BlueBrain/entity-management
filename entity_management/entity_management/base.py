@@ -20,7 +20,7 @@ from entity_management import nexus
 from entity_management.util import _clean_up_dict
 from entity_management.util import attributes, AttrOf
 from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_REV,
-                                        JSLD_DEPRECATED, JSLD_CTX, JSLD_TYPE, ENTITY_CTX, NSG_CTX)
+                                        JSLD_DEPRECATED, JSLD_CTX, JSLD_TYPE, NSG_CTX)
 
 
 @attr.s
@@ -40,6 +40,10 @@ class NexusResultsIterator(object):
 
     def __iter__(self):
         return self
+
+    def results_count(self):
+        '''Get the total results count'''
+        return self.total_items
 
     def _fetch_page(self):
         '''Fetch nexus result from url and deserialize it to self.page list of entities'''
@@ -65,7 +69,7 @@ class NexusResultsIterator(object):
             self.item_index += 1
             return entity
         else:
-            return
+            raise StopIteration()
 
 
 def _deserialize_list(data_type, data_raw, token):
@@ -350,39 +354,25 @@ class Identifiable(Frozen):
             collection_address = '/%s/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower(),
                                                    version)
 
+        # prepare properties
+        props = []
+        for key, value in six.iteritems(properties):
+            if isinstance(value, OntologyTerm):
+                props.append({'op': 'eq',
+                              'path': 'nse:%s/@id' % key.replace('_', '/nse:'),
+                              'value': value.url})
+            elif isinstance(value, tuple):
+                props.append({'op': value[0], 'path': 'schema:%s' % key, 'value': value[1]})
+            else:
+                props.append({'op': 'eq', 'path': 'schema:%s' % key, 'value': value})
+
         target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
-        location = nexus.find_by(cls=target_class, collection_address=collection_address,
-                                 token=use_auth, **properties)
+        props.append({'op': 'eq', 'path': 'rdf:type', 'value': target_class})
+
+        location = nexus.find_by(collection_address, props, use_auth)
         if location is not None:
             return NexusResultsIterator(cls, location, use_auth)
         return None
-
-    def publish(self, use_auth=None):
-        '''Save or update entity in nexus. Makes a remote call to nexus instance to persist
-        entity attributes.
-
-        Args:
-            use_auth(str): OAuth token in case access is restricted.
-                Token should be in the format for the authorization header: Bearer VALUE.
-        Returns:
-            New instance of the same class with revision updated.
-        '''
-        if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev, self.as_json_ld(), use_auth)
-        else:
-            js = nexus.save(self._base_url, self.as_json_ld(), use_auth)
-        return self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
-
-    def deprecate(self, use_auth=None):
-        '''Mark entity as deprecated.
-        Deprecated entities are not possible to retrieve by name.
-
-        Args:
-            use_auth(str): OAuth token in case access is restricted.
-                Token should be in the format for the authorization header: Bearer VALUE.
-        '''
-        js = nexus.deprecate(self._id, self._rev, use_auth)
-        return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
 
     def evolve(self, **changes):
         '''Create new instance of the frozen(immutable) object with *changes* applied.
@@ -437,7 +427,13 @@ class Identifiable(Frozen):
                         for kk, vv in six.iteritems(attr_value))
                 else:
                     rv[attr_name] = _serialize_obj(attr_value)
-        rv[JSLD_CTX] = [ENTITY_CTX, NSG_CTX]
+        rv[JSLD_CTX] = []
+        vocab = getattr(self, '_vocab', None)
+        if vocab is not None:
+            rv[JSLD_CTX].append({'@vocab': vocab})
+        rv[JSLD_CTX].append({'wasAttributedTo': {'@id': 'prov:wasAttributedTo', '@type': '@id'},
+                             'dateCreated': {'@id': 'schema:dateCreated', '@type': '@id'}})
+        rv[JSLD_CTX].append(NSG_CTX)
         rv[JSLD_TYPE] = self._type
         return rv
 

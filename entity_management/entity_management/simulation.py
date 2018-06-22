@@ -2,8 +2,9 @@
 
 from typing import List, Union
 
-from entity_management.base import Distribution, Identifiable, OntologyTerm, QuantitativeValue
-from entity_management.core import Activity, Agent, SoftwareAgent
+from entity_management.base import (Distribution, Frozen, Identifiable, OntologyTerm,
+                                    QuantitativeValue)
+from entity_management.core import Activity, Agent, SoftwareAgent, ProvenanceMixin
 from entity_management.mixins import DistributionMixin
 from entity_management.util import attributes, AttrOf
 
@@ -12,7 +13,7 @@ from entity_management.util import attributes, AttrOf
     'name': AttrOf(str),
     'description': AttrOf(str, default=None),
     })
-class Entity(DistributionMixin, Identifiable):
+class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
     Args:
@@ -198,7 +199,7 @@ class EModel(ModelInstance):
 @attributes({
     'used': AttrOf(Morphology),
     'generated': AttrOf(EModel),
-    'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]]),
+    'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]], default=None),
     'bestScore': AttrOf(QuantitativeValue, default=None)
     })
 class EModelBuilding(Activity):
@@ -208,10 +209,11 @@ class EModelBuilding(Activity):
         bestScore(QuantitativeValue): Best score.
         used(Morphology): Morphology which was used to generate the emodel.
         generated(EModel): EModel which was produced.
-        wasAssociatedWith(List[Union[Agent, SoftwareAgent]]): Agents associated with
+        wasAssociatedWith(List[SoftwareAgent]): Agents associated with
             this activity.
     '''
     _url_version = 'v0.1.2'
+    _url_domain = 'simulation' # need to override as Activity will set it to 'core'
 
 
 @attributes()
@@ -220,9 +222,37 @@ class SingleCellSimulationTrace(Entity):
     _url_version = 'v0.1.2'
 
 
-@attributes({'experimentalCellList': AttrOf(str),
-             'masterListConfiguration': AttrOf(str),
-             'experimentalTraceLocation': AttrOf(str)})
+@attributes({'name': AttrOf(str),
+             'channel': AttrOf(int),
+             'description': AttrOf(str, default=None)})
+class ExperimentalCell(Frozen):
+    '''ExperimentalCell
+
+    Args:
+        name(str): TODO.
+        channel(int): TODO.
+        description(str): TODO.
+    '''
+    pass
+
+
+@attributes({'features': AttrOf(Entity),
+             'hadProtocol': AttrOf(Entity),
+             'hypampThreshold': AttrOf(Entity, default=None)})
+class BluePyEfeFeatures(Entity):
+    '''BluePyEfe configuration entity'''
+    _url_version = 'v0.1.2'
+    _type = 'nsg:Configuration'
+
+
+@attributes({'brainRegion': AttrOf(OntologyTerm),
+             'species': AttrOf(OntologyTerm),
+             'mType': AttrOf(OntologyTerm),
+             'experimentalCell': AttrOf(List[ExperimentalCell]),
+             'experimentalTraceLocation': AttrOf(Entity),
+             'featureExtractionConfiguration': AttrOf(dict),
+             'stimuliToExperimentMap': AttrOf(dict, default=None),
+             'masterListConfiguration': AttrOf(Entity, default=None)})
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.2'

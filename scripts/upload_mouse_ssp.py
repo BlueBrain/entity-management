@@ -114,7 +114,7 @@ for model_dir, dirs, files in os.walk(models_dir):
             emodel = emodel.publish(TOKEN)
 
             emodel_building = EModelBuilding(used=morphology, generated=emodel,
-                                             wasAssociatedWith=[agent, bluepyopt_agent],
+                                             wasAssociatedWith=[bluepyopt_agent],
                                              wasStartedBy=agent)
             emodel_building = emodel_building.publish(TOKEN)
         else:

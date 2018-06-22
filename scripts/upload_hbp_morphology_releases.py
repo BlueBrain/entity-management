@@ -20,13 +20,13 @@ MOUSE = OntologyTerm(url='http://purl.obolibrary.org/obo/NCBITaxon_10088', label
 
 
 name = 'Rat hippocampus morphology release'
-morpho_release = next(MorphologyRelease.find_by(name=name, use_auth=TOKEN))
+morpho_release = next(MorphologyRelease.find_by(name=name, use_auth=TOKEN), None)
 if morpho_release is None:
     morpho_release = MorphologyRelease(name=name, brainRegion=HIPPOCAMPUS, species=RAT)
     morpho_release = morpho_release.publish(use_auth=TOKEN)
 
 name = 'Mouse primary somatosensory area morphology release'
-morpho_release = next(MorphologyRelease.find_by(name=name, use_auth=TOKEN))
+morpho_release = next(MorphologyRelease.find_by(name=name, use_auth=TOKEN), None)
 if morpho_release is None:
     morpho_release = MorphologyRelease(name=name, brainRegion=CORTEX, species=MOUSE)
     morpho_release = morpho_release.publish(use_auth=TOKEN)
