@@ -52,7 +52,7 @@ class NexusResultsIterator(object):
         self.page_from = int(query_params['from'])
         self.page_size = int(query_params['size'])
 
-        js = nexus.load_by_url(self.url, self.token)
+        js = nexus.load_by_url(self.url, token=self.token)
         self.page = [self.cls.from_url(entity['resultId'], self.token) # pylint: disable=no-member
                      for entity in js['results']]
         self.total_items = int(js['total'])
@@ -266,7 +266,7 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.load_by_url(url, use_auth)
+        js = nexus.load_by_url(url, token=use_auth)
 
         # prepare all entity init args
         init_args = {}
@@ -293,7 +293,7 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.load_by_uuid(cls._base_url, uuid, use_auth) # pylint: disable=no-member
+        js = nexus.load_by_uuid(cls._base_url, uuid, token=use_auth) # pylint: disable=no-member
 
         if js is None:
             return None
@@ -320,7 +320,7 @@ class Identifiable(Frozen):
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         # pylint: disable=no-member
-        uuid = nexus.find_uuid_by_name(cls._base_url, name, use_auth)
+        uuid = nexus.find_uuid_by_name(cls._base_url, name, token=use_auth)
         if uuid:
             return cls.from_uuid(uuid, use_auth)
         else:
@@ -369,7 +369,7 @@ class Identifiable(Frozen):
         target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
         props.append({'op': 'eq', 'path': 'rdf:type', 'value': target_class})
 
-        location = nexus.find_by(collection_address, props, use_auth)
+        location = nexus.find_by(collection_address, props, token=use_auth)
         if location is not None:
             return NexusResultsIterator(cls, location, use_auth)
         return None

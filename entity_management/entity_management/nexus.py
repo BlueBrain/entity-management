@@ -59,11 +59,16 @@ def _byteify(data, ignore_dicts=False):
     return data
 
 
-def _log_nexus_exception(func):
-    '''Pretty print nexus error responses'''
+def _nexus_wrapper(func):
+    '''Pretty print nexus error responses, inject token if set in env'''
     @wraps(func)
     def wrapper(*args, **kwargs):
         '''decorator function'''
+        token_argument = kwargs.get('token')
+        if token_argument is None:
+            token = os.getenv('NEXUS_TOKEN', None)
+        kwargs['token'] = token
+
         try:
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
@@ -79,7 +84,7 @@ def get_uuid_from_url(url):
     return urlsplit(url).path.split('/')[-1]
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def create(base_url, payload, token=None):
     '''Create entity, return json response
 
@@ -98,7 +103,7 @@ def create(base_url, payload, token=None):
     return response.json(object_hook=_byteify)
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def update(id_url, rev, payload, token=None):
     '''Update entity, return json response
 
@@ -121,7 +126,7 @@ def update(id_url, rev, payload, token=None):
     return response.json(object_hook=_byteify)
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def deprecate(id_url, rev, token=None):
     '''Mark entity as deprecated, return json response'''
     assert id_url is not None
@@ -133,7 +138,7 @@ def deprecate(id_url, rev, token=None):
     return response.json(object_hook=_byteify)
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def attach(id_url, rev, file_name, data, content_type, token=None):
     '''Attach binary to the entity.
 
@@ -158,7 +163,7 @@ def attach(id_url, rev, file_name, data, content_type, token=None):
     return response.json(object_hook=_byteify)
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def download(url, path, file_name, token=None):
     '''Download entity attachment.
 
@@ -181,7 +186,7 @@ def download(url, path, file_name, token=None):
         response.close()
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def load_by_uuid(base_url, uuid, token=None):
     '''Load Entity from the base url with appended uuid'''
     response = requests.get('%s/%s' % (base_url, uuid), headers=_get_headers(token))
@@ -193,7 +198,7 @@ def load_by_uuid(base_url, uuid, token=None):
     return js
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def find_uuid_by_name(base_url, name, token=None):
     '''Lookup not deprecated entity uuid from the base url with the name filter'''
     response = requests.get(base_url,
@@ -213,7 +218,7 @@ def find_uuid_by_name(base_url, name, token=None):
     return get_uuid_from_url(js['results'][0]['resultId'])
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def find_by(collection_address=None, props=None, token=None):
     '''Find entities using NEXUS queries endpoint'''
     if props is not None:
@@ -237,7 +242,7 @@ def find_by(collection_address=None, props=None, token=None):
     return None
 
 
-@_log_nexus_exception
+@_nexus_wrapper
 def load_by_url(url, token=None):
     '''Load json-ld from url'''
     response = requests.get(url, headers=_get_headers(token))
@@ -249,8 +254,8 @@ def load_by_url(url, token=None):
     return js
 
 
-@_log_nexus_exception
-def get_current_agent(token):
+@_nexus_wrapper
+def get_current_agent(token=None):
     '''Get user info'''
     response = requests.get(USERINFO, headers={'accept': 'application/json',
                                                'authorization': token})

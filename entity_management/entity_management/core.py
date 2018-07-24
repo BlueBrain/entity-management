@@ -42,9 +42,9 @@ class Entity(DistributionMixin, Identifiable):
             New instance of the same class with revision updated.
         '''
         if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev, self.as_json_ld(), use_auth)
+            js = nexus.update(self._id, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            js = nexus.create(self._base_url, self.as_json_ld(), use_auth)
+            js = nexus.create(self._base_url, self.as_json_ld(), token=use_auth)
         return self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
 
     def deprecate(self, use_auth=None):
@@ -55,7 +55,7 @@ class Entity(DistributionMixin, Identifiable):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.deprecate(self._id, self._rev, use_auth)
+        js = nexus.deprecate(self._id, self._rev, token=use_auth)
         return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
 
 
@@ -95,7 +95,7 @@ class Person(Agent):
         if use_auth is None:
             return None
 
-        js = nexus.get_current_agent(use_auth)
+        js = nexus.get_current_agent(token=use_auth)
 
         email = js['email']
         given_name = js['given_name']
@@ -172,11 +172,11 @@ class ProvenanceMixin(object):
             assert isinstance(self, Activity)
 
         if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev, self.as_json_ld(), use_auth)
+            js = nexus.update(self._id, self._rev, self.as_json_ld(), token=use_auth)
         else:
             self = self.evolve(wasAttributedTo=Person.get_current(use_auth),
                                dateCreated=datetime.utcnow())
-            js = nexus.create(self._base_url, self.as_json_ld(), use_auth)
+            js = nexus.create(self._base_url, self.as_json_ld(), token=use_auth)
         entity_id = js[JSLD_ID]
         entity_revision = js[JSLD_REV]
 
@@ -196,5 +196,5 @@ class ProvenanceMixin(object):
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         print(activity)
-        js = nexus.deprecate(self._id, self._rev, use_auth)
+        js = nexus.deprecate(self._id, self._rev, token=use_auth)
         return self.evolve(_rev=js[JSLD_REV], _deprecated=True)

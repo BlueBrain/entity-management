@@ -30,7 +30,7 @@ class DistributionMixin(object):
         Returns:
             New instance with distribution attribute updated.
         '''
-        js = nexus.attach(self._id, self._rev, file_name, data, content_type, use_auth)
+        js = nexus.attach(self._id, self._rev, file_name, data, content_type, token=use_auth)
         return self.evolve(_rev=js[JSLD_REV], distribution=_deserialize_json_to_datatype(
             Distribution, js['distribution'][0])) # nexus allows one attachment hence [0]
 
@@ -44,4 +44,4 @@ class DistributionMixin(object):
         '''
         file_name = self.distribution.originalFileName
         url = self.distribution.downloadURL
-        nexus.download(url, path, file_name, use_auth)
+        nexus.download(url, path, file_name, token=use_auth)
