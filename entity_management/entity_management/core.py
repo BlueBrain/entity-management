@@ -92,10 +92,10 @@ class Person(Agent):
             use_auth(str): OAuth token from which agent will be identified.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        if use_auth is None:
-            return None
-
         js = nexus.get_current_agent(token=use_auth)
+
+        if js is None:
+            return None
 
         email = js['email']
         given_name = js['given_name']

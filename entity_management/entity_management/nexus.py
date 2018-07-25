@@ -256,6 +256,9 @@ def load_by_url(url, token=None):
 @_nexus_wrapper
 def get_current_agent(token=None):
     '''Get user info'''
+    if token is None:
+        return None
+
     response = requests.get(USERINFO, headers={'accept': 'application/json',
                                                'authorization': token})
     response.raise_for_status()
