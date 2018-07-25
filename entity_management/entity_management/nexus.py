@@ -64,10 +64,9 @@ def _nexus_wrapper(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         '''decorator function'''
-        token_argument = kwargs.get('token')
+        token_argument = kwargs.get('token', None)
         if token_argument is None:
-            token = os.getenv('NEXUS_TOKEN', None)
-        kwargs['token'] = token
+            kwargs['token'] = os.getenv('NEXUS_TOKEN', None)
 
         try:
             return func(*args, **kwargs)
