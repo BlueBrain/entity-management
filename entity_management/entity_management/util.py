@@ -187,9 +187,13 @@ def attributes(attr_dict=None):
 def _merge(*dicts):
     '''Merge dictionaries using update from left to right'''
     result = {}
-    for d in dicts:
-        if dicts:
-            result.update(d)
+    for dictionary in dicts:
+        if dictionary:
+            # remove keys so they can be overridden and take proper ordering
+            # otherwise the order is preserved and mandatory/optional will be broken
+            for key in dictionary.keys():
+                result.pop(key, None)
+            result.update(dictionary)
     return result
 
 
