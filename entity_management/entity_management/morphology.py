@@ -27,4 +27,4 @@ class ReconstructedPatchedCell(Entity):
         name(str): Name of the agent.
         distribution(Distribution): Attached morphology file.
     '''
-    pass
+    _url_version = 'v0.1.1'
