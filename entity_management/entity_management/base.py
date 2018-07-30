@@ -24,7 +24,7 @@ from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_R
 
 
 @attr.s
-class NexusResultsIterator(object):
+class NexusResultsIterator(six.Iterator):
     '''Nexus paginated results iterator'''
     cls = attr.ib()
     url = attr.ib()
@@ -57,7 +57,7 @@ class NexusResultsIterator(object):
                      for entity in js['results']]
         self.total_items = int(js['total'])
 
-    def next(self):
+    def __next__(self):
         '''Return next entity from the paginated result set, fetch next page if required'''
         split_url = urlsplit(self.url)
         if self.item_index < self.total_items:
