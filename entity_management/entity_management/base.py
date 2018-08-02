@@ -359,7 +359,7 @@ class Identifiable(Frozen):
         for key, value in six.iteritems(properties):
             if isinstance(value, OntologyTerm):
                 props.append({'op': 'eq',
-                              'path': 'nse:%s/@id' % key.replace('_', '/nse:'),
+                              'path': 'nsg:%s' % key.replace('_', ' / nsg:'),
                               'value': value.url})
             elif isinstance(value, tuple):
                 props.append({'op': value[0], 'path': 'schema:%s' % key, 'value': value[1]})
