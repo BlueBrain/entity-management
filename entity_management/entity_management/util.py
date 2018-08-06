@@ -13,18 +13,19 @@ from attr import validators
 class _ListOfValidator(object):
     '''Validate list of type'''
     type_ = attr.ib()
+    default = attr.ib()
 
     def __call__(self, inst, attribute, value):
         '''
         We use a callable class to be able to change the ``__repr__``.
         '''
-        if type(value) != list or len(value) == 0:
+        if self.default is not None and not isinstance(value, list):
             raise TypeError(
-                "'{name}' must be non empty list"
+                "'{name}' must be a list"
                 .format(name=attribute.name), attribute, self.type_, value,
             )
 
-        if not all(isinstance(v, self.type_) for v in value):
+        if self.default is not None and not all(isinstance(v, self.type_) for v in value):
             raise TypeError(
                 "'{name}' must be list of {type!r} (got {value!r} that is a "
                 '{actual!r}).'
@@ -40,7 +41,7 @@ class _ListOfValidator(object):
         )
 
 
-def _list_of(type_):
+def _list_of(type_, default):
     '''
     A validator that raises a :exc:`TypeError` if the initializer is called
     with a list of wrong types for this particular attribute (checks are performed
@@ -53,7 +54,7 @@ def _list_of(type_):
         (of type :class:`attr.Attribute`), the expected type, and the value it
         got.
     '''
-    return _ListOfValidator(type_)
+    return _ListOfValidator(type_, default)
 
 
 # copied from attrs, their standard way to make validators
@@ -123,11 +124,11 @@ class AttrOf(object):
             # like typing.List[Distribution]
             assert type_.__extra__ == list
             list_element_type = type_.__args__[0]
-            if type(list_element_type) == type(typing.Union):
+            if type(list_element_type) is type(typing.Union):
                 types = list_element_type.__args__
-                validator = _list_of(types)
+                validator = _list_of(types, default)
             else:
-                validator = _list_of(type_.__args__[0])
+                validator = _list_of(type_.__args__[0], default)
         else:
             if optional is Ellipsis:
                 if default is Ellipsis:

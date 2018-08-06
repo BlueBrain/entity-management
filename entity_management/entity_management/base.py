@@ -107,19 +107,17 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
     elif isinstance(data_raw, list):
         value = _deserialize_list(data_type, data_raw, token)
     elif (# in case we have bunch of the Identifiable types as a Union
-            (type(data_type) == type(typing.Union)
+            (type(data_type) is type(typing.Union)
                 and all(issubclass(cls, Identifiable) for cls in data_type.__args__))
             # or we have just Identifiable
             or issubclass(data_type, Identifiable)):
         # make lazy proxy for identifiable object
         obj = Identifiable()
         url = data_raw[JSLD_ID]
-        data_type = nexus.get_type(url)
         # pylint: disable=protected-access
         value = obj.evolve(_proxied_type=data_type,
                            _proxied_token=token,
-                           _type=['%s:Entity' % data_type._type_namespace,
-                                  '%s:%s' % (data_type._type_namespace, data_type.__name__)],
+                           _type=data_raw[JSLD_TYPE],
                            _id=url)
     elif issubclass(data_type, OntologyTerm):
         value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
@@ -359,10 +357,12 @@ class Identifiable(Frozen):
         for key, value in six.iteritems(properties):
             if isinstance(value, OntologyTerm):
                 props.append({'op': 'eq',
-                              'path': 'nsg:%s' % key.replace('_', ' / nsg:'),
+                              'path': 'nsg:%s' % key.replace('__', ' / nsg:'),
                               'value': value.url})
             elif isinstance(value, tuple):
                 props.append({'op': value[0], 'path': 'schema:%s' % key, 'value': value[1]})
+            elif isinstance(value, Identifiable):
+                props.append({'op': 'eq', 'path': 'prov:%s' % key, 'value': value.id})
             else:
                 props.append({'op': 'eq', 'path': 'schema:%s' % key, 'value': value})
 
@@ -445,6 +445,7 @@ class Identifiable(Frozen):
     'digest': AttrOf(dict, default=None),
     'mediaType': AttrOf(str, default=None),
     'originalFileName': AttrOf(str, default=None),
+    'storageType': AttrOf(str, default=None),
     })
 class Distribution(Frozen):
     '''External resource representations,
@@ -457,6 +458,7 @@ class Distribution(Frozen):
         digest(int): Hash/Checksum of the resource.
         mediaType(str): Type of the resource accessible by the downloadURL.
         originalFileName(str): File name which was submitted as an attachment.
+        storageType(str): storage type, will contain `gpfs` for gpfs links.
 
     either `downloadURL` for files or `accessURL` for folders must be provided'''
 

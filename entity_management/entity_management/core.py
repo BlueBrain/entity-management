@@ -123,7 +123,7 @@ class SoftwareAgent(Agent):
 
 
 @attributes({
-    'name': AttrOf(str),
+    'name': AttrOf(str, default=None),
     'used': AttrOf(Identifiable, default=None),
     'generated': AttrOf(Identifiable, default=None),
     'startedAtTime': AttrOf(datetime, default=None),

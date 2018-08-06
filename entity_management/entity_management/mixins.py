@@ -1,15 +1,19 @@
 '''
 Mixins to enhance entities
 '''
+import re
 import attr
+
+from typing import List
+from itertools import ifilter
 
 from entity_management import nexus
 from entity_management.util import attributes, AttrOf
-from entity_management.base import Distribution, _deserialize_json_to_datatype
+from entity_management.base import Distribution, _deserialize_list
 from entity_management.settings import JSLD_REV
 
 
-@attributes({'distribution': AttrOf(Distribution, default=None)})
+@attributes({'distribution': AttrOf(List[Distribution], default=None)})
 @attr.s
 class DistributionMixin(object):
     '''Provide `distribution` attribute.
@@ -31,8 +35,10 @@ class DistributionMixin(object):
             New instance with distribution attribute updated.
         '''
         js = nexus.attach(self._id, self._rev, file_name, data, content_type, token=use_auth)
-        return self.evolve(_rev=js[JSLD_REV], distribution=_deserialize_json_to_datatype(
-            Distribution, js['distribution'][0])) # nexus allows one attachment hence [0]
+        return self.evolve(_rev=js[JSLD_REV],
+                           distribution=_deserialize_list(List[Distribution],
+                                                          js['distribution'],
+                                                          token=use_auth))
 
     def download(self, path, use_auth=None):
         '''Download attachment of the entity and save it on the path with the originalFileName.
@@ -42,6 +48,27 @@ class DistributionMixin(object):
                 originalFileName.
             use_auth(str): Optional OAuth token.
         '''
-        file_name = self.distribution.originalFileName
-        url = self.distribution.downloadURL
-        nexus.download(url, path, file_name, token=use_auth)
+        def is_attachment(dist):
+            '''Predicate to find downloadable attachment'''
+            return (hasattr(dist, 'originalFileName')
+                    and hasattr(dist, 'downloadURL')
+                    and dist.downloadURL.startswith('https://')
+                    and dist.downloadURL.endswith('/attachment'))
+        dist = next(ifilter(is_attachment, self.distribution), None)
+        if dist is None:
+            raise AssertionError('No attachment found')
+        nexus.download(dist.downloadURL, path, dist.originalFileName, token=use_auth)
+
+    def get_gpfs_path(self):
+        '''Get gpfs link'''
+        def is_gpfs(dist):
+            '''Predicate to find gpfs distribution'''
+            return (hasattr(dist, 'downloadURL')
+                    and hasattr(dist, 'storageType')
+                    and dist.storageType == 'gpfs'
+                    and dist.downloadURL.startswith('file:///gpfs/'))
+        dist = next(ifilter(is_gpfs, self.distribution), None)
+        if dist is not None:
+            return re.sub('^file://', '', dist.downloadURL)
+        else:
+            return None

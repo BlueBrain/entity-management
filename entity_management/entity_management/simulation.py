@@ -60,14 +60,14 @@ class ModelReleaseIndex(Entity):
     _url_version = 'v0.1.1'
 
 
-@attributes({'distribution': AttrOf(Distribution),
+@attributes({'distribution': AttrOf(List[Distribution]),
              'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
 class MorphologyRelease(ModelRelease):
     '''Morphology release can be located at the external location or constituted from individual
     :class:`Morphology` entities.
 
     Args:
-        distribution(Distribution): If morphology release is provided at the external
+        distribution(List[Distribution]): If morphology release is provided at the external
             location distribution should provide the path to locate it. It should contain
 
             * ``v1`` folder with morphologies in H5v1 format
@@ -88,23 +88,23 @@ class IonChannelMechanismRelease(ModelRelease):
     _url_version = 'v0.1.2'
 
 
-@attributes({'distribution': AttrOf(Distribution)})
+@attributes({'distribution': AttrOf(List[Distribution])})
 class SynapseRelease(ModelRelease):
     '''Synapse release represents a collection of mod files.
 
     Args:
-        distribution(Distribution): Location of the synapse release/mod files.
+        distribution(List[Distribution]): Location of the synapse release/mod files.
     '''
     _url_version = 'v0.1.1'
 
 
-@attributes({'distribution': AttrOf(Distribution),
+@attributes({'distribution': AttrOf(List[Distribution]),
              'emodelIndex': AttrOf(ModelReleaseIndex)})
 class EModelRelease(ModelRelease):
     '''Electrical model release
 
     Args:
-        distribution(Distribution): EModel release location provides a path to ``hoc`` files.
+        distribution(List[Distribution]): EModel release location provides a path to ``hoc`` files.
         emodelIndex(ModelReleaseIndex): EModel release index file.
     '''
     _url_version = 'v0.1.1'
@@ -124,7 +124,7 @@ class MEModelRelease(ModelRelease):
     _url_version = 'v0.1.1'
 
 
-@attributes({'distribution': AttrOf(Distribution, default=None),
+@attributes({'distribution': AttrOf(List[Distribution], default=None),
              'mType': AttrOf(OntologyTerm, default=None),
              'isPartOf': AttrOf(MorphologyRelease, default=None),
              'view2d': AttrOf(Identifiable, default=None),
@@ -135,8 +135,8 @@ class Morphology(ModelInstance):
     provided in the distribution attribute.
 
     Args:
-        distribution(Distribution): If morphology is stored at the external location distribution
-            should provide the path to it.
+        distribution(List[Distribution]): If morphology is stored at the external location
+            distribution should provide the path to it.
         mType(OntologyTerm): Morphological cell type.
         isPartOf(MorphologyRelease): Release this morphology is part of.
         view2d(Identifiable): Morphology view in 2D.
@@ -150,7 +150,7 @@ class SubCellularModelScript(ModelScript):
     '''Scripts attached to the model: ``mod`` file.
 
     Args:
-        distribution(Distribution): If model script is provided at the external location then
+        distribution(List[Distribution]): If model script is provided at the external location then
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
@@ -162,7 +162,7 @@ class EModelScript(ModelScript):
     '''Scripts attached to the model: ``hoc``, ``neuroml`` file.
 
     Args:
-        distribution(Distribution): If model script is provided at the external location then
+        distribution(List[Distribution]): If model script is provided at the external location then
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
@@ -276,12 +276,12 @@ class MEModel(ModelInstance):
     _url_version = 'v0.1.2'
 
 
-@attributes({'distribution': AttrOf(Distribution)})
+@attributes({'distribution': AttrOf(List[Distribution])})
 class CircuitCellProperties(Entity):
     '''Cell properties provides locationd of the MVD3 file with cell properties.
 
     Args:
-        distribution(Distribution): Location of the cell placement file.
+        distribution(List[Distribution]): Location of the cell placement file.
     '''
     pass
 
@@ -305,19 +305,19 @@ class EdgeCollection(Entity):
     '''Edge collection represents circuit connectivity(synapses, projections)
 
     Args:
-        edgePopulation(Distribution): Distribution providing path to the collection of nrn
+        edgePopulation(ModelReleaseIndex): Distribution providing path to the collection of nrn
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
     _url_version = 'v0.1.1'
 
 
-@attributes({'distribution': AttrOf(Distribution)})
+@attributes({'distribution': AttrOf(List[Distribution])})
 class Target(Entity):
     '''Location of the text file defining cell targets (i.e. named collections of cell GIDs)
 
     Args:
-        distribution(Distribution): Location of the target file.
+        distribution(List[Distribution]): Location of the target file.
     '''
     pass
 

@@ -267,7 +267,7 @@ def test_load_morphology_release_by_url():
     morphology_release = MorphologyRelease.from_url(url)
 
     assert morphology_release.description == 'test description'
-    assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
+    assert morphology_release.distribution[0].downloadURL == 'file:///distribution/url'
 
 
 @responses.activate
@@ -278,7 +278,7 @@ def test_load_morphology_release_by_uuid():
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
     assert morphology_release.description == 'test description'
-    assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
+    assert morphology_release.distribution[0].downloadURL == 'file:///distribution/url'
 
 
 @responses.activate
@@ -291,7 +291,7 @@ def test_load_morphology_release_by_name():
     morphology_release = MorphologyRelease.from_name(UUID)
 
     assert morphology_release.description == 'test description'
-    assert morphology_release.distribution.downloadURL == 'file:///distribution/url'
+    assert morphology_release.distribution[0].downloadURL == 'file:///distribution/url'
 
 
 @responses.activate
@@ -308,14 +308,14 @@ def test_update_morphology_release():
 
     new_url =  'file:///distribution/newUrl'
 
-    new_distribution = morphology_release.distribution.evolve(downloadURL=new_url)
-    morphology_release = morphology_release.evolve(distribution=new_distribution)
+    new_distribution = morphology_release.distribution[0].evolve(downloadURL=new_url)
+    morphology_release = morphology_release.evolve(distribution=[new_distribution])
 
     morphology_release = morphology_release.publish()
 
     assert morphology_release._id == '%s/%s' % (MorphologyRelease._base_url, UUID)
     assert morphology_release.name == 'Morphology Release'
-    assert morphology_release.distribution.downloadURL == new_url
+    assert morphology_release.distribution[0].downloadURL == new_url
     assert morphology_release._rev == 2
 
 
@@ -325,7 +325,7 @@ def test_publish_morphology_release():
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease(name='MorphologyRelease',
-                                           distribution=base.Distribution(downloadURL='url'))
+                                           distribution=[base.Distribution(downloadURL='url')])
     morphology_release = morphology_release.publish()
 
     assert morphology_release._id is not None
@@ -362,12 +362,12 @@ def test_publish_emodel_release():
 
     emodel_index = ModelReleaseIndex(
             name='index',
-            distribution=base.Distribution(downloadURL='url'))
+            distribution=[base.Distribution(downloadURL='url')])
     emodel_index = emodel_index.publish()
 
     emodel_release = EModelRelease(
             name='EModelRelease',
-            distribution=base.Distribution(downloadURL='url'),
+            distribution=[base.Distribution(downloadURL='url')],
             emodelIndex=emodel_index)
 
     emodel_release = emodel_release.publish()
@@ -379,21 +379,21 @@ def test_publish_emodel_release():
 
 def test_create_detailed_circuit():
     morphology_index = ModelReleaseIndex(name='index',
-                                         distribution=base.Distribution(downloadURL='url'))
+                                         distribution=[base.Distribution(downloadURL='url')])
     morphology_release = MorphologyRelease(
             name='MorphologyRelease',
-            distribution=base.Distribution(downloadURL='distr url'),
+            distribution=[base.Distribution(downloadURL='distr url')],
             morphologyIndex=morphology_index)
 
     emodel_index = ModelReleaseIndex(name='index',
-                                     distribution=base.Distribution(downloadURL='url'))
+                                     distribution=[base.Distribution(downloadURL='url')])
     emodelRelease = EModelRelease(
             name='EModelRelease',
-            distribution=base.Distribution(downloadURL='url'),
+            distribution=[base.Distribution(downloadURL='url')],
             emodelIndex=emodel_index)
 
     memodel_index = ModelReleaseIndex(name='index',
-                                      distribution=base.Distribution(downloadURL='url'))
+                                      distribution=[base.Distribution(downloadURL='url')])
     memodelRelease = MEModelRelease(
             name='MEModelRelease',
             morphologyRelease=morphology_release,
@@ -402,7 +402,7 @@ def test_create_detailed_circuit():
 
     circuitCellProperties = CircuitCellProperties(
             name='CircuitCellProperties',
-            distribution=base.Distribution(downloadURL='url'))
+            distribution=[base.Distribution(downloadURL='url')])
 
     nodeCollection = NodeCollection(
             name='NodeCollection',
@@ -411,15 +411,15 @@ def test_create_detailed_circuit():
 
     synapseRelease = SynapseRelease(
             name='SynapseRelease',
-            distribution=base.Distribution(downloadURL='url'))
+            distribution=[base.Distribution(downloadURL='url')])
     edgePopulation = ModelReleaseIndex(name='index',
-                                       distribution=base.Distribution(accessURL='url'))
+                                       distribution=[base.Distribution(accessURL='url')])
     edgeCollection = EdgeCollection(
             name='EdgeCollection',
             edgePopulation=edgePopulation,
             synapseRelease=synapseRelease)
 
-    target = Target(name='Target', distribution=base.Distribution(downloadURL='url'))
+    target = Target(name='Target', distribution=[base.Distribution(downloadURL='url')])
 
     circuit = DetailedCircuit(
             name='DetailedCircuit',
@@ -463,13 +463,13 @@ def test_morphology_attachment():
 
     assert morphology.name == 'Morphology'
     assert morphology._rev == 2
-    assert morphology.distribution.downloadURL == 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment'
-    assert morphology.distribution.contentSize['value'] == 121440
-    assert morphology.distribution.contentSize['unit'] == 'byte'
-    assert morphology.distribution.digest['value'] == 'c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb'
-    assert morphology.distribution.digest['algorithm'] == 'SHA-256'
-    assert morphology.distribution.mediaType == 'text/plain'
-    assert morphology.distribution.originalFileName == 'file_name'
+    assert morphology.distribution[0].downloadURL == 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment'
+    assert morphology.distribution[0].contentSize['value'] == 121440
+    assert morphology.distribution[0].contentSize['unit'] == 'byte'
+    assert morphology.distribution[0].digest['value'] == 'c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb'
+    assert morphology.distribution[0].digest['algorithm'] == 'SHA-256'
+    assert morphology.distribution[0].mediaType == 'text/plain'
+    assert morphology.distribution[0].originalFileName == 'file_name'
 
 
 @responses.activate
@@ -509,6 +509,6 @@ def test_identifiable_instance():
 def test_subcellular_model():
     mod_release = IonChannelMechanismRelease(
             name='name',
-            distribution=base.Distribution(accessURL='file:///name'))
+            distribution=[base.Distribution(accessURL='file:///name')])
     model_script = SubCellularModelScript(name='name')
     model = SubCellularModel(name='name', isPartOf=[mod_release], modelScript=model_script)
