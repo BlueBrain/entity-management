@@ -5,7 +5,7 @@ import re
 import attr
 
 from typing import List
-from itertools import ifilter
+from six.moves import filter as filter_ # pylint: disable=import-error
 
 from entity_management import nexus
 from entity_management.util import attributes, AttrOf
@@ -54,7 +54,7 @@ class DistributionMixin(object):
                     and hasattr(dist, 'downloadURL')
                     and dist.downloadURL.startswith('https://')
                     and dist.downloadURL.endswith('/attachment'))
-        dist = next(ifilter(is_attachment, self.distribution), None)
+        dist = next(filter_(is_attachment, self.distribution), None)
         if dist is None:
             raise AssertionError('No attachment found')
         nexus.download(dist.downloadURL, path, dist.originalFileName, token=use_auth)
@@ -67,7 +67,7 @@ class DistributionMixin(object):
                     and hasattr(dist, 'storageType')
                     and dist.storageType == 'gpfs'
                     and dist.downloadURL.startswith('file:///gpfs/'))
-        dist = next(ifilter(is_gpfs, self.distribution), None)
+        dist = next(filter_(is_gpfs, self.distribution), None)
         if dist is not None:
             return re.sub('^file://', '', dist.downloadURL)
         else:
