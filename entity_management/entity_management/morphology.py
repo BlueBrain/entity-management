@@ -28,3 +28,9 @@ class ReconstructedPatchedCell(Entity):
         distribution(Distribution): Attached morphology file.
     '''
     _url_version = 'v0.1.1'
+
+
+@attributes()
+class ReconstructedWholeBrainCell(ReconstructedPatchedCell):
+    '''ReconstructedWholeBrainCell'''
+    pass

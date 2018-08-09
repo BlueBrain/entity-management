@@ -155,7 +155,7 @@ class Activity(Entity):
 class ProvenanceMixin(object):
     '''Enables provenance metadata when publishing/deprecating entities'''
 
-    def publish(self, activity=None, use_auth=None):
+    def publish(self, activity=None, person=None, use_auth=None):
         '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
         entity attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -163,6 +163,8 @@ class ProvenanceMixin(object):
         Args:
             activity(Activity): Provide custom activity to link with
                 generated entity new revision otherwise default activity will be created.
+            person(Person): Provide custom person to link with, otherwise identity will
+                be taken from the token if token is present.
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         Returns:
@@ -171,10 +173,13 @@ class ProvenanceMixin(object):
         if activity is not None:
             assert isinstance(self, Activity)
 
+        if person is None:
+            person = Person.get_current(use_auth)
+
         if hasattr(self, '_id') and self._id:
             js = nexus.update(self._id, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            self = self.evolve(wasAttributedTo=Person.get_current(use_auth),
+            self = self.evolve(wasAttributedTo=person,
                                dateCreated=datetime.utcnow())
             js = nexus.create(self._base_url, self.as_json_ld(), token=use_auth)
         entity_id = js[JSLD_ID]
@@ -182,12 +187,12 @@ class ProvenanceMixin(object):
 
         if activity is not None:
             activity = activity.evolve(generated=Identifiable.from_url(entity_id, use_auth),
-                                       wasStartedBy=Person.get_current(use_auth))
+                                       wasStartedBy=person)
             activity.publish(use_auth)
 
         return self.evolve(_id=entity_id, _rev=entity_revision)
 
-    def deprecate(self, activity=None, use_auth=None):
+    def deprecate(self, use_auth=None):
         '''Mark entity as deprecated.
         Deprecated entities are not possible to retrieve by name.
 
@@ -195,6 +200,5 @@ class ProvenanceMixin(object):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        print(activity)
         js = nexus.deprecate(self._id, self._rev, token=use_auth)
         return self.evolve(_rev=js[JSLD_REV], _deprecated=True)

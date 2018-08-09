@@ -5,9 +5,9 @@ import re
 import attr
 
 from typing import List
-from six.moves import filter as filter_ # pylint: disable=import-error
 
 from entity_management import nexus
+from entity_management.compat import filter_
 from entity_management.util import attributes, AttrOf
 from entity_management.base import Distribution, _deserialize_list
 from entity_management.settings import JSLD_REV
