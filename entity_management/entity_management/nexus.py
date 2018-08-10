@@ -234,7 +234,7 @@ def find_by(collection_address=None, props=None, token=None):
                              allow_redirects=False)
 
     # query successful follow redirect
-    if response.status_code == 308:
+    if response.status_code == 303:
         location = response.headers.get('location')
         return location
     response.raise_for_status()
