@@ -7,11 +7,13 @@ from entity_management.base import (Distribution, Frozen, Identifiable, Ontology
 from entity_management.core import Activity, Agent, SoftwareAgent, ProvenanceMixin
 from entity_management.mixins import DistributionMixin
 from entity_management.util import attributes, AttrOf
+from entity_management.electrophysiology import Trace
 
 
 @attributes({
     'name': AttrOf(str),
     'description': AttrOf(str, default=None),
+    'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
     })
 class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
@@ -19,6 +21,7 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     Args:
         name(str): Required entity name which can later be used for retrieval.
         description(str): Short description of the entity.
+        wasDerivedFrom(List[Identifiable]): List of associated provenance entities.
     '''
     _type_namespace = 'nsg'
 
@@ -222,11 +225,21 @@ class SingleCellSimulationTrace(Entity):
     _url_version = 'v0.1.2'
 
 
+@attributes({'hadMember': AttrOf(List[Trace])})
+class TraceCollection(Entity):
+    '''Collection of traces
+
+    Args:
+        hadMember(List[Trace]): List of traces.
+    '''
+    _url_version = 'v0.1.1'
+
+
 @attributes({'name': AttrOf(str),
              'channel': AttrOf(int),
              'description': AttrOf(str, default=None)})
 class ExperimentalCell(Frozen):
-    '''ExperimentalCell
+    '''Experimental cell.
 
     Args:
         name(str): TODO.

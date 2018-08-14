@@ -27,3 +27,11 @@ def test_attrs_utils():
     assert len(kw) == 1
     assert 'a' in pos
     assert 'b' in kw
+
+
+def test_resolve_path():
+    assert util.resolve_path('') == 'nsg:'
+    assert util.resolve_path('a') == 'nsg:a'
+    assert util.resolve_path('a_b') == 'a:b'
+    assert util.resolve_path('a__b') == 'nsg:a / nsg:b'
+    assert util.resolve_path('a_b__c_d') == 'a:b / c:d'

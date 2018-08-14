@@ -18,7 +18,7 @@ from dateutil.parser import parse
 
 from entity_management import nexus
 from entity_management.util import _clean_up_dict
-from entity_management.util import attributes, AttrOf
+from entity_management.util import attributes, AttrOf, resolve_path
 from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_REV,
                                         JSLD_DEPRECATED, JSLD_CTX, JSLD_TYPE, NSG_CTX)
 
@@ -326,18 +326,24 @@ class Identifiable(Frozen):
 
     @classmethod
     def find_by(cls, all_versions=False, all_domains=False, all_organizations=False,
-                use_auth=None, **properties):
+                query=None, use_auth=None, **properties): # TODO improve query params passing
         '''Load entity from properties.
 
         Args:
             collection_address(str): Selected collection to list, filter or search;
                 for example: ``/myorg/mydomain``, ``/myorg/mydomain/myschema/v1.0.0``
+            query(dict): Provide explicit nexus query.
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+            **properties: Keyword args. If ``key`` has words separated by double underscore they
+                will be replaced with ``/`` forming deep path for the query. Single underscores
+                will be replaced with ``:`` explicitly specifying namespaces(otherwise default
+                ``nsg:`` namespace will be used).
         Returns:
             Results iterator.
         '''
 
+        # pylint: disable=too-many-locals
         # build collection address
         version = getattr(cls, '_url_version', VERSION)
         url_org = getattr(cls, '_url_org', ORG)
@@ -352,24 +358,27 @@ class Identifiable(Frozen):
             collection_address = '/%s/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower(),
                                                    version)
 
-        # prepare properties
-        props = []
-        for key, value in six.iteritems(properties):
-            if isinstance(value, OntologyTerm):
-                props.append({'op': 'eq',
-                              'path': 'nsg:%s' % key.replace('__', ' / nsg:'),
-                              'value': value.url})
-            elif isinstance(value, tuple):
-                props.append({'op': value[0], 'path': 'schema:%s' % key, 'value': value[1]})
-            elif isinstance(value, Identifiable):
-                props.append({'op': 'eq', 'path': 'prov:%s' % key, 'value': value.id})
-            else:
-                props.append({'op': 'eq', 'path': 'schema:%s' % key, 'value': value})
+        if query is None:
+            # prepare properties
+            props = []
+            for key, value in six.iteritems(properties):
+                path = resolve_path(key)
 
-        target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
-        props.append({'op': 'eq', 'path': 'rdf:type', 'value': target_class})
+                if isinstance(value, OntologyTerm):
+                    props.append({'op': 'eq', 'path': path, 'value': value.url})
+                elif isinstance(value, tuple):
+                    props.append({'op': value[0], 'path': path, 'value': value[1]})
+                elif isinstance(value, Identifiable):
+                    props.append({'op': 'eq', 'path': path, 'value': value.id})
+                else:
+                    props.append({'op': 'eq', 'path': path, 'value': value})
 
-        location = nexus.find_by(collection_address, props, token=use_auth)
+            target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
+            props.append({'op': 'eq', 'path': 'rdf:type', 'value': target_class})
+
+            query = {'op': 'and', 'value': props}
+
+        location = nexus.find_by(collection_address, query, token=use_auth)
         if location is not None:
             return NexusResultsIterator(cls, location, use_auth)
         return None
@@ -495,4 +504,10 @@ class OntologyTerm(Frozen):
         url(str): Ontology term url identifier.
         label(str): Label for the ontology term.
     '''
+    pass
+
+
+@attributes({'brainRegion': AttrOf(OntologyTerm)})
+class BrainLocation(Frozen):
+    '''Brain location'''
     pass

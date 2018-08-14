@@ -60,7 +60,7 @@ class Entity(DistributionMixin, Identifiable):
 
 
 class Agent(Entity):
-    '''Agent
+    '''Agent.
 
     Args:
         name(str): Name of the agent.
@@ -73,7 +73,7 @@ class Agent(Entity):
              'givenName': AttrOf(str, default=None),
              'familyName': AttrOf(str, default=None)})
 class Person(Agent):
-    '''Person
+    '''Person.
 
     Args:
         email(str): Email.

@@ -2,7 +2,8 @@
 Experimental morphologies entities
 
 .. inheritance-diagram:: entity_management.electrophysiology
-   :top-classes: entity_management.electrophysiology.Entity
+   :top-classes: entity_management.electrophysiology.Entity,
+    entity_management.electrophysiology.StimulusType, entity_management.core.Activity
    :parts: 1
 '''
 from datetime import datetime
@@ -23,7 +24,7 @@ class Entity(Identifiable):
 
 @attributes({'stimulusType': AttrOf(OntologyTerm)})
 class StimulusType(Frozen):
-    '''StimulusExperiment
+    '''Stimulus type wrapper.
 
     Args:
         stimulusType(OntologyTerm): Stimulus type ontology term.
@@ -34,7 +35,7 @@ class StimulusType(Frozen):
 @attributes({'stimulus': AttrOf(StimulusType),
              'used': AttrOf(PatchedCell)})
 class StimulusExperiment(Activity):
-    '''StimulusExperiment
+    '''Stimulus experiment.
 
     Args:
         stimulus(OntologyTerm): doc.
@@ -48,7 +49,7 @@ class StimulusExperiment(Activity):
              'providerExperimentId': AttrOf(str, default=None),
              'providerExperimentName': AttrOf(str, default=None)})
 class TraceGeneration(Entity):
-    '''TraceGeneration
+    '''Trace generation.
 
     Args:
         activity(StimulusExperiment): Points at stimulus experiment activity that generated trace.
@@ -65,7 +66,7 @@ class TraceGeneration(Entity):
              'projectName': AttrOf(str, default=None),
              'retrievalDate': AttrOf(datetime, default=None)})
 class Trace(DistributionMixin, Entity):
-    '''Trace
+    '''Trace.
 
     Args:
         projectName(str): Name of the project that the trace was recorded for.

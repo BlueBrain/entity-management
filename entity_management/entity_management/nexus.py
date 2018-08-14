@@ -218,13 +218,13 @@ def find_uuid_by_name(base_url, name, token=None):
 
 
 @_nexus_wrapper
-def find_by(collection_address=None, props=None, token=None):
+def find_by(collection_address=None, query=None, token=None):
     '''Find entities using NEXUS queries endpoint'''
-    if props is not None:
+    if query is not None:
         json = {'@context': NSG_CTX,
                 'resource': 'instances',
                 'deprecated': False,
-                'filter': {'op': 'and', 'value': props}}
+                'filter': query}
     else:
         json = {'@context': NSG_CTX, 'resource': 'instances', 'deprecated': False}
 

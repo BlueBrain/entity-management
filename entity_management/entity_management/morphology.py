@@ -5,32 +5,40 @@ Experimental morphologies entities
    :top-classes: entity_management.morphology.Entity
    :parts: 1
 '''
-from entity_management.base import Distribution
-from entity_management.base import Identifiable
+from entity_management.base import Identifiable, BrainLocation
 from entity_management.util import attributes, AttrOf
 from entity_management.mixins import DistributionMixin
 
 
 @attributes()
 class Entity(DistributionMixin, Identifiable):
-    '''Base class for morphology Enitities'''
+    '''Base class for morphology Enitities.'''
     _type_namespace = 'nsg'
     _url_domain = 'morphology'
 
 
 @attributes({'name': AttrOf(str),
-             'distribution': AttrOf(Distribution)})
-class ReconstructedPatchedCell(Entity):
-    '''ReconstructedPatchedCell
+             'brainLocation': AttrOf(BrainLocation)})
+class ReconstructedCell(Entity):
+    '''Reconstructed cell.
 
     Args:
-        name(str): Name of the agent.
-        distribution(Distribution): Attached morphology file.
+        name(str): Name of the reconstructed cell.
+    '''
+    pass
+
+
+@attributes({'name': AttrOf(str)})
+class ReconstructedPatchedCell(Entity):
+    '''Reconstructed patched cell.
+
+    Args:
+        name(str): Name of the reconstructed patched cell.
     '''
     _url_version = 'v0.1.1'
 
 
 @attributes()
 class ReconstructedWholeBrainCell(ReconstructedPatchedCell):
-    '''ReconstructedWholeBrainCell'''
+    '''Reconstructed wholeBrain cell.'''
     pass
