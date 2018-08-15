@@ -208,7 +208,8 @@ def resolve_path(key):
     '''Resolve path by convention If ``key`` has words separated by double underscore they
     will be replaced with ``/`` forming deep path for the query. Single underscores
     will be replaced with ``:`` explicitly specifying namespaces(otherwise default
-    ``nsg:`` namespace will be used).
+    ``nsg:`` namespace will be used). Also some names from well-known namespaces will be
+    resolved(like name->schema:name, email->schema:email, used->prov:used).
     '''
 
     # args with exactly one underscore separating words, first part denotes namespace
@@ -217,7 +218,15 @@ def resolve_path(key):
     path_list = []
     for token in key.split('__'):
         if ':' not in token: # namespace not resolved by re.sub
-            token = 'nsg:%s' % token # use default namespace
+            # some default processing with known namespace defaults
+            if token in ['name', 'version', 'email']:
+                token = 'schema:%s' % token
+            elif token in ['activity', 'qualifiedGeneration', 'used']:
+                token = 'prov:%s' % token
+            elif token in ['originalFileName']:
+                token = 'nxv:%s' % token
+            else:
+                token = 'nsg:%s' % token # use default namespace
         path_list.append(token)
 
     return path_list[0] if len(path_list) == 1 else ' / '.join(path_list)
