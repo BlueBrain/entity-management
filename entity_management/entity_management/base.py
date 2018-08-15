@@ -240,7 +240,11 @@ class Identifiable(Frozen):
             return getattr(self._proxied_object, name)
         else:
             # subclasses of Identifiable just raise if arrived in __getattr__
-            raise AttributeError("No attribute '%s' in %s" % (name, type(self)))
+            if name == 'id':
+                suggestion = '\nSuggestion: did you forget to publish it before using it ?'
+            else:
+                suggestion = ''
+            raise AttributeError("No attribute '%s' in %s%s" % (name, type(self), suggestion))
 
     def __dir__(self):
         '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
