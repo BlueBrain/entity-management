@@ -29,47 +29,40 @@ class NexusResultsIterator(six.Iterator):
     cls = attr.ib()
     url = attr.ib()
     token = attr.ib()
-    item_index = attr.ib(type=int, default=0)
     total_items = attr.ib(type=int, default=None)
-    page = attr.ib(default=None)
     page_from = attr.ib(type=int, default=None)
     page_size = attr.ib(type=int, default=None)
+    _item_index = attr.ib(type=int, default=0)
+    _page = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        self._fetch_page()
-
-    def __iter__(self):
-        return self
-
-    def results_count(self):
-        '''Get the total results count'''
-        return self.total_items
-
-    def _fetch_page(self):
-        '''Fetch nexus result from url and deserialize it to self.page list of entities'''
         split_url = urlsplit(self.url)
         query_params = dict(parse_qsl(split_url.query))
         self.page_from = int(query_params['from'])
         self.page_size = int(query_params['size'])
 
-        js = nexus.load_by_url(self.url, token=self.token)
-        self.page = [self.cls.from_url(entity['resultId'], self.token) # pylint: disable=no-member
-                     for entity in js['results']]
-        self.total_items = int(js['total'])
+    def __iter__(self):
+        return self
 
     def __next__(self):
         '''Return next entity from the paginated result set, fetch next page if required'''
-        split_url = urlsplit(self.url)
-        if self.item_index < self.total_items:
-            if self.page_from + self.page_size == self.item_index:
-                self.url = urlunsplit(split_url._replace( # pylint: disable=protected-access
-                        query=urlencode({'from': self.item_index, 'size': self.page_size})))
-                self._fetch_page()
-            entity = self.page[self.item_index - self.page_from]
-            self.item_index += 1
-            return entity
-        else:
+        # fetch next page if needed
+        if self.total_items is None or self.page_from + self.page_size == self._item_index:
+            split_url = urlsplit(self.url)
+            self.url = urlunsplit(split_url._replace( # pylint: disable=protected-access
+                    query=urlencode({'from': self._item_index, 'size': self.page_size})))
+            json_payload = nexus.load_by_url(self.url, token=self.token)
+            self._page = [entity['resultId'] for entity in json_payload['results']]
+            self.total_items = int(json_payload['total'])
+
+        if self._item_index >= self.total_items:
             raise StopIteration()
+
+        entity_url = self._page[self._item_index - self.page_from]
+        obj = Identifiable()
+        obj = obj.evolve(_id=entity_url, _proxied_type=self.cls, _proxied_token=self.token)
+        self._item_index += 1
+        return obj
 
 
 def _deserialize_list(data_type, data_raw, token):
