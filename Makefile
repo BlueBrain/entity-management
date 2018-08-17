@@ -5,7 +5,7 @@ INSTALL_MODULES=entity_management
 TEST_MODULES=entity_management
 
 # Ignore directories for pep8 and pylint (on top of tests and doc)
-IGNORE_LINT=entity_management/apps|server
+IGNORE_LINT=entity_management/apps|server|scripts
 
 #packages to cover
 COVER_PACKAGES=entity_management
