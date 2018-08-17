@@ -171,7 +171,7 @@ class ProvenanceMixin(object):
             New instance of the same class with revision updated.
         '''
         if activity is not None:
-            assert isinstance(self, Activity)
+            assert isinstance(activity, Activity)
 
         if person is None:
             person = Person.get_current(use_auth)
@@ -186,8 +186,9 @@ class ProvenanceMixin(object):
         entity_revision = js[JSLD_REV]
 
         if activity is not None:
-            activity = activity.evolve(generated=Identifiable.from_url(entity_id, use_auth),
-                                       wasStartedBy=person)
+            obj = Identifiable()
+            obj = obj.evolve(_id=entity_id, _type=['prov:Entity', type(self).get_type()])
+            activity = activity.evolve(generated=obj, wasStartedBy=person)
             activity.publish(use_auth)
 
         return self.evolve(_id=entity_id, _rev=entity_revision)

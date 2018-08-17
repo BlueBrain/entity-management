@@ -233,6 +233,7 @@ class TraceCollection(Entity):
         hadMember(List[Trace]): List of traces.
     '''
     _url_version = 'v0.1.1'
+    _type_name = 'Collection'
 
 
 @attributes({'name': AttrOf(str),

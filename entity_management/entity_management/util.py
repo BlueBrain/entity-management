@@ -69,7 +69,7 @@ class _SubClassOfValidator(object):
         We use a callable class to be able to change the ``__repr__``.
         '''
         # pylint: disable=protected-access
-        value_type = value._proxied_type if hasattr(value, '_proxied_type') else type(value)
+        value_type = value._proxied_type if '_proxied_type' in dir(value) else type(value)
 
         if not issubclass(value_type, self.type_):
             raise TypeError(

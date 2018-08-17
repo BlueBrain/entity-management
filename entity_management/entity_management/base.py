@@ -60,7 +60,10 @@ class NexusResultsIterator(six.Iterator):
 
         entity_url = self._page[self._item_index - self.page_from]
         obj = Identifiable()
-        obj = obj.evolve(_id=entity_url, _proxied_type=self.cls, _proxied_token=self.token)
+        obj = obj.evolve(_id=entity_url,
+                         _type=['prov:Entity', self.cls.get_type()], # pylint: disable=no-member
+                         _proxied_type=self.cls,
+                         _proxied_token=self.token)
         self._item_index += 1
         return obj
 
@@ -200,6 +203,15 @@ class Identifiable(Frozen):
     '''
     # entity namespace which should be used for json-ld @type attribute
     _type_namespace = '' # Entity classes from specific domains will override this
+    _type_name = '' # Entity classes from specific domains will override this
+
+    @classmethod
+    def get_type(cls):
+        '''Get class type. Can be overriden by class varable _type_name.'''
+        if cls._type_name:
+            return '%s:%s' % (cls._type_namespace, cls._type_name)
+        else:
+            return '%s:%s' % (cls._type_namespace, cls.__name__)
 
     @property
     def base_url(self):
@@ -217,7 +229,7 @@ class Identifiable(Frozen):
         return self._type
 
     def __attrs_post_init__(self):
-        self._force_attr('_type', ['%s:%s' % (self._type_namespace, type(self).__name__)])
+        self._force_attr('_type', [type(self).get_type()])
 
     def __getattr__(self, name):
         # isinstance is overriden in metaclass which is true for all subclasses of Identifiable
@@ -242,7 +254,7 @@ class Identifiable(Frozen):
     def __dir__(self):
         '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
         proxied object'''
-        if hasattr(self, '_proxied_type') and self.name: # access proxied attr to trigger lazy load
+        if '_proxied_object' in self.__dict__ and self.name: # get proxied attr to trigger lazy load
             attrs_from_mro = set(attrib for cls in getmro(type(self._proxied_object))
                                         for attrib in dir(cls))
             attrs_from_obj = set(self._proxied_object.__dict__)
@@ -370,8 +382,7 @@ class Identifiable(Frozen):
                 else:
                     props.append({'op': 'eq', 'path': path, 'value': value})
 
-            target_class = '%s:%s' % (cls._type_namespace, cls.__name__)
-            props.append({'op': 'eq', 'path': 'rdf:type', 'value': target_class})
+            props.append({'op': 'in', 'path': 'rdf:type', 'value': cls.get_type()})
 
             query = {'op': 'and', 'value': props}
 
