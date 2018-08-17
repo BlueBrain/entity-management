@@ -223,7 +223,7 @@ def resolve_path(key):
                 token = 'schema:%s' % token
             elif token in ['activity', 'qualifiedGeneration', 'used']:
                 token = 'prov:%s' % token
-            elif token in ['originalFileName']:
+            elif token in ['uuid', 'originalFileName']:
                 token = 'nxv:%s' % token
             else:
                 token = 'nsg:%s' % token # use default namespace
