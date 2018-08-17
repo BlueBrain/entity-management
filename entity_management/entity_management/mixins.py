@@ -48,16 +48,20 @@ class DistributionMixin(object):
                 originalFileName.
             use_auth(str): Optional OAuth token.
         '''
+        dist = self.get_attachment()
+        if dist is None:
+            raise AssertionError('No attachment found')
+        nexus.download(dist.downloadURL, path, dist.originalFileName, token=use_auth)
+
+    def get_attachment(self):
+        '''Get attachment distribution'''
         def is_attachment(dist):
             '''Predicate to find downloadable attachment'''
             return (hasattr(dist, 'originalFileName')
                     and hasattr(dist, 'downloadURL')
                     and dist.downloadURL.startswith('https://')
                     and dist.downloadURL.endswith('/attachment'))
-        dist = next(filter_(is_attachment, self.distribution), None)
-        if dist is None:
-            raise AssertionError('No attachment found')
-        nexus.download(dist.downloadURL, path, dist.originalFileName, token=use_auth)
+        return next(filter_(is_attachment, self.distribution), None)
 
     def get_gpfs_path(self):
         '''Get gpfs link'''

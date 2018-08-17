@@ -110,6 +110,8 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         # make lazy proxy for identifiable object
         obj = Identifiable()
         url = data_raw[JSLD_ID]
+        if data_type is Identifiable: # root type was used, try to recover it from url
+            data_type = nexus.get_type(url)
         # pylint: disable=protected-access
         value = obj.evolve(_proxied_type=data_type,
                            _proxied_token=token,
@@ -187,7 +189,7 @@ class _IdentifiableMeta(type):
     def __instancecheck__(cls, inst):
         '''If instance has _proxied_type then it is a proxy and instance check should be done
         against proxied type'''
-        if hasattr(inst, '_proxied_type'):
+        if '_proxied_type' in dir(inst):
             mro = getmro(inst._proxied_type) # pylint: disable=protected-access
         else:
             mro = getmro(type(inst))

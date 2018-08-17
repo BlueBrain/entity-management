@@ -221,7 +221,7 @@ def resolve_path(key):
             # some default processing with known namespace defaults
             if token in ['name', 'version', 'email']:
                 token = 'schema:%s' % token
-            elif token in ['activity', 'qualifiedGeneration', 'used']:
+            elif token in ['activity', 'qualifiedGeneration', 'used', 'generated']:
                 token = 'prov:%s' % token
             elif token in ['uuid', 'originalFileName']:
                 token = 'nxv:%s' % token
