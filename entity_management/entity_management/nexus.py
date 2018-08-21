@@ -19,17 +19,19 @@ L = logging.getLogger(__name__)
 _URL_TO_CLS_MAP = {}
 
 
-def register_type(url_prefix, cls):
-    '''Store type corresponding to url prefix'''
-    _URL_TO_CLS_MAP[url_prefix] = cls
+def register_type(type_hint, cls):
+    '''Store type corresponding to type hint'''
+    _URL_TO_CLS_MAP[type_hint] = cls
 
 
-def get_type(url):
-    '''Get type which corresponds to the url'''
-    for url_prefix in _URL_TO_CLS_MAP:
-        if url.startswith(url_prefix):
-            return _URL_TO_CLS_MAP[url_prefix]
-    return None
+def _type_hint_from(id_url):
+    '''Ignore the ending UUID and take domain/entity/version as type hint'''
+    return '/'.join(urlsplit(id_url).path.split('/')[-4:-1])
+
+
+def get_type(id_url):
+    '''Get type which corresponds to the id_url'''
+    return _URL_TO_CLS_MAP.get(_type_hint_from(id_url), None)
 
 
 def _get_headers(token):

@@ -1,7 +1,9 @@
 import operator
 import attr
+from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
 
 from entity_management import util
+from entity_management.nexus import _type_hint_from
 
 
 def test_dict_merg():
@@ -35,3 +37,8 @@ def test_resolve_path():
     assert util.resolve_path('a_b') == 'a:b'
     assert util.resolve_path('a__b') == 'nsg:a / nsg:b'
     assert util.resolve_path('a_b__c_d') == 'a:b / c:d'
+
+
+def test_url_to_type():
+    id_url = 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/0c7d5e80-c275-4187-897e-946da433b642'
+    assert _type_hint_from(id_url) == 'simulation/morphologyrelease/v0.1.1'

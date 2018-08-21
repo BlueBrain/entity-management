@@ -181,8 +181,9 @@ class _IdentifiableMeta(type):
         url_org = getattr(cls, '_url_org', ORG)
         url_domain = getattr(cls, '_url_domain', 'simulation')
 
-        cls._base_url = '%s/%s/%s/%s/%s' % (BASE_DATA, url_org, url_domain, name.lower(), version)
-        nexus.register_type(cls._base_url, cls)
+        type_id = '%s/%s/%s' % (url_domain, name.lower(), version)
+        cls._base_url = '%s/%s/%s' % (BASE_DATA, url_org, type_id)
+        nexus.register_type(type_id, cls)
 
         super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
 
