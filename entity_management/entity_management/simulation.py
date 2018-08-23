@@ -25,10 +25,6 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''
     _type_namespace = 'nsg'
 
-    def __attrs_post_init__(self):
-        super(Entity, self).__attrs_post_init__()
-        self._type.append('prov:Entity')
-
 
 @attributes({'modelOf': AttrOf(str, default=None),
              'brainRegion': AttrOf(OntologyTerm, default=None),

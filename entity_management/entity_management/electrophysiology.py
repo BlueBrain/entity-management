@@ -41,7 +41,7 @@ class StimulusExperiment(Activity):
         stimulus(OntologyTerm): doc.
         used(PatchedCell): doc.
     '''
-    pass
+    _type_namespace = 'nsg'
 
 
 @attributes({'activity': AttrOf(StimulusExperiment),

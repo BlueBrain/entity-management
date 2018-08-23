@@ -48,9 +48,10 @@ class NexusResultsIterator(six.Iterator):
         '''Return next entity from the paginated result set, fetch next page if required'''
         # fetch next page if needed
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
+            self.page_from = self._item_index
             split_url = urlsplit(self.url)
             self.url = urlunsplit(split_url._replace( # pylint: disable=protected-access
-                    query=urlencode({'from': self._item_index, 'size': self.page_size})))
+                    query=urlencode({'from': self.page_from, 'size': self.page_size})))
             json_payload = nexus.load_by_url(self.url, token=self.token)
             self._page = [entity['resultId'] for entity in json_payload['results']]
             self.total_items = int(json_payload['total'])
@@ -61,7 +62,6 @@ class NexusResultsIterator(six.Iterator):
         entity_url = self._page[self._item_index - self.page_from]
         obj = Identifiable()
         obj = obj.evolve(_id=entity_url,
-                         _type=['prov:Entity', self.cls.get_type()], # pylint: disable=no-member
                          _proxied_type=self.cls,
                          _proxied_token=self.token)
         self._item_index += 1
@@ -115,7 +115,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         # pylint: disable=protected-access
         value = obj.evolve(_proxied_type=data_type,
                            _proxied_token=token,
-                           _type=data_raw[JSLD_TYPE],
+                           _types=data_raw[JSLD_TYPE],
                            _id=url)
     elif issubclass(data_type, OntologyTerm):
         value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
@@ -229,10 +229,7 @@ class Identifiable(Frozen):
     @property
     def types(self):
         '''types'''
-        return self._type
-
-    def __attrs_post_init__(self):
-        self._force_attr('_type', [type(self).get_type()])
+        return self._types
 
     def __getattr__(self, name):
         # isinstance is overriden in metaclass which is true for all subclasses of Identifiable
@@ -291,7 +288,7 @@ class Identifiable(Frozen):
         return obj.evolve(_id=js[JSLD_ID],
                           _rev=js[JSLD_REV],
                           _deprecated=js[JSLD_DEPRECATED],
-                          _type=js[JSLD_TYPE])
+                          _types=js[JSLD_TYPE])
 
     @classmethod
     def from_uuid(cls, uuid, use_auth=None):
@@ -318,7 +315,10 @@ class Identifiable(Frozen):
                 init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, use_auth)
 
         obj = cls(**init_args)
-        return obj.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV], _deprecated=js[JSLD_DEPRECATED])
+        return obj.evolve(_id=js[JSLD_ID],
+                          _rev=js[JSLD_REV],
+                          _deprecated=js[JSLD_DEPRECATED],
+                          _types=js[JSLD_TYPE])
 
     @classmethod
     def from_name(cls, name, use_auth=None):
@@ -406,7 +406,7 @@ class Identifiable(Frozen):
 
         hidden_attrs = {}
         # copy hidden attrs values from changes(remove with pop) else from original if present
-        for attr_name in ['_id', '_rev', '_deprecated', '_type', '_proxied_type',
+        for attr_name in ['_id', '_rev', '_deprecated', '_types', '_proxied_type',
                           '_proxied_object', '_proxied_token']:
             attr_value = Ellipsis
 
@@ -430,7 +430,7 @@ class Identifiable(Frozen):
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
-        @type is filled from the self._type
+        @type is filled from the self._types
         '''
         attrs = attr.fields(type(self))
         rv = {}
@@ -451,10 +451,12 @@ class Identifiable(Frozen):
         vocab = getattr(self, '_vocab', None)
         if vocab is not None:
             rv[JSLD_CTX].append({'@vocab': vocab})
-        rv[JSLD_CTX].append({'wasAttributedTo': {'@id': 'prov:wasAttributedTo', '@type': '@id'},
-                             'dateCreated': {'@id': 'schema:dateCreated', '@type': '@id'}})
+        rv[JSLD_CTX].append({'wasAttributedTo': {'@id': 'prov:wasAttributedTo'},
+                             'dateCreated': {'@id': 'schema:dateCreated'}})
         rv[JSLD_CTX].append(NSG_CTX)
-        rv[JSLD_TYPE] = self._type
+        if not hasattr(self, '_types'):
+            self._force_attr('_types', ['prov:Entity', self.get_type()])
+        rv[JSLD_TYPE] = self.types
         return rv
 
 

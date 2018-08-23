@@ -21,15 +21,11 @@ class Entity(DistributionMixin, Identifiable):
     '''Base class for core Enitities. No provenance data is attached to the core entities with
     publish/deprecate.'''
 
-    _type_namespace = 'nsg'
+    _type_namespace = 'prov'
     _url_domain = 'core'
     # in hbp we don't have access to neurosciencegraph only to brainsimulation, so allow
     # overriding the in which org core instances will be located
     _url_org = CORE_ORG
-
-    def __attrs_post_init__(self):
-        super(Entity, self).__attrs_post_init__()
-        self._type.append('prov:%s' % type(self).__name__)
 
     def publish(self, use_auth=None):
         '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
@@ -144,7 +140,6 @@ class Activity(Entity):
     _vocab = 'http://schema.org/'
 
     def __attrs_post_init__(self):
-        super(Activity, self).__attrs_post_init__()
         if self.startedAtTime is None:
             self._force_attr('startedAtTime', datetime.utcnow())
 
@@ -182,16 +177,14 @@ class ProvenanceMixin(object):
             self = self.evolve(wasAttributedTo=person,
                                dateCreated=datetime.utcnow())
             js = nexus.create(self._base_url, self.as_json_ld(), token=use_auth)
-        entity_id = js[JSLD_ID]
-        entity_revision = js[JSLD_REV]
+
+        self = self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
 
         if activity is not None:
-            obj = Identifiable()
-            obj = obj.evolve(_id=entity_id, _type=['prov:Entity', type(self).get_type()])
-            activity = activity.evolve(generated=obj, wasStartedBy=person)
+            activity = activity.evolve(generated=self, wasStartedBy=person)
             activity.publish(use_auth)
 
-        return self.evolve(_id=entity_id, _rev=entity_revision)
+        return self
 
     def deprecate(self, use_auth=None):
         '''Mark entity as deprecated.
