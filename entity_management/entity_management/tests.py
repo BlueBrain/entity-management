@@ -41,4 +41,4 @@ def test_resolve_path():
 
 def test_url_to_type():
     id_url = 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/0c7d5e80-c275-4187-897e-946da433b642'
-    assert _type_hint_from(id_url) == 'simulation/morphologyrelease/v0.1.1'
+    assert _type_hint_from(id_url) == 'simulation/morphologyrelease'

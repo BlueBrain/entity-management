@@ -25,8 +25,8 @@ def register_type(type_hint, cls):
 
 
 def _type_hint_from(id_url):
-    '''Ignore the ending UUID and take domain/entity/version as type hint'''
-    return '/'.join(urlsplit(id_url).path.split('/')[-4:-1])
+    '''Ignore the ending UUID and take domain/entity as type hint'''
+    return '/'.join(urlsplit(id_url).path.split('/')[-4:-2])
 
 
 def get_type(id_url):
