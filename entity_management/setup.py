@@ -34,8 +34,6 @@ TESTS_REQUIRE = [
         'nose==1.3.0',
         'mock==1.0.1',
         'responses',
-        'sh',
-        'neurom',
         ]
 
 setup(
