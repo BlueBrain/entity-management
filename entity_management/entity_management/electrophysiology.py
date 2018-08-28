@@ -42,6 +42,7 @@ class StimulusExperiment(Activity):
         used(PatchedCell): doc.
     '''
     _type_namespace = 'nsg'
+    _url_version = 'v1.0.0'
 
 
 @attributes({'activity': AttrOf(StimulusExperiment),
@@ -57,7 +58,7 @@ class TraceGeneration(Entity):
         providerExperimentId(str): Points at stimulus experiment activity that generated trace.
         providerExperimentName(str): Laboratory name of the experiment.
     '''
-    pass
+    _url_version = 'v1.0.0'
 
 
 @attributes({'channel': AttrOf(int),

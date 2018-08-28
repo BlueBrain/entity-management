@@ -25,7 +25,7 @@ class ReconstructedCell(Entity):
     Args:
         name(str): Name of the reconstructed cell.
     '''
-    pass
+    _url_version = 'v0.1.2'
 
 
 @attributes({'name': AttrOf(str)})
@@ -41,4 +41,4 @@ class ReconstructedPatchedCell(Entity):
 @attributes()
 class ReconstructedWholeBrainCell(ReconstructedPatchedCell):
     '''Reconstructed wholeBrain cell.'''
-    pass
+    _url_version = 'v0.1.1'

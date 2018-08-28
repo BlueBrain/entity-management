@@ -23,4 +23,4 @@ class Entity(DistributionMixin, Identifiable):
              'mType': AttrOf(OntologyTerm, default=None)})
 class PatchedCell(Entity):
     '''Patched cell.'''
-    pass
+    _url_version = 'v0.2.1'

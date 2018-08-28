@@ -26,7 +26,7 @@ MORPHOLOGY_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID,
+    "@id": '%s/%s' % (MorphologyRelease._base_url, UUID),
     "@type": [
         "nsg:Entity",
         "nsg:MorphologyRelease"
@@ -46,7 +46,7 @@ MORPHOLOGY_RELEASE_JSLD = {
         "self": "%s/%s" % (MorphologyRelease._base_url, UUID)
     },
     "morphologyIndex": {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
+        '@id': '%s/%s' % (ModelReleaseIndex._base_url, UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "name": "Morphology Release",
@@ -111,7 +111,7 @@ EMODEL_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/" + UUID,
+    "@id": "%s/%s" % (EModelRelease._base_url, UUID),
     "@type": [
         "nsg:Entity",
         "nsg:EModelRelease"
@@ -123,7 +123,7 @@ EMODEL_RELEASE_JSLD = {
         }
     ],
     "emodelIndex": {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/' + ModelReleaseIndex._url_version + '/' + UUID,
         '@type': ['nsg:ModelReleaseIndex']
     },
     "links": {
@@ -150,7 +150,7 @@ MEMODEL_RELEASE_JSLD = {
         "nsg:MEModelRelease"
     ],
     "emodelRelease": {
-        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.1/" + UUID,
+        "@id": "%s/%s" % (EModelRelease._base_url, UUID),
         "@type": [
             "nsg:Entity",
             "nsg:EModelRelease"
@@ -164,11 +164,11 @@ MEMODEL_RELEASE_JSLD = {
         "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID
     },
     "memodelIndex": {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.1/' + UUID,
+        '@id': '%s/%s' % (ModelReleaseIndex._base_url, UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "morphologyRelease": {
-        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID,
+        "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
         "@type": [
             "nsg:Entity",
             "nsg:MorphologyRelease"
@@ -248,15 +248,14 @@ ACTIVITY_JSLD = {
     'name': 'test activity',
     'startedAtTime': '2018-03-27T16:04:35.886105',
     'used': {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodel/v0.1.2/43ea1788-4f7f-4b7c-8b36-416bc672db1f',
+        '@id': '%s/%s' % (MEModel._base_url, UUID),
         '@type': ['nsg:MEModel', 'prov:Entity']
     },
     'wasStartedBy': {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/core/agent/v0.1.0/d019e443-5e48-4300-80da-19476d5fe795',
+        '@id': '%s/%s' % (core.Agent._base_url, UUID),
         '@type': ['nsg:Agent', 'prov:Agent']
     }
 }
-
 
 
 @responses.activate

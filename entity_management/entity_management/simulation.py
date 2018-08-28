@@ -56,7 +56,7 @@ class ModelScript(Entity):
 @attributes()
 class ModelReleaseIndex(Entity):
     '''Index files attached to release entities'''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(List[Distribution]),
@@ -77,14 +77,14 @@ class MorphologyRelease(ModelRelease):
             morphology properties (MType, region ids) for the performance purposes. This attribute
             should provide a path to locate this file(such as neurondb.dat).
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes()
 class IonChannelMechanismRelease(ModelRelease):
     '''Ion channel models release represents a collection of mod files.
     '''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
 
 
 @attributes({'distribution': AttrOf(List[Distribution])})
@@ -106,7 +106,7 @@ class EModelRelease(ModelRelease):
         distribution(List[Distribution]): EModel release location provides a path to ``hoc`` files.
         emodelIndex(ModelReleaseIndex): EModel release index file.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.3'
 
 
 @attributes({'emodelRelease': AttrOf(EModelRelease),
@@ -120,7 +120,7 @@ class MEModelRelease(ModelRelease):
         morphologyRelease(MorphologyRelease): morphology model release
         memodelIndex(ModelReleaseIndex): optional morpho-electrical model index
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(List[Distribution], default=None),
@@ -141,7 +141,7 @@ class Morphology(ModelInstance):
         view2d(Identifiable): Morphology view in 2D.
         view3d(Identifiable): Morphology view in 3D.
     '''
-    _url_version = 'v0.1.3'
+    _url_version = 'v0.1.4'
 
 
 @attributes()
@@ -153,7 +153,7 @@ class SubCellularModelScript(ModelScript):
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes()
@@ -179,7 +179,7 @@ class SubCellularModel(ModelInstance):
         isPartOf(List[Union[IonChannelMechanismRelease, SynapseRelease]]): Optional list of synapse
             releases or ion channel releases this model is part of.
     '''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
 
 
 @attributes({'subCellularMechanism': AttrOf(List[SubCellularModel], default=None),
@@ -192,7 +192,7 @@ class EModel(ModelInstance):
         modelScript(List[EModelScript]): Model script collection. Scripts defining neuron model,
             e.g. a ``hoc`` files.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({
@@ -211,14 +211,14 @@ class EModelBuilding(Activity):
         wasAssociatedWith(List[SoftwareAgent]): Agents associated with
             this activity.
     '''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
     _url_domain = 'simulation' # need to override as Activity will set it to 'core'
 
 
 @attributes()
 class SingleCellSimulationTrace(Entity):
     '''Single cell simulation trace file'''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.4'
 
 
 @attributes({'hadMember': AttrOf(List[Trace])})
@@ -228,7 +228,7 @@ class TraceCollection(Entity):
     Args:
         hadMember(List[Trace]): List of traces.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
     _type_name = 'Collection'
 
 
@@ -251,7 +251,7 @@ class ExperimentalCell(Frozen):
              'hypampThreshold': AttrOf(Entity, default=None)})
 class BluePyEfeFeatures(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
     _type = 'nsg:Configuration'
 
 
@@ -265,7 +265,7 @@ class BluePyEfeFeatures(Entity):
              'masterListConfiguration': AttrOf(Entity, default=None)})
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
 
 
 @attributes({'eModel': AttrOf(EModel),
@@ -283,7 +283,7 @@ class MEModel(ModelInstance):
             responsible for loading that morphology from the folder specified in the first
             template argument.
     '''
-    _url_version = 'v0.1.2'
+    _url_version = 'v0.1.3'
 
 
 @attributes({'distribution': AttrOf(List[Distribution])})
@@ -293,7 +293,7 @@ class CircuitCellProperties(Entity):
     Args:
         distribution(List[Distribution]): Location of the cell placement file.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'memodelRelease': AttrOf(MEModelRelease),
@@ -306,7 +306,7 @@ class NodeCollection(Entity):
         circuitCellProperties(CircuitCellProperties): Cell properties which are used in this node
                                                       collection.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({'edgePopulation': AttrOf(ModelReleaseIndex), # FIXME make it work for now, check schema
@@ -319,7 +319,7 @@ class EdgeCollection(Entity):
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(List[Distribution])})
@@ -329,7 +329,7 @@ class Target(Entity):
     Args:
         distribution(List[Distribution]): Location of the target file.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'nodeCollection': AttrOf(NodeCollection),
@@ -343,4 +343,4 @@ class DetailedCircuit(ModelInstance):
         edgeCollection(EdgeCollection): Edge collection.
         target(Target): Target.
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
