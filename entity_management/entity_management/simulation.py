@@ -24,6 +24,7 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
         wasDerivedFrom(List[Identifiable]): List of associated provenance entities.
     '''
     _type_namespace = 'nsg'
+    _url_version = 'v1.0.0'
 
 
 @attributes({'modelOf': AttrOf(str, default=None),
@@ -37,20 +38,20 @@ class ModelInstance(Entity):
         brainRegion(OntologyTerm): Brain region ontology term.
         species(OntologyTerm): Species ontology term.
     '''
-    pass
+    _url_version = 'v0.1.2'
 
 
 @attributes({'brainRegion': AttrOf(OntologyTerm, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
 class ModelRelease(Entity):
     '''Release base entity'''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.3'
 
 
 @attributes()
 class ModelScript(Entity):
     '''Base entity for the scripts attached to the model.'''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes()
@@ -165,7 +166,7 @@ class EModelScript(ModelScript):
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
-    pass
+    _url_version = 'v0.1.1'
 
 
 @attributes({'modelScript': AttrOf(SubCellularModelScript),
