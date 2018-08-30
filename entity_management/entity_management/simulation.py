@@ -266,7 +266,7 @@ class BluePyEfeFeatures(Entity):
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.3'
-    _type = 'nsg:Configuration'
+    _type_name = 'Configuration'
 
 
 @attributes({'eModel': AttrOf(EModel),
