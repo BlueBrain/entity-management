@@ -253,7 +253,6 @@ class ExperimentalCell(Frozen):
 class BluePyEfeFeatures(Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.3'
-    _type = 'nsg:Configuration'
 
 
 @attributes({'brainRegion': AttrOf(OntologyTerm),
@@ -267,6 +266,7 @@ class BluePyEfeFeatures(Entity):
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.3'
+    _type = 'nsg:Configuration'
 
 
 @attributes({'eModel': AttrOf(EModel),
