@@ -254,14 +254,21 @@ class Identifiable(Frozen):
     def __dir__(self):
         '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
         proxied object'''
-        if '_proxied_object' in self.__dict__ and self.name: # get proxied attr to trigger lazy load
-            attrs_from_mro = set(attrib for cls in getmro(type(self._proxied_object))
-                                        for attrib in dir(cls))
-            attrs_from_obj = set(self._proxied_object.__dict__)
-        else:
-            attrs_from_mro = set(attrib for cls in getmro(type(self)) for attrib in dir(cls))
-            attrs_from_obj = set(self.__dict__)
-        return sorted(attrs_from_mro | attrs_from_obj)
+        attrs = set()
+        if '_proxied_object' in self.__dict__:
+            try:
+                self.name # get proxied attr to trigger lazy load
+            except: # pylint: disable=bare-except
+                pass
+            # collect attributes from proxied type
+            attrs = attrs | set(attrib for cls in getmro(self._proxied_type)
+                                       for attrib in dir(cls))
+            # collect attributes from proxied object
+            attrs = attrs | set(self._proxied_object.__dict__)
+
+        attrs = attrs | set(attrib for cls in getmro(type(self)) for attrib in dir(cls))
+        attrs = attrs | set(self.__dict__)
+        return sorted(attrs)
 
     @classmethod
     def from_url(cls, url, use_auth=None):
