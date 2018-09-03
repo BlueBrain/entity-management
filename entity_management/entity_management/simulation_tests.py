@@ -281,19 +281,6 @@ def test_load_morphology_release_by_uuid():
 
 
 @responses.activate
-def test_load_morphology_release_by_name():
-    responses.add(responses.GET, MorphologyRelease._base_url,
-            json=MORPHOLOGY_RELEASE_JSLD_FILTER)
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
-            json=MORPHOLOGY_RELEASE_JSLD)
-
-    morphology_release = MorphologyRelease.from_name(UUID)
-
-    assert morphology_release.description == 'test description'
-    assert morphology_release.distribution[0].downloadURL == 'file:///distribution/url'
-
-
-@responses.activate
 def test_update_morphology_release():
     responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)

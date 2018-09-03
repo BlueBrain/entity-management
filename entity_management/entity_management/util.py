@@ -69,7 +69,7 @@ class _SubClassOfValidator(object):
         We use a callable class to be able to change the ``__repr__``.
         '''
         # pylint: disable=protected-access
-        value_type = value._proxied_type if '_proxied_type' in dir(value) else type(value)
+        value_type = value._proxied_type if hasattr(value, '_proxied_type') else type(value)
 
         if not issubclass(value_type, self.type_):
             raise TypeError(
@@ -169,7 +169,7 @@ def _attrs_clone(cls, check_default):
     return fields
 
 
-def attributes(attr_dict=None):
+def attributes(attr_dict=None, repr=True): # pylint: disable=redefined-builtin
     '''decorator to simplify creation of classes that have args and kwargs'''
     if attr_dict is None:
         attr_dict = {} # just inherit attributes from parent class
@@ -181,7 +181,7 @@ def attributes(attr_dict=None):
             {k: v() for k, v in attr_dict.items() if v.is_positional},
             {k: v() for k, v in attr_dict.items() if not v.is_positional},
             _attrs_clone(cls, check_default=operator.ne))
-        return attr.attrs(cls, these=these)
+        return attr.attrs(cls, these=these, repr=repr)
 
     return wrap
 

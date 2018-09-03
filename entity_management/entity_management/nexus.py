@@ -200,26 +200,6 @@ def load_by_uuid(base_url, uuid, token=None):
 
 
 @_nexus_wrapper
-def find_uuid_by_name(base_url, name, token=None):
-    '''Lookup not deprecated entity uuid from the base url with the name filter'''
-    response = requests.get(base_url,
-                            headers=_get_headers(token),
-                            params={
-                                'deprecated': 'false',
-                                'filter': '{"op":"eq","path":"schema:name","value":"%s"}' % name})
-    # if not found then return None
-    if response.status_code == 404:
-        return None
-    response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    if js['total'] == 0:
-        return None
-    elif js['total'] > 1:
-        raise ValueError('Too many results found!')
-    return get_uuid_from_url(js['results'][0]['resultId'])
-
-
-@_nexus_wrapper
 def find_by(collection_address=None, query=None, token=None):
     '''Find entities using NEXUS queries endpoint'''
     if query is not None:

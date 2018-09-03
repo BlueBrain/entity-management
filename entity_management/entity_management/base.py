@@ -60,10 +60,7 @@ class NexusResultsIterator(six.Iterator):
             raise StopIteration()
 
         entity_url = self._page[self._item_index - self.page_from]
-        obj = Identifiable()
-        obj = obj.evolve(_id=entity_url,
-                         _proxied_type=self.cls,
-                         _proxied_token=self.token)
+        obj = Identifiable.proxy(entity_url, self.cls, self.token)
         self._item_index += 1
         return obj
 
@@ -108,15 +105,11 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
             # or we have just Identifiable
             or issubclass(data_type, Identifiable)):
         # make lazy proxy for identifiable object
-        obj = Identifiable()
         url = data_raw[JSLD_ID]
         if data_type is Identifiable: # root type was used, try to recover it from url
             data_type = nexus.get_type(url)
         # pylint: disable=protected-access
-        value = obj.evolve(_proxied_type=data_type,
-                           _proxied_token=token,
-                           _types=data_raw[JSLD_TYPE],
-                           _id=url)
+        value = Identifiable.proxy(url, data_type, token, data_raw[JSLD_TYPE])
     elif issubclass(data_type, OntologyTerm):
         value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
     elif data_type == datetime:
@@ -198,7 +191,7 @@ class _IdentifiableMeta(type):
 
 
 @six.add_metaclass(_IdentifiableMeta)
-@attributes()
+@attributes(repr=False)
 class Identifiable(Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
@@ -231,17 +224,33 @@ class Identifiable(Frozen):
         '''types'''
         return self._types
 
+    @classmethod
+    def proxy(cls, id_, proxied_type, token, types=None):
+        '''Initialize proxy object'''
+        proxy = Identifiable()
+        proxy._force_attr('_id', id_) # pylint: disable=protected-access
+        proxy._force_attr('_proxied_type', proxied_type) # pylint: disable=protected-access
+        proxy._force_attr('_token', token) # pylint: disable=protected-access
+        if types:
+            proxy._force_attr('_types', types) # pylint: disable=protected-access
+        return proxy
+
+    def _set_proxied_object_from_id(self):
+        '''Load the object from id url and set _proxied_object attribute'''
+        if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
+                                                   # and that will cause recursion to _getattr_
+            cls = object.__getattribute__(self, '_proxied_type')
+            self._force_attr('_proxied_object',
+                             cls.from_url(object.__getattribute__(self, '_id'),
+                                          object.__getattribute__(self, '_token')))
+        if self._proxied_object is None:
+            raise ValueError('Unable to find proxied entity for %s and %s' %
+                             (self._id, self._proxied_type))
+
     def __getattr__(self, name):
-        # isinstance is overriden in metaclass which is true for all subclasses of Identifiable
-        if (type(self) == Identifiable and '_id' in self.__dict__):
+        if type(self) is Identifiable:
             # Identifiable instances behave like proxies, set it up and then forward attr request
-            if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
-                                                       # and that will cause recursion to _getattr_
-                self._force_attr('_proxied_object',
-                                 self._proxied_type.from_url(self._id, self._proxied_token))
-            if self._proxied_object is None:
-                raise ValueError('Unable to find proxied entity for %s and %s' %
-                                 (self._id, self._proxied_type))
+            self._set_proxied_object_from_id()
             return getattr(self._proxied_object, name)
         else:
             # subclasses of Identifiable just raise if arrived in __getattr__
@@ -251,15 +260,20 @@ class Identifiable(Frozen):
                 suggestion = ''
             raise AttributeError("No attribute '%s' in %s%s" % (name, type(self), suggestion))
 
+    def __repr__(self): # pylint: disable=redefined-builtin
+        if '_proxied_object' in self.__dict__:
+            return 'Identifiable of: {}'.format(repr(self._proxied_object))
+        elif type(self) is Identifiable and '_proxied_type' in self.__dict__:
+            return 'Identifiable of: {}()'.format(self._proxied_type.__name__)
+        else:
+            return 'Identifiable()'
+
     def __dir__(self):
         '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
         proxied object'''
         attrs = set()
-        if '_proxied_object' in self.__dict__:
-            try:
-                self.name # get proxied attr to trigger lazy load
-            except: # pylint: disable=bare-except
-                pass
+        if type(self) is Identifiable:
+            self._set_proxied_object_from_id()
             # collect attributes from proxied type
             attrs = attrs | set(attrib for cls in getmro(self._proxied_type)
                                        for attrib in dir(cls))
@@ -295,7 +309,8 @@ class Identifiable(Frozen):
         return obj.evolve(_id=js[JSLD_ID],
                           _rev=js[JSLD_REV],
                           _deprecated=js[JSLD_DEPRECATED],
-                          _types=js[JSLD_TYPE])
+                          _types=js[JSLD_TYPE],
+                          _token=use_auth)
 
     @classmethod
     def from_uuid(cls, uuid, use_auth=None):
@@ -325,23 +340,8 @@ class Identifiable(Frozen):
         return obj.evolve(_id=js[JSLD_ID],
                           _rev=js[JSLD_REV],
                           _deprecated=js[JSLD_DEPRECATED],
-                          _types=js[JSLD_TYPE])
-
-    @classmethod
-    def from_name(cls, name, use_auth=None):
-        '''Load entity from name.
-
-        Args:
-            name(str): Name of the entity to load.
-            use_auth(str): OAuth token in case access is restricted.
-                Token should be in the format for the authorization header: Bearer VALUE.
-        '''
-        # pylint: disable=no-member
-        uuid = nexus.find_uuid_by_name(cls._base_url, name, token=use_auth)
-        if uuid:
-            return cls.from_uuid(uuid, use_auth)
-        else:
-            return None
+                          _types=js[JSLD_TYPE],
+                          _token=use_auth)
 
     @classmethod
     def find_by(cls, all_versions=False, all_domains=False, all_organizations=False,
@@ -413,8 +413,7 @@ class Identifiable(Frozen):
 
         hidden_attrs = {}
         # copy hidden attrs values from changes(remove with pop) else from original if present
-        for attr_name in ['_id', '_rev', '_deprecated', '_types', '_proxied_type',
-                          '_proxied_object', '_proxied_token']:
+        for attr_name in ['_id', '_rev', '_deprecated', '_types', '_token']:
             attr_value = Ellipsis
 
             # take value from original if present
@@ -427,12 +426,16 @@ class Identifiable(Frozen):
             if attr_value is not Ellipsis:
                 hidden_attrs[attr_name] = attr_value
 
-        obj = super(Identifiable, self).evolve(**changes)
+        if hasattr(self, '_proxied_object'):
+            # replace with proxied object
+            self = self._proxied_object
+
+        self = super(Identifiable, self).evolve(**changes)
 
         for attr_name in hidden_attrs:
-            obj._force_attr(attr_name, hidden_attrs[attr_name]) # pylint: disable=protected-access
+            self._force_attr(attr_name, hidden_attrs[attr_name]) # pylint: disable=protected-access
 
-        return obj
+        return self
 
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
