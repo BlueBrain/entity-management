@@ -81,6 +81,20 @@ class MorphologyRelease(ModelRelease):
     _url_version = 'v0.1.2'
 
 
+@attributes({'used': AttrOf(Identifiable),
+             'generated': AttrOf(MorphologyRelease)})
+class MorphologyDiversification(Activity):
+    '''Morphology release building activity.
+
+    Args:
+        used(Identifiable): Configurations(neurondb.xml, placement_rules.xml) which were used to
+            generate the emodel.
+        generated(MorphologyRelease): Morphology release which was produced.
+    '''
+    _url_version = 'v0.1.2'
+    _url_domain = 'simulation' # need to override as Activity will set it to 'core'
+
+
 @attributes()
 class IonChannelMechanismRelease(ModelRelease):
     '''Ion channel models release represents a collection of mod files.
@@ -196,12 +210,10 @@ class EModel(ModelInstance):
     _url_version = 'v0.1.2'
 
 
-@attributes({
-    'used': AttrOf(Morphology),
-    'generated': AttrOf(EModel),
-    'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]], default=None),
-    'bestScore': AttrOf(QuantitativeValue, default=None)
-    })
+@attributes({'used': AttrOf(Morphology),
+             'generated': AttrOf(EModel),
+             'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]], default=None),
+             'bestScore': AttrOf(QuantitativeValue, default=None)})
 class EModelBuilding(Activity):
     '''EModel building activity.
 
