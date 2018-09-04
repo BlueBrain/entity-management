@@ -5,9 +5,12 @@ Experimental morphologies entities
    :top-classes: entity_management.morphology.Entity
    :parts: 1
 '''
-from entity_management.base import Identifiable, BrainLocation, attributes
+from typing import List
+
+from entity_management.base import Identifiable, BrainLocation, attributes, Distribution
 from entity_management.util import AttrOf
 from entity_management.mixins import DistributionMixin
+from entity_management.core import ProvenanceMixin
 
 
 @attributes()
@@ -41,3 +44,10 @@ class ReconstructedPatchedCell(Entity):
 class ReconstructedWholeBrainCell(ReconstructedPatchedCell):
     '''Reconstructed wholeBrain cell.'''
     _url_version = 'v0.1.1'
+
+
+@attributes({'morphology': AttrOf(Entity),
+             'distribution': AttrOf(List[Distribution])})
+class CutPlane(Entity, ProvenanceMixin):
+    '''Reconstructed wholeBrain cell.'''
+    _url_version = 'v0.1.2'

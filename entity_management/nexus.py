@@ -1,6 +1,7 @@
 '''New nexus access layer'''
 from __future__ import print_function
 
+import re
 import logging
 import os
 import sys
@@ -61,6 +62,47 @@ def _byteify(data, ignore_dicts=False):
     return data
 
 
+def _check_token_validity(token):
+    '''Check that token is valid'''
+
+    if token is None:
+        raise Exception(
+            'Environment variable NEXUS_TOKEN is empty. It should contain a Nexus token.'
+            'You can get one by going to https://bbp-nexus.epfl.ch/staging/explorer/ '
+            'and clicking the "Copy token" button')
+
+    r = requests.get(USERINFO, headers={'accept': 'application/json', 'authorization': token})
+
+    if r.status_code == 200:
+        return
+    if r.status_code == 500:
+        raise Exception('GET {} is returning an Error 500. Nexus is probably down. '
+                        'Try again later'.format(USERINFO))
+    if r.status_code == 401:
+        raise Exception('Error 401: your token has expired or you are not authorized.\n'
+                        'Current token: {}\n'
+                        'Suggestion: try renewing the token stored in the environment variable: '
+                        'NEXUS_TOKEN'.format(token))
+
+    raise Exception('Received error code for query\nGET {}:\nError {}, {}'.format(
+        USERINFO, r.status_code, r.text))
+
+
+def _print_violation_summary(data):
+    '''Add colors, remove hashes and other superfluous things from error message'''
+    print('\nNEXUS ERROR SUMMARY:\n', file=sys.stderr)
+
+    for error in data['violations']:
+        no_hash = re.sub(r',? *(Constraint|Node)(:|\() ?_:\w{32}\)?', '', error)
+        no_hash = re.sub(r'^Error: Violation Error\((.*?)\). ', r'Violation(\g<1>):\n', no_hash)
+        if no_hash.startswith('Violation'):
+            color = '\033[92m'
+            end_color = '\033[0m'
+            color_url = re.sub(r'<(.*?)>', color + r'<\g<1>>' + end_color, no_hash)
+
+        print(color_url + '\n', file=sys.stderr)
+
+
 def _nexus_wrapper(func):
     '''Pretty print nexus error responses, inject token if set in env'''
     @wraps(func)
@@ -73,8 +115,12 @@ def _nexus_wrapper(func):
         try:
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                _check_token_validity(kwargs['token'])
             print('NEXUS ERROR>>>', file=sys.stderr)
             pprint(e.response.text, stream=sys.stderr)
+            if e.response.status_code == 400:
+                _print_violation_summary(e.response.json())
             print('<<<', file=sys.stderr)
             raise
     return wrapper

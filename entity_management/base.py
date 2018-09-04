@@ -81,7 +81,7 @@ class NexusResultsIterator(six.Iterator):
             self.page_from = int(query_params['from'])
             self.page_size = int(query_params['size'])
 
-    def __iter__(self):  # pylint: disable=non-iterator-returned
+    def __iter__(self):  # pragma: no cover pylint: disable=non-iterator-returned
         return self
 
     def __next__(self):

@@ -2,8 +2,8 @@
  - entity_management.nexus
  - entity_management.util
 '''
+
 import operator
-from datetime import datetime
 
 import attr
 import responses
@@ -15,6 +15,7 @@ import entity_management.nexus as nx
 from entity_management import util
 from entity_management.nexus import _type_hint_from
 from entity_management.settings import BASE, USERINFO
+from utils import assert_substring, captured_output, strip_color_codes
 
 AGENT_JSON = {'email': 'James@Bond', 'given_name': 'James', 'family_name': 'Bond'}
 PERSON_JSLD = {
@@ -135,3 +136,27 @@ def test_nexus_find_by():
                   status=200)
 
     assert_equal(nx.find_by(collection_address='/no-redirection'), None)
+
+
+
+
+
+
+def test_print_violation_summary():
+    with captured_output() as (_, err):
+        nx._print_violation_summary({
+            '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/error/v0.1.0',
+            'violations': [
+                'Error: Violation Error(<http://www.w3.org/ns/shacl#ShapesFailed>). Node(_:e7df3db3cef74a8be41bfe0a177afa12) Failed property shapes Node: _:e7df3db3cef74a8be41bfe0a177afa12, Constraint: _:5a74392f2c619ed2780d5e6a802772c2, path: PredicatePath(<>)',
+                "Error: Violation Error(<http://www.w3.org/ns/shacl#classError>). Node(<https://bbp-nexus.epfl.ch/staging/v0/data/thalamusproject/morphology/reconstructedpatchedcell/v0.1.1/04ff7858-088c-49bd-8c1b-14adb5741c60>) Node <https://bbp-nexus.epfl.ch/staging/v0/data/thalamusproject/morphology/reconstructedpatchedcell/v0.1.1/04ff7858-088c-49bd-8c1b-14adb5741c60> doesn't belong to class <http://www.w3.org/ns/prov#Entity> Node: _:e7df3db3cef74a8be41bfe0a177afa12, Constraint: _:66234297346da423c601b6c230b3f04b, path: PredicatePath(<https://bbp-nexus.epfl.ch/vocabs/bbp/neurosciencegraph/core/v0.1.0/morphology>)"],
+            'code': 'ShapeConstraintViolations'}
+        )
+
+    assert_substring('''NEXUS ERROR SUMMARY:
+
+Violation(<http://www.w3.org/ns/shacl#ShapesFailed>):
+Failed property shapes, path: PredicatePath(<>)
+
+Violation(<http://www.w3.org/ns/shacl#classError>):
+Node(<https://bbp-nexus.epfl.ch/staging/v0/data/thalamusproject/morphology/reconstructedpatchedcell/v0.1.1/04ff7858-088c-49bd-8c1b-14adb5741c60>) Node <https://bbp-nexus.epfl.ch/staging/v0/data/thalamusproject/morphology/reconstructedpatchedcell/v0.1.1/04ff7858-088c-49bd-8c1b-14adb5741c60> doesn't belong to class <http://www.w3.org/ns/prov#Entity>, path: PredicatePath(<https://bbp-nexus.epfl.ch/vocabs/bbp/neurosciencegraph/core/v0.1.0/morphology>)
+''', strip_color_codes(err.getvalue()))

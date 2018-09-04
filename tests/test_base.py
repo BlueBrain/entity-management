@@ -1,13 +1,19 @@
+import json
+import os
+import tempfile
 from datetime import datetime
 from itertools import repeat
 from typing import List
+
 import attr
 import responses
 from mock import patch
 from nose.tools import assert_equal, assert_raises, ok_
 
-from entity_management.base import (Identifiable, OntologyTerm, _serialize_obj,
-                                    _deserialize_list, from_url)
+from entity_management.base import (Distribution, Identifiable, OntologyTerm,
+                                    _deserialize_list, _serialize_obj,
+                                    from_url)
+from entity_management.mixins import DistributionMixin
 
 
 def test_types():
@@ -80,24 +86,22 @@ def test_Identifiable_find_by():
     assert_equal(Dummy.find_by(dummy=Identifiable(id='an-awesome-id')).url,
                  'https://query-location-url-1?from=0&size=10')
 
-
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy',
                   status=303,
                   headers={'Location': 'https://query-location-url-2?from=0&size=10'})
-    assert_equal(Dummy.find_by(all_versions=True).url, 'https://query-location-url-2?from=0&size=10')
-
+    assert_equal(Dummy.find_by(all_versions=True).url,
+                 'https://query-location-url-2?from=0&size=10')
 
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org',
                   status=303,
                   headers={'Location': 'https://query-location-url-3?from=0&size=10'})
     assert_equal(Dummy.find_by(all_domains=True).url, 'https://query-location-url-3?from=0&size=10')
 
-
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries',
                   status=303,
                   headers={'Location': 'https://query-location-url-4?from=0&size=10'})
-    assert_equal(Dummy.find_by(all_organizations=True).url, 'https://query-location-url-4?from=0&size=10')
-
+    assert_equal(Dummy.find_by(all_organizations=True).url,
+                 'https://query-location-url-4?from=0&size=10')
 
 
 def test_find_unique():
@@ -118,3 +122,33 @@ def test_find_unique():
 
         assert_raises(Exception, Identifiable.find_unique, name="whatever", throw=True)
         assert_equal(Identifiable.find_unique(name="whatever", on_no_result=lambda: 7), 7)
+
+
+@responses.activate
+def test_get_attachment():
+    attachment = DistributionMixin(distribution=[
+        Distribution(downloadURL='crap')
+    ]).get_attachment()
+
+    assert_equal(attachment,
+                 None)
+
+    dists = [Distribution(downloadURL='crap'),
+             Distribution(downloadURL='https://bla/attachment',
+                          originalFileName='original.json'),
+             Distribution(downloadURL='file:///gpfs/some-stuff',
+                          storageType='gpfs')]
+
+    assert_equal(DistributionMixin(distribution=dists).get_attachment(),
+                 dists[1])
+
+    assert_equal(DistributionMixin(distribution=dists).get_gpfs_path(),
+                 '/gpfs/some-stuff')
+
+    assert_equal(DistributionMixin(distribution=[]).get_gpfs_path(),
+                 None)
+
+    responses.add(responses.GET, 'https://bla/attachment', json={'Bob': 'Marley'})
+    DistributionMixin(distribution=dists).download(tempfile.gettempdir())
+    with open(os.path.join(tempfile.gettempdir(), 'original.json')) as f:
+        assert_equal(json.load(f), {'Bob': 'Marley'})

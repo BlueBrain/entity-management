@@ -1,6 +1,7 @@
 '''
 Mixins to enhance entities
 '''
+import os
 import re
 from typing import List
 
@@ -44,14 +45,21 @@ class DistributionMixin(object):
         '''Download attachment of the entity and save it on the path with the originalFileName.
 
         Args:
-            path(str): Path where to save the file. File name will be taken from distribution
-                originalFileName.
+            path(str): Absolute filename or path where to save the file.
+                       If path is an existing folder, file name will be taken from
+                       distribution originalFileName.
             use_auth(str): Optional OAuth token.
         '''
         dist = self.get_attachment()
         if dist is None:
             raise AssertionError('No attachment found')
-        nexus.download(dist.downloadURL, path, dist.originalFileName, token=use_auth)
+        if os.path.exists(path) and os.path.isdir(path):
+            filename = dist.originalFileName
+        else:
+            filename = os.path.basename(path)
+            path = os.path.dirname(path)
+        nexus.download(dist.downloadURL, path, filename, token=use_auth)
+        return os.path.join(os.path.realpath(path), dist.originalFileName)
 
     def get_attachment(self):
         '''Get attachment distribution'''
