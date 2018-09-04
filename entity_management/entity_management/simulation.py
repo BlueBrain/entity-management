@@ -8,6 +8,7 @@ from entity_management.core import Activity, Agent, SoftwareAgent, ProvenanceMix
 from entity_management.mixins import DistributionMixin
 from entity_management.util import attributes, AttrOf
 from entity_management.electrophysiology import Trace
+import entity_management.morphology as morphology
 
 
 @attributes({
@@ -109,6 +110,12 @@ class SynapseRelease(ModelRelease):
     Args:
         distribution(List[Distribution]): Location of the synapse release/mod files.
     '''
+    _url_version = 'v0.1.1'
+
+
+@attributes()
+class Configuration(Entity):
+    '''Configuration file'''
     _url_version = 'v0.1.1'
 
 
@@ -357,3 +364,16 @@ class DetailedCircuit(ModelInstance):
         target(Target): Target.
     '''
     _url_version = 'v0.1.2'
+
+
+@attributes({'gitHash': AttrOf(str),
+             'inputMechanisms': AttrOf(IonChannelMechanismRelease),
+             'bluePyOptParameters': AttrOf(Configuration, default=None),
+             'bluePyOptProtocol': AttrOf(Configuration, default=None),
+             'bluePyOptRecipe': AttrOf(Configuration, default=None),
+             'experimentalFeatures': AttrOf(BluePyEfeFeatures, default=None),
+             'morphology': AttrOf(morphology.Entity, default=None),
+             'hasOutput': AttrOf(EModelRelease, default=None)})
+class BluePyOptRun(Entity):
+    '''Release base entity'''
+    _url_version = 'v0.1.12'
