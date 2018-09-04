@@ -344,6 +344,32 @@ class Identifiable(Frozen):
                           _token=use_auth)
 
     @classmethod
+    def find_unique(cls, throw=False, on_no_result=None, **kwargs):
+        '''Wrapper around find_by that will:
+        - return the result if there is only one result
+        - throw if there are more than one results
+        - if there is 0 result: throw if arg "throw" is true, else if a callback function
+          'on_no_result' is passed it will return the result of 'on_no_result()'
+        '''
+        iterator = cls.find_by(**kwargs)
+        try:
+            result = next(iterator)
+        except StopIteration:
+            if throw:
+                raise Exception('{}.find_unique({}) did not return anything'
+                                .format(cls, str(kwargs)))
+
+            if on_no_result:
+                return on_no_result()
+            else:
+                return None
+
+        if next(iterator, None):
+            raise Exception('find_unique found more than one result: '
+                            'This is not "unique"')
+        return result
+
+    @classmethod
     def find_by(cls, all_versions=False, all_domains=False, all_organizations=False,
                 query=None, use_auth=None, **properties): # TODO improve query params passing
         '''Load entity from properties.
