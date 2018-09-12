@@ -5,8 +5,8 @@ Experimental morphologies entities
    :top-classes: entity_management.morphology.Entity
    :parts: 1
 '''
-from entity_management.base import Identifiable, BrainLocation
-from entity_management.util import attributes, AttrOf
+from entity_management.base import Identifiable, BrainLocation, attributes
+from entity_management.util import AttrOf
 from entity_management.mixins import DistributionMixin
 
 

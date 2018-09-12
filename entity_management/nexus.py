@@ -9,7 +9,7 @@ from pprint import pprint
 
 import requests
 from six import PY2, iteritems, text_type
-# pylint: disable=import-error,no-name-in-module, relative-import
+# pylint: disable=import-error,no-name-in-module, relative-import,wrong-import-order
 from six.moves.urllib.parse import urlsplit
 
 from entity_management.settings import BASE, NSG_CTX, USERINFO
@@ -189,19 +189,6 @@ def download(url, path, file_name, token=None):
 
 
 @_nexus_wrapper
-def load_by_uuid(base_url, uuid, token=None):
-    '''Load Entity from the base url with appended uuid'''
-    response = requests.get('%s/%s' % (base_url, uuid),
-                            headers=_get_headers(token))
-    # if not found then return None
-    if response.status_code == 404:
-        return None
-    response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return js
-
-
-@_nexus_wrapper
 def find_by(collection_address=None, query=None, token=None):
     '''Find entities using NEXUS queries endpoint'''
     if query is not None:
@@ -220,8 +207,8 @@ def find_by(collection_address=None, query=None, token=None):
 
     # query successful follow redirect
     if response.status_code == 303:
-        location = response.headers.get('location')
-        return location
+        return response.headers.get('location')
+
     response.raise_for_status()
     return None
 

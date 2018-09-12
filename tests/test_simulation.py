@@ -3,7 +3,7 @@ import responses
 from io import StringIO
 
 from mock import patch, Mock
-from nose.tools import raises
+from nose.tools import raises, assert_equal, ok_
 
 from pprint import pprint
 
@@ -17,8 +17,10 @@ from entity_management.simulation import (DetailedCircuit, NodeCollection, Model
                                           MorphologyRelease, Morphology, MEModel,
                                           IonChannelMechanismRelease, SubCellularModelScript,
                                           SubCellularModel)
+from entity_management.settings import USERINFO
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
+DUMMY_PERSON = core.Person(email='dummy_email')
 
 MORPHOLOGY_RELEASE_JSLD = {
     "@context": [
@@ -26,7 +28,7 @@ MORPHOLOGY_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": '%s/%s' % (MorphologyRelease._base_url, UUID),
+    "@id": '%s/%s' % (MorphologyRelease.base_url, UUID),
     "@type": [
         "nsg:Entity",
         "nsg:MorphologyRelease"
@@ -40,13 +42,13 @@ MORPHOLOGY_RELEASE_JSLD = {
     ],
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "incoming": "%s/%s/incoming" % (MorphologyRelease._base_url, UUID),
-        "outgoing": "%s/%s/outgoing" % (MorphologyRelease._base_url, UUID),
+        "incoming": "%s/%s/incoming" % (MorphologyRelease.base_url, UUID),
+        "outgoing": "%s/%s/outgoing" % (MorphologyRelease.base_url, UUID),
         "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.1",
-        "self": "%s/%s" % (MorphologyRelease._base_url, UUID)
+        "self": "%s/%s" % (MorphologyRelease.base_url, UUID)
     },
     "morphologyIndex": {
-        '@id': '%s/%s' % (ModelReleaseIndex._base_url, UUID),
+        '@id': '%s/%s' % (ModelReleaseIndex.base_url, UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "name": "Morphology Release",
@@ -59,13 +61,13 @@ MORPHOLOGY_RELEASE_JSLD = {
 
 MORPHOLOGY_RELEASE_JSLD_UPDATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
+    "@id": "%s/%s" % (MorphologyRelease.base_url, UUID),
     "nxv:rev": 2
     }
 
 MORPHOLOGY_RELEASE_JSLD_DELETE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
+    "@id": "%s/%s" % (MorphologyRelease.base_url, UUID),
     "nxv:rev": 2
     }
 
@@ -111,7 +113,7 @@ EMODEL_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "%s/%s" % (EModelRelease._base_url, UUID),
+    "@id": "%s/%s" % (EModelRelease.base_url, UUID),
     "@type": [
         "nsg:Entity",
         "nsg:EModelRelease"
@@ -150,7 +152,7 @@ MEMODEL_RELEASE_JSLD = {
         "nsg:MEModelRelease"
     ],
     "emodelRelease": {
-        "@id": "%s/%s" % (EModelRelease._base_url, UUID),
+        "@id": "%s/%s" % (EModelRelease.base_url, UUID),
         "@type": [
             "nsg:Entity",
             "nsg:EModelRelease"
@@ -164,11 +166,11 @@ MEMODEL_RELEASE_JSLD = {
         "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID
     },
     "memodelIndex": {
-        '@id': '%s/%s' % (ModelReleaseIndex._base_url, UUID),
+        '@id': '%s/%s' % (ModelReleaseIndex.base_url, UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "morphologyRelease": {
-        "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
+        "@id": "%s/%s" % (MorphologyRelease.base_url, UUID),
         "@type": [
             "nsg:Entity",
             "nsg:MorphologyRelease"
@@ -185,7 +187,7 @@ MORPHOLOGY_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "%s/%s" % (Morphology._base_url, UUID),
+    "@id": "%s/%s" % (Morphology.base_url, UUID),
     "@type": [
         "nsg:Entity",
         "nsg:Morphology"
@@ -248,11 +250,11 @@ ACTIVITY_JSLD = {
     'name': 'test activity',
     'startedAtTime': '2018-03-27T16:04:35.886105',
     'used': {
-        '@id': '%s/%s' % (MEModel._base_url, UUID),
+        '@id': '%s/%s' % (MEModel.base_url, UUID),
         '@type': ['nsg:MEModel', 'prov:Entity']
     },
     'wasStartedBy': {
-        '@id': '%s/%s' % (core.Agent._base_url, UUID),
+        '@id': '%s/%s' % (core.Agent.base_url, UUID),
         '@type': ['nsg:Agent', 'prov:Agent']
     }
 }
@@ -260,107 +262,107 @@ ACTIVITY_JSLD = {
 
 @responses.activate
 def test_load_morphology_release_by_url():
-    url = '%s/%s' % (MorphologyRelease._base_url, UUID)
+    url = '%s/%s' % (MorphologyRelease.base_url, UUID)
     responses.add(responses.GET, url, json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease.from_url(url)
 
-    assert morphology_release.description == 'test description'
-    assert morphology_release.distribution[0].downloadURL == 'file:///distribution/url'
+    assert_equal(morphology_release.description, 'test description')
+    assert_equal(morphology_release.distribution[0].downloadURL, 'file:///distribution/url')
 
 
 @responses.activate
 def test_load_morphology_release_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
-    assert morphology_release.description == 'test description'
-    assert morphology_release.distribution[0].downloadURL == 'file:///distribution/url'
+    assert_equal(morphology_release.description, 'test description')
+    assert_equal(morphology_release.distribution[0].downloadURL, 'file:///distribution/url')
 
 
 @responses.activate
 def test_update_morphology_release():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
-    responses.add(responses.PUT, '%s/%s' % (MorphologyRelease._base_url, UUID),
+    responses.add(responses.PUT, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD_UPDATE)
 
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
-    assert morphology_release.name == 'Morphology Release'
-    assert morphology_release._rev == 1
+    assert_equal(morphology_release.name, 'Morphology Release')
+    assert_equal(morphology_release._rev, 1)
 
     new_url =  'file:///distribution/newUrl'
 
     new_distribution = morphology_release.distribution[0].evolve(downloadURL=new_url)
     morphology_release = morphology_release.evolve(distribution=[new_distribution])
 
-    morphology_release = morphology_release.publish()
+    morphology_release = morphology_release.publish(person=1)
 
-    assert morphology_release._id == '%s/%s' % (MorphologyRelease._base_url, UUID)
-    assert morphology_release.name == 'Morphology Release'
-    assert morphology_release.distribution[0].downloadURL == new_url
-    assert morphology_release._rev == 2
+    assert_equal(morphology_release.id, '%s/%s' % (MorphologyRelease.base_url, UUID))
+    assert_equal(morphology_release.name, 'Morphology Release')
+    assert_equal(morphology_release.distribution[0].downloadURL, new_url)
+    assert_equal(morphology_release._rev, 2)
 
 
 @responses.activate
 def test_publish_morphology_release():
-    responses.add(responses.POST, '%s' % MorphologyRelease._base_url,
+    responses.add(responses.POST, '%s' % MorphologyRelease.base_url,
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease(name='MorphologyRelease',
                                            distribution=[base.Distribution(downloadURL='url')])
-    morphology_release = morphology_release.publish()
+    morphology_release = morphology_release.publish(person=DUMMY_PERSON)
 
-    assert morphology_release._id is not None
-    assert morphology_release._rev is not None
+    ok_(morphology_release.id is not None)
+    ok_(morphology_release._rev is not None)
 
 
 @responses.activate
 def test_deprecate_morphology_release():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
-    responses.add(responses.DELETE, '%s/%s' % (MorphologyRelease._base_url, UUID),
+    responses.add(responses.DELETE, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD_DELETE)
 
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
-    assert morphology_release.name == 'Morphology Release'
-    assert morphology_release._rev == 1
-    assert morphology_release._deprecated == False
+    assert_equal(morphology_release.name, 'Morphology Release')
+    assert_equal(morphology_release._rev, 1)
+    assert_equal(morphology_release._deprecated, False)
 
     morphology_release = morphology_release.deprecate()
 
-    assert morphology_release.name == 'Morphology Release'
-    assert morphology_release._id is not None
-    assert morphology_release._rev == 2
-    assert morphology_release._deprecated == True
+    assert_equal(morphology_release.name, 'Morphology Release')
+    ok_(morphology_release.id is not None)
+    assert_equal(morphology_release._rev, 2)
+    assert_equal(morphology_release._deprecated, True)
 
 
 @responses.activate
 def test_publish_emodel_release():
-    responses.add(responses.POST, ModelReleaseIndex._base_url,
+    responses.add(responses.POST, ModelReleaseIndex.base_url,
                   json=MODEL_RELEASE_INDEX_JSLD_CREATE)
-    responses.add(responses.POST, EModelRelease._base_url,
+    responses.add(responses.POST, EModelRelease.base_url,
                   json=EMODEL_RELEASE_JSLD_CREATE)
 
     emodel_index = ModelReleaseIndex(
             name='index',
             distribution=[base.Distribution(downloadURL='url')])
-    emodel_index = emodel_index.publish()
+    emodel_index = emodel_index.publish(person=DUMMY_PERSON)
 
     emodel_release = EModelRelease(
             name='EModelRelease',
             distribution=[base.Distribution(downloadURL='url')],
             emodelIndex=emodel_index)
 
-    emodel_release = emodel_release.publish()
+    emodel_release = emodel_release.publish(person=DUMMY_PERSON)
 
-    assert emodel_release._id is not None
-    assert emodel_release.name == 'EModelRelease'
-    assert emodel_release._rev == 1
+    ok_(emodel_release.id is not None)
+    assert_equal(emodel_release.name, 'EModelRelease')
+    assert_equal(emodel_release._rev, 1)
 
 
 def test_create_detailed_circuit():
@@ -419,25 +421,25 @@ def test_create_detailed_circuit():
 
 @responses.activate
 def test_lazy_load_memodel_release_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (MorphologyRelease._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
-    responses.add(responses.GET, '%s/%s' % (EModelRelease._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (EModelRelease.base_url, UUID),
             json=EMODEL_RELEASE_JSLD)
-    responses.add(responses.GET, '%s/%s' % (MEModelRelease._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (MEModelRelease.base_url, UUID),
             json=MEMODEL_RELEASE_JSLD)
 
     memodel_release = MEModelRelease.from_uuid(UUID)
 
-    assert memodel_release.name == 'MEModel Release'
-    assert memodel_release.emodelRelease.name == 'EModel Release'
-    assert memodel_release.morphologyRelease.name == 'Morphology Release'
+    assert_equal(memodel_release.name, 'MEModel Release')
+    assert_equal(memodel_release.emodelRelease.name, 'EModel Release')
+    assert_equal(memodel_release.morphologyRelease.name, 'Morphology Release')
 
 
 @responses.activate
 def test_morphology_attachment():
-    responses.add(responses.GET, '%s/%s' % (Morphology._base_url, UUID),
+    responses.add(responses.GET, '%s/%s' % (Morphology.base_url, UUID),
             json=MORPHOLOGY_JSLD)
-    responses.add(responses.PUT, '%s/%s/attachment' % (Morphology._base_url, UUID),
+    responses.add(responses.PUT, '%s/%s/attachment' % (Morphology.base_url, UUID),
             json=MORPHOLOGY_PUT_JSLD)
 
     morphology = Morphology.from_uuid(UUID)
@@ -460,25 +462,26 @@ def test_morphology_attachment():
 
 @responses.activate
 def test_memodel_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (MEModel._base_url, UUID), json=MEMODEL_JSLD)
+    responses.add(responses.GET, '%s/%s' % (MEModel.base_url, UUID), json=MEMODEL_JSLD)
     memodel = MEModel.from_uuid(UUID)
     js = memodel.as_json_ld()
-    assert js['species']['@id'] == 'http://purl.obolibrary.org/obo/NCBITaxon_10116'
-    assert js['species']['label'] == 'Rattus norvegicus'
-    assert js['brainRegion']['@id'] == 'http://uri.interlex.org/paxinos/uris/rat/labels/322'
-    assert js['brainRegion']['label'] == 'field CA1 of the hippocampus'
+    print("memodel.species: {}".format(memodel.species))
+    assert_equal(js['species']['@id'], 'http://purl.obolibrary.org/obo/NCBITaxon_10116')
+    assert_equal(js['species']['label'], 'Rattus norvegicus')
+    assert_equal(js['brainRegion']['@id'], 'http://uri.interlex.org/paxinos/uris/rat/labels/322')
+    assert_equal(js['brainRegion']['label'], 'field CA1 of the hippocampus')
 
 
 @responses.activate
 def test_prov_activity_by_uuid():
-    responses.add(responses.GET, '%s/%s' % (core.Activity._base_url, UUID), json=ACTIVITY_JSLD)
+    responses.add(responses.GET, '%s/%s' % (core.Activity.base_url, UUID), json=ACTIVITY_JSLD)
     activity = core.Activity.from_uuid(UUID)
-    assert activity.startedAtTime.year == 2018
-    assert activity.startedAtTime.month == 3
-    assert activity.startedAtTime.day == 27
-    assert activity.startedAtTime.hour == 16
-    assert activity.startedAtTime.minute == 4
-    assert activity.startedAtTime.second == 35
+    assert_equal(activity.startedAtTime.year, 2018)
+    assert_equal(activity.startedAtTime.month, 3)
+    assert_equal(activity.startedAtTime.day, 27)
+    assert_equal(activity.startedAtTime.hour, 16)
+    assert_equal(activity.startedAtTime.minute, 4)
+    assert_equal(activity.startedAtTime.second, 35)
 
     js = activity.as_json_ld()
     assert js['startedAtTime'] == '2018-03-27T16:04:35.886105'
@@ -487,8 +490,8 @@ def test_prov_activity_by_uuid():
 def test_identifiable_instance():
     morphology = Morphology(name='dummy', species=base.OntologyTerm(url='url', label='label'))
     js = morphology.as_json_ld()
-    assert js['species']['@id'] == 'url'
-    assert js['species']['label'] == 'label'
+    assert_equal(js['species']['@id'], 'url')
+    assert_equal(js['species']['label'], 'label')
     assert isinstance(morphology, base.Identifiable)
 
 

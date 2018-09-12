@@ -10,8 +10,8 @@ from datetime import datetime
 import attr
 
 from entity_management import nexus
-from entity_management.base import Identifiable
-from entity_management.util import attributes, AttrOf
+from entity_management.base import Identifiable, attributes
+from entity_management.util import AttrOf
 from entity_management.settings import JSLD_ID, JSLD_REV, CORE_ORG
 from entity_management.mixins import DistributionMixin
 
@@ -37,13 +37,12 @@ class Entity(DistributionMixin, Identifiable):
         Returns:
             New instance of the same class with revision updated.
         '''
-        if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev,
-                              self.as_json_ld(), token=use_auth)
+        if self.id:
+            js = nexus.update(self.id, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            js = nexus.create(
-                self._base_url, self.as_json_ld(), token=use_auth)
-        return self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
+            js = nexus.create(self.base_url, self.as_json_ld(), token=use_auth)  # noqa pylint: disable=no-member
+
+        return self.evolve(id=js[JSLD_ID], rev=js[JSLD_REV])
 
     def deprecate(self, use_auth=None):
         '''Mark entity as deprecated.
@@ -53,10 +52,11 @@ class Entity(DistributionMixin, Identifiable):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.deprecate(self._id, self._rev, token=use_auth)
-        return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
+        js = nexus.deprecate(self.id, self._rev, token=use_auth)
+        return self.evolve(rev=js[JSLD_REV], _deprecated=True)
 
 
+@attributes()
 class Agent(Entity):
     '''Agent.
 
@@ -142,8 +142,8 @@ class Activity(Entity):
     _vocab = 'http://schema.org/'
 
     def __attrs_post_init__(self):
-        if self.startedAtTime is None:
-            self._force_attr('startedAtTime', datetime.utcnow())
+        if self.startedAtTime is None:  # pylint: disable=access-member-before-definition
+            self.startedAtTime = datetime.utcnow()  # pylint: disable=attribute-defined-outside-init
 
 
 @attributes({'wasAttributedTo': AttrOf(Person, default=None),
@@ -173,16 +173,16 @@ class ProvenanceMixin(object):
         if person is None:
             person = Person.get_current(use_auth)
 
-        if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev,
+        if self.id:
+            js = nexus.update(self.id, self._rev,
                               self.as_json_ld(), token=use_auth)
         else:
             self = self.evolve(wasAttributedTo=person,
                                dateCreated=datetime.utcnow())
             js = nexus.create(
-                self._base_url, self.as_json_ld(), token=use_auth)
+                self.base_url, self.as_json_ld(), token=use_auth)
 
-        self = self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
+        self = self.evolve(id=js[JSLD_ID], rev=js[JSLD_REV])
 
         if activity is not None:
             activity = activity.evolve(generated=self, wasStartedBy=person)
@@ -198,5 +198,5 @@ class ProvenanceMixin(object):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.deprecate(self._id, self._rev, token=use_auth)
-        return self.evolve(_rev=js[JSLD_REV], _deprecated=True)
+        js = nexus.deprecate(self.id, self._rev, token=use_auth)
+        return self.evolve(rev=js[JSLD_REV], deprecated=True)

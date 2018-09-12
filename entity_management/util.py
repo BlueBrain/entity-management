@@ -1,6 +1,5 @@
 '''Utilities'''
 
-import operator
 import re
 import typing
 from inspect import getmro
@@ -9,8 +8,9 @@ import attr
 from attr import validators
 import six
 
-
 # copied from attrs, their standard way to make validators
+
+
 @attr.s(repr=False, slots=True, hash=True)
 class _ListOfValidator(object):
     '''Validate list of type'''
@@ -59,56 +59,16 @@ def _list_of(type_, default):
     return _ListOfValidator(type_, default)
 
 
-# copied from attrs, their standard way to make validators
-@attr.s(repr=False, slots=True, hash=True)
-class _SubClassOfValidator(object):
-    '''SubClass validator'''
-    type_ = attr.ib()
-
-    def __call__(self, inst, attribute, value):
-        '''
-        We use a callable class to be able to change the ``__repr__``.
-        '''
-        # pylint: disable=protected-access
-        value_type = value._proxied_type if hasattr(
-            value, '_proxied_type') else type(value)
-
-        if not issubclass(value_type, self.type_):
-            raise TypeError(
-                "'{name}' must be a subclass of {type!r} (got {value!r} that is a "
-                "{actual!r})."
-                .format(name=attribute.name, type=self.type_,
-                        actual=value.__class__, value=value),
-                attribute, self.type_, value,
-            )
-
+class NotInstantiatedType(object):  # pylint: disable=no-init
+    '''A class for not instantiated attributes
+    Trying to access an attribute with this value will trigger
+    the instantiation. A Nexus query will be performed and the attribute
+    will be filled with the real value'''
     def __repr__(self):
-        return (
-            "<subclass_of validator for type {type!r}>"
-            .format(type=self.type_)
-        )
+        return '<not instantiated>'
 
 
-def subclass_of(type_):
-    '''
-    A validator that raises a :exc:`TypeError` if the initializer is called
-    with a wrong type for this particular attribute (checks are performed using
-    :func:`issubclass` therefore it's also valid to pass a tuple of types).
-
-    Args:
-        type_(type): The type to check for.
-
-    Raises:
-        TypeError: With a human readable error message, the attribute
-        (of type :class:`attr.Attribute`), the expected type, and the value it
-        got.
-    '''
-    return _SubClassOfValidator(type_)
-
-
-def optional_of(type_):
-    '''Composition of optional and subclass_of'''
-    return validators.optional(subclass_of(type_))
+NotInstantiated = NotInstantiatedType()
 
 
 def _get_union_params(union):
@@ -138,6 +98,14 @@ class AttrOf(object):
     '''
 
     def __init__(self, type_, optional=Ellipsis, default=Ellipsis):
+        def instance_of(type_):
+            '''instance_of'''
+            return validators.instance_of((type_, NotInstantiatedType))
+
+        def optional_of(type_):
+            '''optional_of'''
+            return validators.optional(instance_of(type_))
+
         if isinstance(type_, typing.GenericMeta):
             # the collection was explicitly specified in attr.ib
             # like typing.List[Distribution]
@@ -150,22 +118,22 @@ class AttrOf(object):
         else:
             if optional is Ellipsis:
                 if default is Ellipsis:
-                    validator = subclass_of(type_)
+                    validator = instance_of(type_)
                 elif default is None:
                     validator = optional_of(type_)
+                else:
+                    validator = None  # FIXME, what should be put there ?
             else:
                 if optional is False:
-                    validator = subclass_of(type_)
+                    validator = instance_of(type_)
                 else:
                     validator = optional_of(type_)
+        self.is_positional = default is Ellipsis
 
         if default is Ellipsis:  # no default value -> positional arg
-            self.is_positional = True
-            self.fn = lambda: attr.ib(type=type_, validator=validator)
+            self.fn = lambda: attr.ib(type=type_, validator=validator, repr=False)
         else:
-            self.is_positional = False
-            self.fn = lambda: attr.ib(
-                type=type_, validator=validator, default=default)
+            self.fn = lambda: attr.ib(type=type_, default=default, validator=validator, repr=False)
 
     def __call__(self):
         return self.fn()
@@ -186,23 +154,6 @@ def _attrs_clone(cls, check_default):
                     fields[field.name] = attr.ib(**{slot: getattr(field, slot)
                                                     for slot in field.__slots__ if slot != 'name'})
     return fields
-
-
-def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
-    '''decorator to simplify creation of classes that have args and kwargs'''
-    if attr_dict is None:
-        attr_dict = {}  # just inherit attributes from parent class
-
-    def wrap(cls):
-        '''wraps'''
-        these = _merge(
-            _attrs_clone(cls, check_default=operator.eq),
-            {k: v() for k, v in attr_dict.items() if v.is_positional},
-            {k: v() for k, v in attr_dict.items() if not v.is_positional},
-            _attrs_clone(cls, check_default=operator.ne))
-        return attr.attrs(cls, these=these, repr=repr)
-
-    return wrap
 
 
 def _merge(*dicts):

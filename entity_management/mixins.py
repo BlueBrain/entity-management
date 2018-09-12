@@ -7,10 +7,10 @@ from typing import List
 import attr
 
 from entity_management import nexus
-from entity_management.base import Distribution, _deserialize_list
 from entity_management.compat import filter_
+from entity_management.base import Distribution, _deserialize_list, attributes
 from entity_management.settings import JSLD_REV
-from entity_management.util import AttrOf, attributes
+from entity_management.util import AttrOf
 
 
 @attributes({'distribution': AttrOf(List[Distribution], default=None)})
@@ -34,8 +34,8 @@ class DistributionMixin(object):
         Returns:
             New instance with distribution attribute updated.
         '''
-        js = nexus.attach(self._id, self._rev, file_name, data, content_type, token=use_auth)
-        return self.evolve(_rev=js[JSLD_REV],
+        js = nexus.attach(self.id, self._rev, file_name, data, content_type, token=use_auth)
+        return self.evolve(rev=js[JSLD_REV],
                            distribution=_deserialize_list(List[Distribution],
                                                           js['distribution'],
                                                           token=use_auth))

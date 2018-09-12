@@ -3,13 +3,13 @@
 from typing import List, Union
 
 import entity_management.morphology as morphology
-from entity_management.base import (Distribution, Frozen, Identifiable,
+from entity_management.base import (Distribution, Identifiable, attributes, Frozen,
                                     OntologyTerm, QuantitativeValue)
 from entity_management.core import (Activity, Agent, ProvenanceMixin,
                                     SoftwareAgent)
 from entity_management.electrophysiology import Trace
 from entity_management.mixins import DistributionMixin
-from entity_management.util import AttrOf, attributes
+from entity_management.util import AttrOf
 
 
 @attributes({

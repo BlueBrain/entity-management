@@ -8,8 +8,8 @@ Experimental morphologies entities
 '''
 from datetime import datetime
 
-from entity_management.base import Frozen, Identifiable, OntologyTerm
-from entity_management.util import attributes, AttrOf
+from entity_management.base import Identifiable, OntologyTerm, attributes, Frozen
+from entity_management.util import AttrOf
 from entity_management.mixins import DistributionMixin
 from entity_management.core import Activity
 from entity_management.experiment import PatchedCell

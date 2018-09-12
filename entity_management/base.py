@@ -5,22 +5,58 @@ Base simulation entities
                          entity_management.core.Entity
    :parts: 2
 '''
+import operator
 import typing
 from datetime import datetime
-from inspect import getmro
+
+from dateutil.parser import parse
+
+import six
+# noqa pylint: disable=import-error,no-name-in-module,relative-import,ungrouped-imports,wrong-import-order
+from six.moves.urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import attr
-import six
-from dateutil.parser import parse
-# pylint: disable=import-error,no-name-in-module,relative-import,ungrouped-imports
-from six.moves.urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from attr import set_run_validators, fields
 
 from entity_management import nexus
 from entity_management.settings import (BASE_DATA, JSLD_CTX, JSLD_DEPRECATED,
                                         JSLD_ID, JSLD_REV, JSLD_TYPE, NSG_CTX,
                                         ORG, VERSION)
-from entity_management.util import (AttrOf, _get_list_params, _clean_up_dict, attributes,
-                                    resolve_path)
+from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, resolve_path,
+                                    _clean_up_dict, _get_list_params, _merge)
+
+
+def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
+    '''decorator to simplify creation of classes that have args and kwargs'''
+    if attr_dict is None:
+        attr_dict = {}  # just inherit attributes from parent class
+
+    def wrap(cls):
+        '''wraps'''
+        these = _merge(
+            _attrs_clone(cls, check_default=operator.eq),
+            {k: v() for k, v in attr_dict.items() if v.is_positional},
+            {k: v() for k, v in attr_dict.items() if not v.is_positional},
+            _attrs_clone(cls, check_default=operator.ne))
+
+        def custom_getattr(obj, name):
+            '''Overload of __getattribute__ to trigger instantiation of Nexus object
+            if the attribute is NotInstantiated'''
+            if name == '__class__' or not isinstance(obj, Identifiable):
+                return object.__getattribute__(obj, name)
+
+            _attr = super(Identifiable, obj).__getattribute__(name)
+            if (_attr is NotInstantiated and name not in set(dir(Identifiable))):
+                obj._instantiate()  # pylint: disable=protected-access
+                return getattr(obj, name)
+            else:
+                return _attr
+
+        cls.__getattribute__ = custom_getattr
+
+        return attr.attrs(cls, these=these, repr=repr)
+
+    return wrap
 
 
 @attr.s
@@ -60,10 +96,10 @@ class NexusResultsIterator(six.Iterator):
         if self._item_index >= self.total_items:
             raise StopIteration()
 
-        entity_url = self._page[self._item_index - self.page_from]
-        obj = Identifiable.proxy(entity_url, self.cls, self.token)
         self._item_index += 1
-        return obj
+
+        return self.cls._lazy_init(token=self.token,  # pylint: disable=protected-access
+                                   id=self._page[self._item_index - self.page_from])
 
 
 def _deserialize_list(data_type, data_raw, token):
@@ -94,53 +130,59 @@ def _deserialize_list(data_type, data_raw, token):
         return result_list
 
 
-def _deserialize_json_to_datatype(data_type, data_raw, token=None):
+def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pylint: disable=too-many-return-statements
     '''Deserialize raw data json to data_type'''
     if data_raw is None:
-        value = None
-    elif isinstance(data_raw, list):
-        value = _deserialize_list(data_type, data_raw, token)
-    elif (  # in case we have bunch of the Identifiable types as a Union
+        return None
+
+    if isinstance(data_raw, list):
+        return _deserialize_list(data_type, data_raw, token)
+
+    if (  # in case we have bunch of the Identifiable types as a Union
             (type(data_type) is type(typing.Union)  # noqa
                 and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
             # or we have just Identifiable
             or issubclass(data_type, Identifiable)):
-        # make lazy proxy for identifiable object
         url = data_raw[JSLD_ID]
         if data_type is Identifiable:  # root type was used, try to recover it from url
             data_type = nexus.get_type(url)
         # pylint: disable=protected-access
-        value = Identifiable.proxy(url, data_type, token, data_raw[JSLD_TYPE])
-    elif issubclass(data_type, OntologyTerm):
-        value = data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
-    elif data_type == datetime:
-        value = parse(data_raw)
-    elif issubclass(data_type, Frozen):
+        return data_type._lazy_init(id=url, token=token)
+
+    if issubclass(data_type, OntologyTerm):
+        return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
+
+    if data_type == datetime:
+        return parse(data_raw)
+
+    if issubclass(data_type, Frozen):
         # nested obj literals should be deserialized before passed to composite obj constructor
-        value = data_type(
+        return data_type(
             **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
                for k, v in six.iteritems(data_raw)
                if k in attr.fields_dict(data_type)})
-    elif isinstance(data_raw, dict):
-        value = data_type(**_clean_up_dict(data_raw))
-    else:
-        value = data_type(data_raw)
 
-    return value
+    if isinstance(data_raw, dict):
+        return data_type(**_clean_up_dict(data_raw))
+
+    return data_type(data_raw)
 
 
 def _serialize_obj(value):
     '''Serialize object'''
-    if isinstance(value, Identifiable):
-        return {JSLD_ID: value.id, JSLD_TYPE: value.types}
-    elif isinstance(value, OntologyTerm):
+    if isinstance(value, OntologyTerm):
         return {JSLD_ID: value.url, 'label': value.label}
-    elif isinstance(value, datetime):
+
+    if isinstance(value, Identifiable):
+        return {JSLD_ID: value.id, JSLD_TYPE: value.get_type()}
+
+    if isinstance(value, datetime):
         return value.isoformat()
-    elif attr.has(type(value)):
+
+    if attr.has(type(value)):
         return attr.asdict(value, recurse=True, filter=lambda _, value: value is not None)
-    else:
-        return value
+
+    return value
 
 
 @attr.s(frozen=True)
@@ -176,24 +218,14 @@ class _IdentifiableMeta(type):
         url_domain = getattr(cls, '_url_domain', 'simulation')
 
         type_id = '%s/%s' % (url_domain, name.lower())
-        cls._base_url = '%s/%s/%s/%s' % (BASE_DATA, url_org, type_id, version)
+        cls.base_url = '%s/%s/%s/%s' % (BASE_DATA, url_org, type_id, version)
         nexus.register_type(type_id, cls)
 
         super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
 
-    def __instancecheck__(cls, inst):
-        '''If instance has _proxied_type then it is a proxy and instance check should be done
-        against proxied type'''
-        if '_proxied_type' in dir(inst):
-            mro = getmro(
-                inst._proxied_type)  # pylint: disable=protected-access
-        else:
-            mro = getmro(type(inst))
-        return any(c == cls for c in mro)
-
 
 @six.add_metaclass(_IdentifiableMeta)
-@attributes(repr=False)
+@attr.s
 class Identifiable(Frozen):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
@@ -202,91 +234,34 @@ class Identifiable(Frozen):
     # entity namespace which should be used for json-ld @type attribute
     _type_namespace = ''  # Entity classes from specific domains will override this
     _type_name = ''  # Entity classes from specific domains will override this
+    id = attr.ib(type=str, default=None)
+    _token = attr.ib(default=False)
+    _rev = attr.ib(default=None)
+    _deprecated = attr.ib(default=False)
+    _types = attr.ib(default=None)
+
+    def __attrs_post_init__(self):
+        if self._types is None:
+            self._force_attr('_types', ['prov:Entity', self.get_type()])
+
+    def _instantiate(self):
+        '''Fetch nexus object with id=self.id and copy its attribute into current object'''
+        fetched_instance = type(self).from_url(self.id, self._token)
+        for attribute in fields(type(self)):
+            self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
 
     @classmethod
-    def get_type(cls):
-        '''Get class type. Can be overriden by class varable _type_name.'''
-        if cls._type_name:
-            return '%s:%s' % (cls._type_namespace, cls._type_name)
-        else:
-            return '%s:%s' % (cls._type_namespace, cls.__name__)
-
-    @property
-    def base_url(self):
-        '''base url'''
-        return self._base_url
-
-    @property
-    def id(self):
-        '''id'''
-        return self._id
-
-    @property
-    def types(self):
-        '''types'''
-        return self._types
-
-    @classmethod
-    def proxy(cls, id_, proxied_type, token, types=None):
-        '''Initialize proxy object'''
-        proxy = Identifiable()
-        proxy._force_attr('_id', id_)  # pylint: disable=protected-access
-        proxy._force_attr('_proxied_type', proxied_type)  # pylint: disable=protected-access
-        proxy._force_attr('_token', token)  # pylint: disable=protected-access
-        if types:
-            proxy._force_attr('_types', types)  # pylint: disable=protected-access
-        return proxy
-
-    def _set_proxied_object_from_id(self):
-        '''Load the object from id url and set _proxied_object attribute'''
-        if '_proxied_object' not in self.__dict__:  # can't use hasattr as it will call getattr
-                                                    # and that will cause recursion to _getattr_
-            cls = object.__getattribute__(self, '_proxied_type')
-            self._force_attr('_proxied_object',
-                             cls.from_url(object.__getattribute__(self, '_id'),
-                                          object.__getattribute__(self, '_token')))
-        if self._proxied_object is None:
-            raise ValueError('Unable to find proxied entity for %s and %s' %
-                             (self._id, self._proxied_type))
-
-    def __getattr__(self, name):
-        if type(self) is Identifiable:  # pylint: disable=unidiomatic-typecheck
-            # Identifiable instances behave like proxies, set it up and then forward attr request
-            self._set_proxied_object_from_id()
-            return getattr(self._proxied_object, name)
-        else:
-            # subclasses of Identifiable just raise if arrived in __getattr__
-            if name == 'id':
-                suggestion = '\nSuggestion: did you forget to publish it before using it ?'
-            else:
-                suggestion = ''
-            raise AttributeError("No attribute '%s' in %s%s" %
-                                 (name, type(self), suggestion))
-
-    def __repr__(self):  # pylint: disable=redefined-builtin
-        if '_proxied_object' in self.__dict__:
-            return 'Identifiable of: {}'.format(repr(self._proxied_object))
-        elif type(self) is Identifiable and '_proxied_type' in self.__dict__:  # noqa pylint: disable=unidiomatic-typecheck,line-too-long
-            return 'Identifiable of: {}()'.format(self._proxied_type.__name__)
-        else:
-            return 'Identifiable()'
-
-    def __dir__(self):
-        '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
-        proxied object'''
-        attrs = set()
-        if type(self) is Identifiable:  # pylint: disable=unidiomatic-typecheck
-            self._set_proxied_object_from_id()
-            # collect attributes from proxied type
-            attrs = attrs | set(attrib for cls in getmro(self._proxied_type)
-                                for attrib in dir(cls))
-            # collect attributes from proxied object
-            attrs = attrs | set(self._proxied_object.__dict__)
-
-        attrs = attrs | set(attrib for cls in getmro(type(self))
-                            for attrib in dir(cls))
-        attrs = attrs | set(self.__dict__)
-        return sorted(attrs)
+    def _lazy_init(cls, id, token):  # pylint: disable=redefined-builtin
+        '''Instantiate an object and put all its attributes to NotInstantiated
+        except "id"'''
+        # Running the validator has the side effect of instantiating
+        # the object, which we do not want
+        set_run_validators(False)
+        obj = cls(id=id, token=token,
+                  **{arg.name: NotInstantiated for arg in
+                     set(attr.fields(cls)) - set(attr.fields(Identifiable))})
+        set_run_validators(True)
+        return obj
 
     @classmethod
     def from_url(cls, url, use_auth=None):
@@ -299,7 +274,6 @@ class Identifiable(Frozen):
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         js = nexus.load_by_url(url, token=use_auth)
-
         # prepare all entity init args
         init_args = {}
         for field in attr.fields(cls):  # pylint: disable=not-an-iterable
@@ -310,12 +284,17 @@ class Identifiable(Frozen):
                 init_args[attr_name] = _deserialize_json_to_datatype(
                     type_, raw, use_auth)
 
-        obj = cls(**init_args)
-        return obj.evolve(_id=js[JSLD_ID],
-                          _rev=js[JSLD_REV],
-                          _deprecated=js[JSLD_DEPRECATED],
-                          _types=js[JSLD_TYPE],
-                          _token=use_auth)
+        return cls(id=js[JSLD_ID],
+                   rev=js[JSLD_REV],
+                   deprecated=js[JSLD_DEPRECATED],
+                   types=js[JSLD_TYPE],
+                   token=use_auth,
+                   **init_args)
+
+    @classmethod
+    def get_type(cls):
+        '''Get class type. Can be overriden by class varable _type_name.'''
+        return '%s:%s' % (cls._type_namespace, cls._type_name or cls.__name__)
 
     @classmethod
     def from_uuid(cls, uuid, use_auth=None):
@@ -327,28 +306,7 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.load_by_uuid(cls._base_url, uuid,
-                                token=use_auth)  # pylint: disable=no-member
-
-        if js is None:
-            return None
-
-        # prepare all entity init args
-        init_args = {}
-        for field in attr.fields(cls):  # pylint: disable=not-an-iterable
-            attr_name = field.name
-            raw = js.get(attr_name)
-            if field.init and raw is not None:
-                type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(
-                    type_, raw, use_auth)
-
-        obj = cls(**init_args)
-        return obj.evolve(_id=js[JSLD_ID],
-                          _rev=js[JSLD_REV],
-                          _deprecated=js[JSLD_DEPRECATED],
-                          _types=js[JSLD_TYPE],
-                          _token=use_auth)
+        return cls.from_url('{}/{}'.format(cls.base_url, uuid), use_auth=use_auth)
 
     @classmethod
     def find_unique(cls, throw=False, on_no_result=None, **kwargs):
@@ -438,48 +396,9 @@ class Identifiable(Frozen):
             return NexusResultsIterator(cls, location, use_auth)
         return None
 
-    def evolve(self, **changes):
-        '''Create new instance of the frozen(immutable) object with *changes* applied.
-
-        Args:
-            changes: Keyword changes in the new copy, should be a subset of class
-                constructor(__init__) keyword arguments.
-        Returns:
-            New instance of the same class with changes applied.
-        '''
-
-        hidden_attrs = {}
-        # copy hidden attrs values from changes(remove with pop) else from original if present
-        for attr_name in ['_id', '_rev', '_deprecated', '_types', '_token']:
-            attr_value = Ellipsis
-
-            # take value from original if present
-            if attr_name in self.__dict__:            # can't use hasattr as it will call getattr
-                # and that will cause recursion to _getattr_
-                attr_value = getattr(self, attr_name)
-
-            # prefer value explicitly provided in changes
-            attr_value = changes.pop(attr_name, attr_value)
-
-            if attr_value is not Ellipsis:
-                hidden_attrs[attr_name] = attr_value
-
-        if hasattr(self, '_proxied_object'):
-            # replace with proxied object
-            self = self._proxied_object
-
-        self = super(Identifiable, self).evolve(**changes)
-
-        for attr_name in hidden_attrs:
-            self._force_attr(
-                attr_name, hidden_attrs[attr_name])  # pylint: disable=protected-access
-
-        return self
-
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
-        @type is filled from the self._types
         '''
         attrs = attr.fields(type(self))
         rv = {}
@@ -503,9 +422,7 @@ class Identifiable(Frozen):
         rv[JSLD_CTX].append({'wasAttributedTo': {'@id': 'prov:wasAttributedTo'},
                              'dateCreated': {'@id': 'schema:dateCreated'}})
         rv[JSLD_CTX].append(NSG_CTX)
-        if not hasattr(self, '_types'):
-            self._force_attr('_types', ['prov:Entity', self.get_type()])
-        rv[JSLD_TYPE] = self.types
+        rv[JSLD_TYPE] = self._types
         return rv
 
 

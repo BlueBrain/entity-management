@@ -1,14 +1,15 @@
 import operator
 import attr
-from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
+from six.moves.urllib.parse import urlsplit  # pylint: disable=import-error,no-name-in-module
 from nose.tools import assert_raises, ok_, assert_equal
 
 from itertools import repeat
 from mock import patch
 
 from entity_management import util
-from entity_management.nexus import _type_hint_from
 from entity_management.base import Identifiable
+from entity_management.nexus import _type_hint_from
+
 
 def test_dict_merg():
     assert {} == util._merge()
@@ -22,8 +23,8 @@ def test_attrs_utils():
     # define attrs class
     @attr.s
     class Abc(object):
-        a = attr.ib() # mandatory positional attribute
-        b = attr.ib(default=None) # optional keyword attribute with default value
+        a = attr.ib()  # mandatory positional attribute
+        b = attr.ib(default=None)  # optional keyword attribute with default value
 
     # split attributes defined on the class into mandatory/optional
     pos = util._attrs_clone(Abc, operator.eq)
@@ -50,7 +51,7 @@ def test_url_to_type():
 
 def test_find_unique():
     class MockResult:
-        id=12
+        id = 12
 
     single_result = MockResult()
     with patch.object(Identifiable, 'find_by', return_value=iter([single_result])):
@@ -67,7 +68,8 @@ def test_find_unique():
         assert_raises(Exception, Identifiable.find_unique, name="whatever", throw=True)
         assert_equal(Identifiable.find_unique(name="whatever", on_no_result=lambda: 7), 7)
 
-def test_find_by():
-    with patch('entity_management.base.NexusResultsIterator', new=lambda *args: [1,2,3]):
-        assert_equal(list(Identifiable.find_by()),
-                     [1,2,3])
+def test_types():
+    class Dummy(Identifiable):
+        '''A dummy class'''
+    assert_equal(Dummy()._types, ['prov:Entity', ':Dummy'])
+    assert_equal(Dummy(types=['foo', 'bar'])._types, ['foo', 'bar'])
