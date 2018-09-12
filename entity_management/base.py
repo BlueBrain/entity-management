@@ -6,21 +6,21 @@ Base simulation entities
    :parts: 2
 '''
 import typing
-import six
-from six.moves.urllib.parse import (urlsplit, # pylint: disable=import-error,no-name-in-module
-                                    parse_qsl, urlunsplit, urlencode)
-
 from datetime import datetime
 from inspect import getmro
 
 import attr
+import six
 from dateutil.parser import parse
+# pylint: disable=import-error,no-name-in-module,relative-import,ungrouped-imports
+from six.moves.urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from entity_management import nexus
-from entity_management.util import _clean_up_dict
-from entity_management.util import attributes, AttrOf, resolve_path
-from entity_management.settings import (BASE_DATA, ORG, VERSION, JSLD_ID, JSLD_REV,
-                                        JSLD_DEPRECATED, JSLD_CTX, JSLD_TYPE, NSG_CTX)
+from entity_management.settings import (BASE_DATA, JSLD_CTX, JSLD_DEPRECATED,
+                                        JSLD_ID, JSLD_REV, JSLD_TYPE, NSG_CTX,
+                                        ORG, VERSION)
+from entity_management.util import (AttrOf, _get_list_params, _clean_up_dict, attributes,
+                                    resolve_path)
 
 
 @attr.s
@@ -41,7 +41,7 @@ class NexusResultsIterator(six.Iterator):
         self.page_from = int(query_params['from'])
         self.page_size = int(query_params['size'])
 
-    def __iter__(self):
+    def __iter__(self):  # pylint: disable=non-iterator-returned
         return self
 
     def __next__(self):
@@ -50,10 +50,11 @@ class NexusResultsIterator(six.Iterator):
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
             self.page_from = self._item_index
             split_url = urlsplit(self.url)
-            self.url = urlunsplit(split_url._replace( # pylint: disable=protected-access
-                    query=urlencode({'from': self.page_from, 'size': self.page_size})))
+            self.url = urlunsplit(split_url._replace(  # pylint: disable=protected-access
+                query=urlencode({'from': self.page_from, 'size': self.page_size})))
             json_payload = nexus.load_by_url(self.url, token=self.token)
-            self._page = [entity['resultId'] for entity in json_payload['results']]
+            self._page = [entity['resultId']
+                          for entity in json_payload['results']]
             self.total_items = int(json_payload['total'])
 
         if self._item_index >= self.total_items:
@@ -72,14 +73,14 @@ def _deserialize_list(data_type, data_raw, token):
     if isinstance(data_type, typing.GenericMeta):
         # the collection was explicitly specified in attr.ib
         # like typing.List[Distribution]
-        assert data_type.__extra__ == list
-        list_element_type = data_type.__args__[0]
+        list_element_type = _get_list_params(data_type)[0]
     else:
         # nexus returns a collection of one element
         # element type is the type specified in attr.ib
         list_element_type = data_type
     for data_element in data_raw:
-        data = _deserialize_json_to_datatype(list_element_type, data_element, token)
+        data = _deserialize_json_to_datatype(
+            list_element_type, data_element, token)
         if data is not None:
             result_list.append(data)
     # if only one then probably nexus is just responding with the collection for single element
@@ -99,14 +100,14 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         value = None
     elif isinstance(data_raw, list):
         value = _deserialize_list(data_type, data_raw, token)
-    elif (# in case we have bunch of the Identifiable types as a Union
-            (type(data_type) is type(typing.Union)
-                and all(issubclass(cls, Identifiable) for cls in data_type.__args__))
+    elif (  # in case we have bunch of the Identifiable types as a Union
+            (type(data_type) is type(typing.Union)  # noqa
+                and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
             # or we have just Identifiable
             or issubclass(data_type, Identifiable)):
         # make lazy proxy for identifiable object
         url = data_raw[JSLD_ID]
-        if data_type is Identifiable: # root type was used, try to recover it from url
+        if data_type is Identifiable:  # root type was used, try to recover it from url
             data_type = nexus.get_type(url)
         # pylint: disable=protected-access
         value = Identifiable.proxy(url, data_type, token, data_raw[JSLD_TYPE])
@@ -117,9 +118,9 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
     elif issubclass(data_type, Frozen):
         # nested obj literals should be deserialized before passed to composite obj constructor
         value = data_type(
-                **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
-                    for k, v in six.iteritems(data_raw)
-                    if k in attr.fields_dict(data_type)})
+            **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
+               for k, v in six.iteritems(data_raw)
+               if k in attr.fields_dict(data_type)})
     elif isinstance(data_raw, dict):
         value = data_type(**_clean_up_dict(data_raw))
     else:
@@ -184,7 +185,8 @@ class _IdentifiableMeta(type):
         '''If instance has _proxied_type then it is a proxy and instance check should be done
         against proxied type'''
         if '_proxied_type' in dir(inst):
-            mro = getmro(inst._proxied_type) # pylint: disable=protected-access
+            mro = getmro(
+                inst._proxied_type)  # pylint: disable=protected-access
         else:
             mro = getmro(type(inst))
         return any(c == cls for c in mro)
@@ -198,8 +200,8 @@ class Identifiable(Frozen):
     requests to that entity.
     '''
     # entity namespace which should be used for json-ld @type attribute
-    _type_namespace = '' # Entity classes from specific domains will override this
-    _type_name = '' # Entity classes from specific domains will override this
+    _type_namespace = ''  # Entity classes from specific domains will override this
+    _type_name = ''  # Entity classes from specific domains will override this
 
     @classmethod
     def get_type(cls):
@@ -228,17 +230,17 @@ class Identifiable(Frozen):
     def proxy(cls, id_, proxied_type, token, types=None):
         '''Initialize proxy object'''
         proxy = Identifiable()
-        proxy._force_attr('_id', id_) # pylint: disable=protected-access
-        proxy._force_attr('_proxied_type', proxied_type) # pylint: disable=protected-access
-        proxy._force_attr('_token', token) # pylint: disable=protected-access
+        proxy._force_attr('_id', id_)  # pylint: disable=protected-access
+        proxy._force_attr('_proxied_type', proxied_type)  # pylint: disable=protected-access
+        proxy._force_attr('_token', token)  # pylint: disable=protected-access
         if types:
-            proxy._force_attr('_types', types) # pylint: disable=protected-access
+            proxy._force_attr('_types', types)  # pylint: disable=protected-access
         return proxy
 
     def _set_proxied_object_from_id(self):
         '''Load the object from id url and set _proxied_object attribute'''
-        if '_proxied_object' not in self.__dict__: # can't use hasattr as it will call getattr
-                                                   # and that will cause recursion to _getattr_
+        if '_proxied_object' not in self.__dict__:  # can't use hasattr as it will call getattr
+                                                    # and that will cause recursion to _getattr_
             cls = object.__getattribute__(self, '_proxied_type')
             self._force_attr('_proxied_object',
                              cls.from_url(object.__getattribute__(self, '_id'),
@@ -248,7 +250,7 @@ class Identifiable(Frozen):
                              (self._id, self._proxied_type))
 
     def __getattr__(self, name):
-        if type(self) is Identifiable:
+        if type(self) is Identifiable:  # pylint: disable=unidiomatic-typecheck
             # Identifiable instances behave like proxies, set it up and then forward attr request
             self._set_proxied_object_from_id()
             return getattr(self._proxied_object, name)
@@ -258,12 +260,13 @@ class Identifiable(Frozen):
                 suggestion = '\nSuggestion: did you forget to publish it before using it ?'
             else:
                 suggestion = ''
-            raise AttributeError("No attribute '%s' in %s%s" % (name, type(self), suggestion))
+            raise AttributeError("No attribute '%s' in %s%s" %
+                                 (name, type(self), suggestion))
 
-    def __repr__(self): # pylint: disable=redefined-builtin
+    def __repr__(self):  # pylint: disable=redefined-builtin
         if '_proxied_object' in self.__dict__:
             return 'Identifiable of: {}'.format(repr(self._proxied_object))
-        elif type(self) is Identifiable and '_proxied_type' in self.__dict__:
+        elif type(self) is Identifiable and '_proxied_type' in self.__dict__:  # noqa pylint: disable=unidiomatic-typecheck,line-too-long
             return 'Identifiable of: {}()'.format(self._proxied_type.__name__)
         else:
             return 'Identifiable()'
@@ -272,15 +275,16 @@ class Identifiable(Frozen):
         '''If Identifiable is a proxy(has _proxied_type attribute) then collect attributes from
         proxied object'''
         attrs = set()
-        if type(self) is Identifiable:
+        if type(self) is Identifiable:  # pylint: disable=unidiomatic-typecheck
             self._set_proxied_object_from_id()
             # collect attributes from proxied type
             attrs = attrs | set(attrib for cls in getmro(self._proxied_type)
-                                       for attrib in dir(cls))
+                                for attrib in dir(cls))
             # collect attributes from proxied object
             attrs = attrs | set(self._proxied_object.__dict__)
 
-        attrs = attrs | set(attrib for cls in getmro(type(self)) for attrib in dir(cls))
+        attrs = attrs | set(attrib for cls in getmro(type(self))
+                            for attrib in dir(cls))
         attrs = attrs | set(self.__dict__)
         return sorted(attrs)
 
@@ -298,12 +302,13 @@ class Identifiable(Frozen):
 
         # prepare all entity init args
         init_args = {}
-        for field in attr.fields(cls):
+        for field in attr.fields(cls):  # pylint: disable=not-an-iterable
             attr_name = field.name
             raw = js.get(attr_name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, use_auth)
+                init_args[attr_name] = _deserialize_json_to_datatype(
+                    type_, raw, use_auth)
 
         obj = cls(**init_args)
         return obj.evolve(_id=js[JSLD_ID],
@@ -322,19 +327,21 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.load_by_uuid(cls._base_url, uuid, token=use_auth) # pylint: disable=no-member
+        js = nexus.load_by_uuid(cls._base_url, uuid,
+                                token=use_auth)  # pylint: disable=no-member
 
         if js is None:
             return None
 
         # prepare all entity init args
         init_args = {}
-        for field in attr.fields(cls):
+        for field in attr.fields(cls):  # pylint: disable=not-an-iterable
             attr_name = field.name
             raw = js.get(attr_name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(type_, raw, use_auth)
+                init_args[attr_name] = _deserialize_json_to_datatype(
+                    type_, raw, use_auth)
 
         obj = cls(**init_args)
         return obj.evolve(_id=js[JSLD_ID],
@@ -371,7 +378,7 @@ class Identifiable(Frozen):
 
     @classmethod
     def find_by(cls, all_versions=False, all_domains=False, all_organizations=False,
-                query=None, use_auth=None, **properties): # TODO improve query params passing
+                query=None, use_auth=None, **properties):  # TODO improve query params passing
         '''Load entity from properties.
 
         Args:
@@ -394,7 +401,8 @@ class Identifiable(Frozen):
         url_org = getattr(cls, '_url_org', ORG)
         url_domain = getattr(cls, '_url_domain', 'simulation')
         if all_versions:
-            collection_address = '/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower())
+            collection_address = '/%s/%s/%s' % (url_org,
+                                                url_domain, cls.__name__.lower())
         elif all_domains:
             collection_address = '/%s' % url_org
         elif all_organizations:
@@ -410,15 +418,18 @@ class Identifiable(Frozen):
                 path = resolve_path(key)
 
                 if isinstance(value, OntologyTerm):
-                    props.append({'op': 'eq', 'path': path, 'value': value.url})
+                    props.append(
+                        {'op': 'eq', 'path': path, 'value': value.url})
                 elif isinstance(value, tuple):
-                    props.append({'op': value[0], 'path': path, 'value': value[1]})
+                    props.append(
+                        {'op': value[0], 'path': path, 'value': value[1]})
                 elif isinstance(value, Identifiable):
                     props.append({'op': 'eq', 'path': path, 'value': value.id})
                 else:
                     props.append({'op': 'eq', 'path': path, 'value': value})
 
-            props.append({'op': 'in', 'path': 'rdf:type', 'value': cls.get_type()})
+            props.append({'op': 'in', 'path': 'rdf:type',
+                          'value': cls.get_type()})
 
             query = {'op': 'and', 'value': props}
 
@@ -444,7 +455,8 @@ class Identifiable(Frozen):
 
             # take value from original if present
             if attr_name in self.__dict__:            # can't use hasattr as it will call getattr
-                attr_value = getattr(self, attr_name) # and that will cause recursion to _getattr_
+                # and that will cause recursion to _getattr_
+                attr_value = getattr(self, attr_name)
 
             # prefer value explicitly provided in changes
             attr_value = changes.pop(attr_name, attr_value)
@@ -459,7 +471,8 @@ class Identifiable(Frozen):
         self = super(Identifiable, self).evolve(**changes)
 
         for attr_name in hidden_attrs:
-            self._force_attr(attr_name, hidden_attrs[attr_name]) # pylint: disable=protected-access
+            self._force_attr(
+                attr_name, hidden_attrs[attr_name])  # pylint: disable=protected-access
 
         return self
 
@@ -470,9 +483,9 @@ class Identifiable(Frozen):
         '''
         attrs = attr.fields(type(self))
         rv = {}
-        for attribute in attrs:
+        for attribute in attrs:  # pylint: disable=not-an-iterable
             attr_value = getattr(self, attribute.name)
-            if attr_value is not None: # ignore empty values
+            if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
                 if isinstance(attr_value, (tuple, list, set)):
                     rv[attr_name] = [_serialize_obj(i) for i in attr_value]
@@ -504,7 +517,7 @@ class Identifiable(Frozen):
     'mediaType': AttrOf(str, default=None),
     'originalFileName': AttrOf(str, default=None),
     'storageType': AttrOf(str, default=None),
-    })
+})
 class Distribution(Frozen):
     '''External resource representations,
     this can be a file or a folder on gpfs
@@ -521,14 +534,14 @@ class Distribution(Frozen):
     either `downloadURL` for files or `accessURL` for folders must be provided'''
 
     def __attrs_post_init__(self):
-        if not self.downloadURL and not self.accessURL: # pylint: disable=no-member
+        if not self.downloadURL and not self.accessURL:  # pylint: disable=no-member
             raise ValueError('downloadURL or accessURL must be provided')
 
 
 @attributes({
     'value': AttrOf(str),
     'unitCode': AttrOf(str),
-    })
+})
 class QuantitativeValue(Frozen):
     '''External resource representations,
     this can be a file or a folder on gpfs
@@ -545,7 +558,7 @@ class QuantitativeValue(Frozen):
 @attributes({
     'url': AttrOf(str),
     'label': AttrOf(str),
-    })
+})
 class OntologyTerm(Frozen):
     '''Ontology term such as brain region or species
 

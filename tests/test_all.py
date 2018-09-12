@@ -58,11 +58,16 @@ def test_find_unique():
 
     too_many_result = repeat(MockResult(), 4)
     with patch.object(Identifiable, 'find_by', return_value=too_many_result):
-        assert_raises(Identifiable.find_unique, name="whatever")
+        assert_raises(Exception, Identifiable.find_unique, name="whatever")
 
     no_result = iter(list())
     with patch.object(Identifiable, 'find_by', return_value=no_result):
         ok_(not Identifiable.find_unique(name="whatever"))
 
-        assert_raises(Identifiable.find_unique, name="whatever", throw=True)
+        assert_raises(Exception, Identifiable.find_unique, name="whatever", throw=True)
         assert_equal(Identifiable.find_unique(name="whatever", on_no_result=lambda: 7), 7)
+
+def test_find_by():
+    with patch('entity_management.base.NexusResultsIterator', new=lambda *args: [1,2,3]):
+        assert_equal(list(Identifiable.find_by()),
+                     [1,2,3])

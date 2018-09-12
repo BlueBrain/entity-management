@@ -38,9 +38,11 @@ class Entity(DistributionMixin, Identifiable):
             New instance of the same class with revision updated.
         '''
         if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev, self.as_json_ld(), token=use_auth)
+            js = nexus.update(self._id, self._rev,
+                              self.as_json_ld(), token=use_auth)
         else:
-            js = nexus.create(self._base_url, self.as_json_ld(), token=use_auth)
+            js = nexus.create(
+                self._base_url, self.as_json_ld(), token=use_auth)
         return self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
 
     def deprecate(self, use_auth=None):
@@ -124,7 +126,7 @@ class SoftwareAgent(Agent):
     'generated': AttrOf(Identifiable, default=None),
     'startedAtTime': AttrOf(datetime, default=None),
     'wasStartedBy': AttrOf(Agent, default=None),
-    })
+})
 class Activity(Entity):
     '''Base class for provenance activity.
 
@@ -172,11 +174,13 @@ class ProvenanceMixin(object):
             person = Person.get_current(use_auth)
 
         if hasattr(self, '_id') and self._id:
-            js = nexus.update(self._id, self._rev, self.as_json_ld(), token=use_auth)
+            js = nexus.update(self._id, self._rev,
+                              self.as_json_ld(), token=use_auth)
         else:
             self = self.evolve(wasAttributedTo=person,
                                dateCreated=datetime.utcnow())
-            js = nexus.create(self._base_url, self.as_json_ld(), token=use_auth)
+            js = nexus.create(
+                self._base_url, self.as_json_ld(), token=use_auth)
 
         self = self.evolve(_id=js[JSLD_ID], _rev=js[JSLD_REV])
 

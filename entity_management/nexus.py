@@ -2,17 +2,17 @@
 from __future__ import print_function
 
 import logging
-import requests
-import sys
 import os
-
+import sys
 from functools import wraps
 from pprint import pprint
 
-from six import iteritems, text_type, PY2
-from six.moves.urllib.parse import urlsplit # pylint: disable=import-error,no-name-in-module
+import requests
+from six import PY2, iteritems, text_type
+# pylint: disable=import-error,no-name-in-module, relative-import
+from six.moves.urllib.parse import urlsplit
 
-from entity_management.settings import BASE, USERINFO, NSG_CTX
+from entity_management.settings import BASE, NSG_CTX, USERINFO
 
 L = logging.getLogger(__name__)
 
@@ -177,7 +177,8 @@ def download(url, path, file_name, token=None):
     Returns:
         Raw response.
     '''
-    response = requests.get(url, headers={'authorization': token} if token else {}, stream=True)
+    response = requests.get(
+        url, headers={'authorization': token} if token else {}, stream=True)
     try:
         response.raise_for_status()
         with open(os.path.join(path, file_name), 'wb') as f:
@@ -190,7 +191,8 @@ def download(url, path, file_name, token=None):
 @_nexus_wrapper
 def load_by_uuid(base_url, uuid, token=None):
     '''Load Entity from the base url with appended uuid'''
-    response = requests.get('%s/%s' % (base_url, uuid), headers=_get_headers(token))
+    response = requests.get('%s/%s' % (base_url, uuid),
+                            headers=_get_headers(token))
     # if not found then return None
     if response.status_code == 404:
         return None
@@ -208,7 +210,8 @@ def find_by(collection_address=None, query=None, token=None):
                 'deprecated': False,
                 'filter': query}
     else:
-        json = {'@context': NSG_CTX, 'resource': 'instances', 'deprecated': False}
+        json = {'@context': NSG_CTX,
+                'resource': 'instances', 'deprecated': False}
 
     response = requests.post('%s/queries%s' % (BASE, collection_address or ''),
                              headers=_get_headers(token),

@@ -1,12 +1,13 @@
 '''Utilities'''
 
+import operator
 import re
 import typing
-import six
-import attr
-import operator
 from inspect import getmro
+
+import attr
 from attr import validators
+import six
 
 
 # copied from attrs, their standard way to make validators
@@ -69,7 +70,8 @@ class _SubClassOfValidator(object):
         We use a callable class to be able to change the ``__repr__``.
         '''
         # pylint: disable=protected-access
-        value_type = value._proxied_type if hasattr(value, '_proxied_type') else type(value)
+        value_type = value._proxied_type if hasattr(
+            value, '_proxied_type') else type(value)
 
         if not issubclass(value_type, self.type_):
             raise TypeError(
@@ -109,6 +111,22 @@ def optional_of(type_):
     return validators.optional(subclass_of(type_))
 
 
+def _get_union_params(union):
+    '''Return Union elements for all python'''
+    try:
+        return union.__args__
+    except AttributeError:
+        return union.__union_params__
+
+
+def _get_list_params(a_list):
+    '''Return List elements for all python'''
+    try:
+        return a_list.__args__
+    except AttributeError:
+        return a_list.__parameters__
+
+
 class AttrOf(object):
     '''Create an object with self.is_positional(Bool) and self.fn(Callable) that will be used
     to create an attr.ib by invoking Callable. is_positional signifies that attribute will have
@@ -123,13 +141,12 @@ class AttrOf(object):
         if isinstance(type_, typing.GenericMeta):
             # the collection was explicitly specified in attr.ib
             # like typing.List[Distribution]
-            assert type_.__extra__ == list
-            list_element_type = type_.__args__[0]
-            if type(list_element_type) is type(typing.Union):
-                types = list_element_type.__args__
+            list_element_type = _get_list_params(type_)[0]
+            if type(list_element_type) is type(typing.Union):  # noqa
+                types = _get_union_params(list_element_type)
                 validator = _list_of(types, default)
             else:
-                validator = _list_of(type_.__args__[0], default)
+                validator = _list_of(list_element_type, default)
         else:
             if optional is Ellipsis:
                 if default is Ellipsis:
@@ -142,12 +159,13 @@ class AttrOf(object):
                 else:
                     validator = optional_of(type_)
 
-        if default is Ellipsis: # no default value -> positional arg
+        if default is Ellipsis:  # no default value -> positional arg
             self.is_positional = True
             self.fn = lambda: attr.ib(type=type_, validator=validator)
         else:
             self.is_positional = False
-            self.fn = lambda: attr.ib(type=type_, validator=validator, default=default)
+            self.fn = lambda: attr.ib(
+                type=type_, validator=validator, default=default)
 
     def __call__(self):
         return self.fn()
@@ -159,7 +177,8 @@ def _attrs_clone(cls, check_default):
     new attribute with cloned properties
     '''
     fields = {}
-    for parent_cls in reversed(getmro(cls)): # reverse mro to override fields correctly
+    # reverse mro to override fields correctly
+    for parent_cls in reversed(getmro(cls)):
         if attr.has(parent_cls):
             for field in attr.fields(parent_cls):
                 if field.init and check_default(field.default, attr.NOTHING):
@@ -169,10 +188,10 @@ def _attrs_clone(cls, check_default):
     return fields
 
 
-def attributes(attr_dict=None, repr=True): # pylint: disable=redefined-builtin
+def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
     '''decorator to simplify creation of classes that have args and kwargs'''
     if attr_dict is None:
-        attr_dict = {} # just inherit attributes from parent class
+        attr_dict = {}  # just inherit attributes from parent class
 
     def wrap(cls):
         '''wraps'''
@@ -217,7 +236,7 @@ def resolve_path(key):
 
     path_list = []
     for token in key.split('__'):
-        if ':' not in token: # namespace not resolved by re.sub
+        if ':' not in token:  # namespace not resolved by re.sub
             # some default processing with known namespace defaults
             if token in ['name', 'version', 'email']:
                 token = 'schema:%s' % token
@@ -226,7 +245,7 @@ def resolve_path(key):
             elif token in ['uuid', 'originalFileName']:
                 token = 'nxv:%s' % token
             else:
-                token = 'nsg:%s' % token # use default namespace
+                token = 'nsg:%s' % token  # use default namespace
         path_list.append(token)
 
     return path_list[0] if len(path_list) == 1 else ' / '.join(path_list)

@@ -2,20 +2,21 @@
 
 from typing import List, Union
 
-from entity_management.base import (Distribution, Frozen, Identifiable, OntologyTerm,
-                                    QuantitativeValue)
-from entity_management.core import Activity, Agent, SoftwareAgent, ProvenanceMixin
-from entity_management.mixins import DistributionMixin
-from entity_management.util import attributes, AttrOf
-from entity_management.electrophysiology import Trace
 import entity_management.morphology as morphology
+from entity_management.base import (Distribution, Frozen, Identifiable,
+                                    OntologyTerm, QuantitativeValue)
+from entity_management.core import (Activity, Agent, ProvenanceMixin,
+                                    SoftwareAgent)
+from entity_management.electrophysiology import Trace
+from entity_management.mixins import DistributionMixin
+from entity_management.util import AttrOf, attributes
 
 
 @attributes({
     'name': AttrOf(str),
     'description': AttrOf(str, default=None),
     'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
-    })
+})
 class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
@@ -93,7 +94,7 @@ class MorphologyDiversification(Activity):
         generated(MorphologyRelease): Morphology release which was produced.
     '''
     _url_version = 'v0.1.2'
-    _url_domain = 'simulation' # need to override as Activity will set it to 'core'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes()
@@ -232,7 +233,7 @@ class EModelBuilding(Activity):
             this activity.
     '''
     _url_version = 'v0.1.3'
-    _url_domain = 'simulation' # need to override as Activity will set it to 'core'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes()
@@ -329,7 +330,8 @@ class NodeCollection(Entity):
     _url_version = 'v0.1.2'
 
 
-@attributes({'edgePopulation': AttrOf(ModelReleaseIndex), # FIXME make it work for now, check schema
+# noqa FIXME make it work for now, check schema
+@attributes({'edgePopulation': AttrOf(ModelReleaseIndex),
              'synapseRelease': AttrOf(SynapseRelease)})
 class EdgeCollection(Entity):
     '''Edge collection represents circuit connectivity(synapses, projections)
