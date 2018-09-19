@@ -242,6 +242,29 @@ class Metadata(object):
                         types=json[JSLD_TYPE], token=token)
 
 
+def from_url(url, use_auth=None):
+    '''
+    Load entity from URL.
+
+    Args:
+        url(str): URL of the entity to load.
+        use_auth(str): OAuth token in case access is restricted.
+            Token should be in the format for the authorization header: Bearer VALUE.
+    '''
+    cls = nexus.get_type(url)
+    js = nexus.load_by_url(url, token=use_auth)
+
+    # prepare all entity init args
+    init_args = {}
+    for field in attr.fields(cls):  # pylint: disable=not-an-iterable
+        raw = js.get(field.name)
+        if field.init and raw is not None:
+            type_ = field.type
+            init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
+
+    return cls(id=js[JSLD_ID], **init_args).evolve(meta=Metadata.from_json(js, token=use_auth))
+
+
 @six.add_metaclass(_IdentifiableMeta)
 @attr.s
 class Identifiable(Frozen):
@@ -279,6 +302,11 @@ class Identifiable(Frozen):
         return obj
 
     @classmethod
+    def get_type(cls):
+        '''Get class type. Can be overriden by class varable _type_name.'''
+        return '%s:%s' % (cls._type_namespace, cls._type_name or cls.__name__)
+
+    @classmethod
     def from_url(cls, url, use_auth=None):
         '''
         Load entity from URL.
@@ -288,21 +316,7 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        js = nexus.load_by_url(url, token=use_auth)
-        # prepare all entity init args
-        init_args = {}
-        for field in attr.fields(cls):  # pylint: disable=not-an-iterable
-            raw = js.get(field.name)
-            if field.init and raw is not None:
-                type_ = field.type
-                init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
-
-        return cls(id=js[JSLD_ID], **init_args).evolve(meta=Metadata.from_json(js, token=use_auth))
-
-    @classmethod
-    def get_type(cls):
-        '''Get class type. Can be overriden by class varable _type_name.'''
-        return '%s:%s' % (cls._type_namespace, cls._type_name or cls.__name__)
+        return from_url(url, use_auth=use_auth)
 
     @classmethod
     def from_uuid(cls, uuid, use_auth=None):
