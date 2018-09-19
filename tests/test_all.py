@@ -1,13 +1,17 @@
+
 import operator
 import attr
 from six.moves.urllib.parse import urlsplit  # pylint: disable=import-error,no-name-in-module
 from nose.tools import assert_raises, ok_, assert_equal
+import sys
 
 from itertools import repeat
 from mock import patch
+import responses
 
 from entity_management import util
 from entity_management.base import Identifiable
+import entity_management.nexus as nx
 from entity_management.nexus import _type_hint_from
 
 
@@ -49,6 +53,29 @@ def test_url_to_type():
     assert _type_hint_from(id_url) == 'simulation/morphologyrelease'
 
 
+@responses.activate
+def test_nexus_find_by():
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/a-good-query',
+                  status=303,
+                  headers={'Location': 'https://query-location-url'})
+
+    assert_equal(nx.find_by(collection_address='/a-good-query'),
+                 'https://query-location-url')
+
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/no-redirection',
+                  status=200)
+
+    assert_equal(nx.find_by(collection_address='/no-redirection'), None)
+
+@responses.activate
+def test_Identifiable_find_by():
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/neurosciencegraph/simulation/identifiable/v0.1.0',
+                  status=303,
+                  headers={'Location': 'https://query-location-url?from=0&size=10'})
+
+    ok_(Identifiable.find_by(collection_address='/a-good-query') is not None)
+
+
 def test_find_unique():
     class MockResult:
         id = 12
@@ -71,5 +98,8 @@ def test_find_unique():
 def test_types():
     class Dummy(Identifiable):
         '''A dummy class'''
-    assert_equal(Dummy()._types, ['prov:Entity', ':Dummy'])
-    assert_equal(Dummy(types=['foo', 'bar'])._types, ['foo', 'bar'])
+    dummy = Dummy()
+    assert_equal(dummy.meta.types, ['prov:Entity', ':Dummy'])
+
+    dummy.meta.types = 'value changed'
+    assert_equal(dummy.evolve().meta.types, 'value changed')

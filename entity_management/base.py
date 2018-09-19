@@ -45,9 +45,9 @@ def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
             if name == '__class__' or not isinstance(obj, Identifiable):
                 return object.__getattribute__(obj, name)
 
-            _attr = super(Identifiable, obj).__getattribute__(name)
+            _attr = object.__getattribute__(obj, name)
             if (_attr is NotInstantiated and name not in set(dir(Identifiable))):
-                obj._instantiate()  # pylint: disable=protected-access
+                obj._instantiate()
                 return getattr(obj, name)
             else:
                 return _attr
@@ -86,7 +86,7 @@ class NexusResultsIterator(six.Iterator):
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
             self.page_from = self._item_index
             split_url = urlsplit(self.url)
-            self.url = urlunsplit(split_url._replace(  # pylint: disable=protected-access
+            self.url = urlunsplit(split_url._replace(
                 query=urlencode({'from': self.page_from, 'size': self.page_size})))
             json_payload = nexus.load_by_url(self.url, token=self.token)
             self._page = [entity['resultId']
@@ -98,8 +98,8 @@ class NexusResultsIterator(six.Iterator):
 
         self._item_index += 1
 
-        return self.cls._lazy_init(token=self.token,  # pylint: disable=protected-access
-                                   id=self._page[self._item_index - self.page_from])
+        return self.cls._lazy_init(token=self.token,
+                                   id=self._page[self._item_index - 1 - self.page_from])
 
 
 def _deserialize_list(data_type, data_raw, token):
@@ -146,7 +146,6 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pyli
         url = data_raw[JSLD_ID]
         if data_type is Identifiable:  # root type was used, try to recover it from url
             data_type = nexus.get_type(url)
-        # pylint: disable=protected-access
         return data_type._lazy_init(id=url, token=token)
 
     if issubclass(data_type, OntologyTerm):
@@ -203,7 +202,11 @@ class Frozen(object):
             New instance of the same class with changes applied.
         '''
 
-        return attr.evolve(self, **changes)
+        meta = changes.pop('meta', None)
+        obj = attr.evolve(self, **changes)
+        if hasattr(obj, 'meta'):
+            obj._force_attr('meta', meta or self.meta)  # pylint: disable=no-member
+        return obj
 
 
 class _IdentifiableMeta(type):
@@ -224,6 +227,21 @@ class _IdentifiableMeta(type):
         super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
 
 
+@attr.s
+class Metadata(object):
+    '''A class storing all metadata attributes'''
+    token = attr.ib(default=False)
+    rev = attr.ib(default=None)
+    deprecated = attr.ib(default=False)
+    types = attr.ib(default=None)
+
+    @classmethod
+    def from_json(cls, json, token):
+        '''Build a Metadata from a json payload'''
+        return Metadata(rev=json[JSLD_REV], deprecated=json[JSLD_DEPRECATED],
+                        types=json[JSLD_TYPE], token=token)
+
+
 @six.add_metaclass(_IdentifiableMeta)
 @attr.s
 class Identifiable(Frozen):
@@ -235,18 +253,14 @@ class Identifiable(Frozen):
     _type_namespace = ''  # Entity classes from specific domains will override this
     _type_name = ''  # Entity classes from specific domains will override this
     id = attr.ib(type=str, default=None)
-    _token = attr.ib(default=False)
-    _rev = attr.ib(default=None)
-    _deprecated = attr.ib(default=False)
-    _types = attr.ib(default=None)
+    meta = attr.ib(type=Metadata, factory=Metadata, init=False)
 
     def __attrs_post_init__(self):
-        if self._types is None:
-            self._force_attr('_types', ['prov:Entity', self.get_type()])
+        self.meta.types = ['prov:Entity', self.get_type()]
 
     def _instantiate(self):
         '''Fetch nexus object with id=self.id and copy its attribute into current object'''
-        fetched_instance = type(self).from_url(self.id, self._token)
+        fetched_instance = type(self).from_url(self.id, self.meta.token)
         for attribute in fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
 
@@ -257,9 +271,10 @@ class Identifiable(Frozen):
         # Running the validator has the side effect of instantiating
         # the object, which we do not want
         set_run_validators(False)
-        obj = cls(id=id, token=token,
+        obj = cls(id=id,
                   **{arg.name: NotInstantiated for arg in
                      set(attr.fields(cls)) - set(attr.fields(Identifiable))})
+        obj.meta.token = token
         set_run_validators(True)
         return obj
 
@@ -277,19 +292,12 @@ class Identifiable(Frozen):
         # prepare all entity init args
         init_args = {}
         for field in attr.fields(cls):  # pylint: disable=not-an-iterable
-            attr_name = field.name
-            raw = js.get(attr_name)
+            raw = js.get(field.name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[attr_name] = _deserialize_json_to_datatype(
-                    type_, raw, use_auth)
+                init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
 
-        return cls(id=js[JSLD_ID],
-                   rev=js[JSLD_REV],
-                   deprecated=js[JSLD_DEPRECATED],
-                   types=js[JSLD_TYPE],
-                   token=use_auth,
-                   **init_args)
+        return cls(id=js[JSLD_ID], **init_args).evolve(meta=Metadata.from_json(js, token=use_auth))
 
     @classmethod
     def get_type(cls):
@@ -400,7 +408,7 @@ class Identifiable(Frozen):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
         '''
-        attrs = attr.fields(type(self))
+        attrs = set(attr.fields(type(self))) - set(attr.fields(Identifiable))
         rv = {}
         for attribute in attrs:  # pylint: disable=not-an-iterable
             attr_value = getattr(self, attribute.name)
@@ -422,7 +430,7 @@ class Identifiable(Frozen):
         rv[JSLD_CTX].append({'wasAttributedTo': {'@id': 'prov:wasAttributedTo'},
                              'dateCreated': {'@id': 'schema:dateCreated'}})
         rv[JSLD_CTX].append(NSG_CTX)
-        rv[JSLD_TYPE] = self._types
+        rv[JSLD_TYPE] = self.meta.types
         return rv
 
 

@@ -5,8 +5,6 @@ from io import StringIO
 from mock import patch, Mock
 from nose.tools import raises, assert_equal, ok_
 
-from pprint import pprint
-
 import entity_management.nexus as nexus
 
 import entity_management.base as base
@@ -292,7 +290,7 @@ def test_update_morphology_release():
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
     assert_equal(morphology_release.name, 'Morphology Release')
-    assert_equal(morphology_release._rev, 1)
+    assert_equal(morphology_release.meta.rev, 1)
 
     new_url =  'file:///distribution/newUrl'
 
@@ -304,7 +302,7 @@ def test_update_morphology_release():
     assert_equal(morphology_release.id, '%s/%s' % (MorphologyRelease.base_url, UUID))
     assert_equal(morphology_release.name, 'Morphology Release')
     assert_equal(morphology_release.distribution[0].downloadURL, new_url)
-    assert_equal(morphology_release._rev, 2)
+    assert_equal(morphology_release.meta.rev, 2)
 
 
 @responses.activate
@@ -317,7 +315,7 @@ def test_publish_morphology_release():
     morphology_release = morphology_release.publish(person=DUMMY_PERSON)
 
     ok_(morphology_release.id is not None)
-    ok_(morphology_release._rev is not None)
+    ok_(morphology_release.meta.rev is not None)
 
 
 @responses.activate
@@ -330,15 +328,15 @@ def test_deprecate_morphology_release():
     morphology_release = MorphologyRelease.from_uuid(UUID)
 
     assert_equal(morphology_release.name, 'Morphology Release')
-    assert_equal(morphology_release._rev, 1)
-    assert_equal(morphology_release._deprecated, False)
+    assert_equal(morphology_release.meta.rev, 1)
+    assert_equal(morphology_release.meta.deprecated, False)
 
     morphology_release = morphology_release.deprecate()
 
     assert_equal(morphology_release.name, 'Morphology Release')
     ok_(morphology_release.id is not None)
-    assert_equal(morphology_release._rev, 2)
-    assert_equal(morphology_release._deprecated, True)
+    assert_equal(morphology_release.meta.rev, 2)
+    assert_equal(morphology_release.meta.deprecated, True)
 
 
 @responses.activate
@@ -362,7 +360,7 @@ def test_publish_emodel_release():
 
     ok_(emodel_release.id is not None)
     assert_equal(emodel_release.name, 'EModelRelease')
-    assert_equal(emodel_release._rev, 1)
+    assert_equal(emodel_release.meta.rev, 1)
 
 
 def test_create_detailed_circuit():
@@ -418,6 +416,15 @@ def test_create_detailed_circuit():
 
     assert circuit is not None
 
+@responses.activate
+def test_get_current_agent():
+    payload = {'Bond': 'James Bond'}
+
+    responses.add(responses.GET, 'https://bbp-nexus.epfl.ch/staging/v0/oauth2/userinfo',
+                  json=payload)
+
+    assert_equal(nexus.get_current_agent(token='my name is'),
+                 payload)
 
 @responses.activate
 def test_lazy_load_memodel_release_by_uuid():
@@ -444,15 +451,15 @@ def test_morphology_attachment():
 
     morphology = Morphology.from_uuid(UUID)
 
-    assert morphology.name == 'Morphology'
-    assert morphology._rev == 1
+    assert_equal(morphology.name, 'Morphology')
+    assert_equal(morphology.meta.rev, 1)
 
     morphology = morphology.attach('file_name', StringIO(u'hello'), 'text/plain')
 
-    assert morphology.name == 'Morphology'
-    assert morphology._rev == 2
-    assert morphology.distribution[0].downloadURL == 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment'
-    assert morphology.distribution[0].contentSize['value'] == 121440
+    assert_equal(morphology.name, 'Morphology')
+    assert_equal(morphology.meta.rev, 2)
+    assert_equal(morphology.distribution[0].downloadURL, 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment')
+    assert_equal(morphology.distribution[0].contentSize['value'], 121440)
     assert morphology.distribution[0].contentSize['unit'] == 'byte'
     assert morphology.distribution[0].digest['value'] == 'c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb'
     assert morphology.distribution[0].digest['algorithm'] == 'SHA-256'
@@ -465,7 +472,8 @@ def test_memodel_by_uuid():
     responses.add(responses.GET, '%s/%s' % (MEModel.base_url, UUID), json=MEMODEL_JSLD)
     memodel = MEModel.from_uuid(UUID)
     js = memodel.as_json_ld()
-    print("memodel.species: {}".format(memodel.species))
+    assert_equal(set(js.keys()),
+                 {'eModel', 'name', '@type', 'morphology', '@context', 'brainRegion', 'mainModelScript', 'species'})
     assert_equal(js['species']['@id'], 'http://purl.obolibrary.org/obo/NCBITaxon_10116')
     assert_equal(js['species']['label'], 'Rattus norvegicus')
     assert_equal(js['brainRegion']['@id'], 'http://uri.interlex.org/paxinos/uris/rat/labels/322')
