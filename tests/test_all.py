@@ -1,4 +1,4 @@
-
+from datetime import datetime
 import operator
 import attr
 from six.moves.urllib.parse import urlsplit  # pylint: disable=import-error,no-name-in-module
@@ -10,7 +10,7 @@ from mock import patch
 import responses
 
 from entity_management import util
-from entity_management.base import Identifiable
+from entity_management.base import Identifiable, _serialize_obj, OntologyTerm
 import entity_management.nexus as nx
 from entity_management.nexus import _type_hint_from
 import entity_management.core as core
@@ -68,6 +68,29 @@ def test_url_to_type():
     id_url = 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/0c7d5e80-c275-4187-897e-946da433b642'
     assert _type_hint_from(id_url) == 'simulation/morphologyrelease'
 
+def test_serialize():
+    obj = Identifiable()
+    obj.meta.types = 'changed types'
+
+    assert_equal(_serialize_obj(obj),
+                 {'@id': None, '@type': 'changed types'})
+
+    assert_equal(_serialize_obj(datetime(2018, 12, 23)),
+                 '2018-12-23T00:00:00')
+
+    assert_equal(_serialize_obj(OntologyTerm(url='A', label='B')),
+                 {'@id': 'A', 'label': 'B'})
+
+    @attr.s
+    class Dummy(object):
+        a = attr.ib(default=42)
+        b = attr.ib(default=None)
+
+    dummy = Dummy(a=33, b=Dummy(a=12))
+    assert_equal(_serialize_obj(dummy),
+                 {'a': 33, 'b': {'a': 12}})
+
+    assert_equal(_serialize_obj(42), 42)
 
 @responses.activate
 def test_nexus_find_by():
@@ -85,11 +108,17 @@ def test_nexus_find_by():
 
 @responses.activate
 def test_Identifiable_find_by():
-    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/neurosciencegraph/simulation/identifiable/v0.1.0',
+    class Dummy(Identifiable):
+        # if not set, query url will depend on env var NEXUS_ORG
+        _url_org = 'dummy_org'
+        _url_version = 'v0.1.0'
+
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy/v0.1.0',
                   status=303,
                   headers={'Location': 'https://query-location-url?from=0&size=10'})
 
-    ok_(Identifiable.find_by(collection_address='/a-good-query') is not None)
+
+    ok_(Dummy.find_by(collection_address='/a-good-query') is not None)
 
 
 def test_find_unique():
