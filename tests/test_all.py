@@ -13,7 +13,23 @@ from entity_management import util
 from entity_management.base import Identifiable
 import entity_management.nexus as nx
 from entity_management.nexus import _type_hint_from
+import entity_management.core as core
 
+from entity_management.settings import BASE, USERINFO
+
+AGENT_JSON = {'email': 'James@Bond', 'given_name': 'James', 'family_name': 'Bond'}
+PERSON_JSLD = {
+        '@id': 'http://url/to/core/person/v/id',
+        '@type': [
+            'nsg:Person',
+            'prov:Person'
+            ],
+        'email': 'James@Bond',
+        'familyName': 'Bond',
+        'givenName': 'James',
+        'nxv:deprecated': False,
+        'nxv:rev': 1
+}
 
 def test_dict_merg():
     assert {} == util._merge()
@@ -103,3 +119,19 @@ def test_types():
 
     dummy.meta.types = 'value changed'
     assert_equal(dummy.evolve().meta.types, 'value changed')
+
+@responses.activate
+def test_get_current_agent():
+    responses.add(responses.GET, USERINFO, json=AGENT_JSON)
+    responses.add(responses.POST,
+                  '%s/queries/neurosciencegraph/core/person/v0.1.0' % BASE,
+                  status=303,
+                  headers={'Location': 'http://url/to/query/result?from=0&size=1'})
+    responses.add(responses.GET,
+                  'http://url/to/query/result',
+                  json={'results': [{'resultId': 'http://url/to/core/person/v/id'}], 'total': 1})
+    responses.add(responses.GET,
+                  'http://url/to/core/person/v/id',
+                  json=PERSON_JSLD)
+
+    assert_equal(core.Person.get_current(use_auth='token').email, 'James@Bond')

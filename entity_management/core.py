@@ -21,7 +21,7 @@ class Entity(DistributionMixin, Identifiable):
     '''Base class for core Enitities. No provenance data is attached to the core entities with
     publish/deprecate.'''
 
-    _type_namespace = 'prov'
+    _type_namespace = 'nsg'
     _url_domain = 'core'
     # in hbp we don't have access to neurosciencegraph only to brainsimulation, so allow
     # overriding the in which org core instances will be located
@@ -42,7 +42,8 @@ class Entity(DistributionMixin, Identifiable):
         else:
             js = nexus.create(self.base_url, self.as_json_ld(), token=use_auth)  # noqa pylint: disable=no-member
 
-        return self.evolve(id=js[JSLD_ID], rev=js[JSLD_REV])
+        self.meta.rev = js[JSLD_REV]
+        return self.evolve(id=js[JSLD_ID])
 
     def deprecate(self, use_auth=None):
         '''Mark entity as deprecated.
@@ -53,7 +54,9 @@ class Entity(DistributionMixin, Identifiable):
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         js = nexus.deprecate(self.id, self.meta.rev, token=use_auth)
-        return self.evolve(rev=js[JSLD_REV], _deprecated=True)
+        self.meta.rev = js[JSLD_REV]
+        self.meta.deprecated = True
+        return self
 
 
 @attributes()

@@ -15,7 +15,6 @@ from entity_management.simulation import (DetailedCircuit, NodeCollection, Model
                                           MorphologyRelease, Morphology, MEModel,
                                           IonChannelMechanismRelease, SubCellularModelScript,
                                           SubCellularModel)
-from entity_management.settings import USERINFO
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -416,15 +415,6 @@ def test_create_detailed_circuit():
 
     assert circuit is not None
 
-@responses.activate
-def test_get_current_agent():
-    payload = {'Bond': 'James Bond'}
-
-    responses.add(responses.GET, 'https://bbp-nexus.epfl.ch/staging/v0/oauth2/userinfo',
-                  json=payload)
-
-    assert_equal(nexus.get_current_agent(token='my name is'),
-                 payload)
 
 @responses.activate
 def test_lazy_load_memodel_release_by_uuid():

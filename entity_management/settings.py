@@ -17,7 +17,7 @@ BASE_CTXS = BASE + '/contexts'
 ORG = os.getenv('NEXUS_ORG', 'neurosciencegraph')
 CORE_ORG = os.getenv('NEXUS_CORE_ORG', 'neurosciencegraph')
 
-NSG_CTX = BASE_CTXS + '/neurosciencegraph/core/data/v1.0.3'
+NSG_CTX = BASE_CTXS + '/neurosciencegraph/core/data/v1.0.4'
 
 BASE_SCHEMAS = BASE + '/schemas'
 
