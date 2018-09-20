@@ -499,3 +499,26 @@ def test_subcellular_model():
             distribution=[base.Distribution(accessURL='file:///name')])
     model_script = SubCellularModelScript(name='name')
     model = SubCellularModel(name='name', isPartOf=[mod_release], modelScript=model_script)
+
+@responses.activate
+def test_incomming():
+    responses.add(responses.GET, 'https://blah/incoming?from=0&size=10',
+                  json= {"results": [
+                      {"resultId": 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/' + UUID},
+                      {"resultId": 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/no-python-class/v0.1.0/aaa'},
+                      {"resultId": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID},
+                  ],
+                         "total": 3})
+    class Dummy(base.Identifiable):
+        # if not set, query url will depend on env var NEXUS_ORG
+        _url_org = 'dummy_org'
+        _url_version = 'v0.1.0'
+
+    dummy = Dummy('https://blah')
+    dummy.meta.token = None
+
+    incomings = list(dummy.incoming)
+    assert_equal(len(incomings), 3)
+    assert_equal(type(incomings[0]), EModelRelease)
+    assert_equal(incomings[1], None)
+    assert_equal(type(incomings[2]), MEModelRelease)

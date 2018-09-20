@@ -9,7 +9,7 @@ from itertools import repeat
 from mock import patch
 import responses
 
-from entity_management import util
+from entity_management import util, from_url
 from entity_management.base import Identifiable, _serialize_obj, OntologyTerm
 import entity_management.nexus as nx
 from entity_management.nexus import _type_hint_from
@@ -105,6 +105,9 @@ def test_nexus_find_by():
                   status=200)
 
     assert_equal(nx.find_by(collection_address='/no-redirection'), None)
+
+def test_from_url():
+    assert_raises(Exception, from_url, 'https://no-python-class-at-this-url')
 
 @responses.activate
 def test_Identifiable_find_by():

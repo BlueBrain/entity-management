@@ -5,6 +5,7 @@ Base simulation entities
                          entity_management.core.Entity
    :parts: 2
 '''
+from __future__ import print_function
 import operator
 import typing
 from datetime import datetime
@@ -62,7 +63,6 @@ def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
 @attr.s
 class NexusResultsIterator(six.Iterator):
     '''Nexus paginated results iterator'''
-    cls = attr.ib()
     url = attr.ib()
     token = attr.ib()
     total_items = attr.ib(type=int, default=None)
@@ -72,10 +72,14 @@ class NexusResultsIterator(six.Iterator):
     _page = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        split_url = urlsplit(self.url)
-        query_params = dict(parse_qsl(split_url.query))
-        self.page_from = int(query_params['from'])
-        self.page_size = int(query_params['size'])
+        if self.url.endswith('/incoming') or self.url.endswith('/outcoming'):
+            self.page_from = 0
+            self.page_size = 10
+        else:
+            split_url = urlsplit(self.url)
+            query_params = dict(parse_qsl(split_url.query))
+            self.page_from = int(query_params['from'])
+            self.page_size = int(query_params['size'])
 
     def __iter__(self):  # pylint: disable=non-iterator-returned
         return self
@@ -98,8 +102,12 @@ class NexusResultsIterator(six.Iterator):
 
         self._item_index += 1
 
-        return self.cls._lazy_init(token=self.token,
-                                   id=self._page[self._item_index - 1 - self.page_from])
+        id_url = self._page[self._item_index - 1 - self.page_from]
+        cls = nexus.get_type(id_url)
+        if cls is None:
+            print('No python class found for object at url: {} -> Skipping it'.format(id_url))
+            return None
+        return cls._lazy_init(token=self.token, id=id_url)
 
 
 def _deserialize_list(data_type, data_raw, token):
@@ -252,6 +260,8 @@ def from_url(url, use_auth=None):
             Token should be in the format for the authorization header: Bearer VALUE.
     '''
     cls = nexus.get_type(url)
+    if cls is None:
+        raise Exception('Cannot find python class of object at url: {}'.format(url))
     js = nexus.load_by_url(url, token=use_auth)
 
     # prepare all entity init args
@@ -305,6 +315,16 @@ class Identifiable(Frozen):
     def get_type(cls):
         '''Get class type. Can be overriden by class varable _type_name.'''
         return '%s:%s' % (cls._type_namespace, cls._type_name or cls.__name__)
+
+    @property
+    def incoming(self):
+        '''Get an iterator on incoming nodes'''
+        return NexusResultsIterator(self.id + '/incoming', self.meta.token)
+
+    @property
+    def outcoming(self):
+        '''Get an iterator on outcoming nodes'''
+        return NexusResultsIterator(self.id + '/outcoming', self.meta.token)
 
     @classmethod
     def from_url(cls, url, use_auth=None):
@@ -415,7 +435,7 @@ class Identifiable(Frozen):
 
         location = nexus.find_by(collection_address, query, token=use_auth)
         if location is not None:
-            return NexusResultsIterator(cls, location, use_auth)
+            return NexusResultsIterator(location, use_auth)
         return None
 
     def as_json_ld(self):
