@@ -18,7 +18,6 @@ from entity_management.experiment import PatchedCell
 @attributes()
 class Entity(Identifiable):
     '''Base class for electrophysiology Enitities'''
-    _type_namespace = 'nsg'
     _url_domain = 'electrophysiology'
 
 
@@ -41,7 +40,6 @@ class StimulusExperiment(Activity):
         stimulus(OntologyTerm): doc.
         used(PatchedCell): doc.
     '''
-    _type_namespace = 'nsg'
     _url_version = 'v1.0.0'
 
 

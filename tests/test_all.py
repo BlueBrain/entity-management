@@ -31,6 +31,7 @@ PERSON_JSLD = {
         'nxv:rev': 1
 }
 
+
 def test_dict_merg():
     assert {} == util._merge()
     assert {} == util._merge({})
@@ -68,6 +69,7 @@ def test_url_to_type():
     id_url = 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/0c7d5e80-c275-4187-897e-946da433b642'
     assert _type_hint_from(id_url) == 'simulation/morphologyrelease'
 
+
 def test_serialize():
     obj = Identifiable()
     obj.meta.types = 'changed types'
@@ -92,6 +94,7 @@ def test_serialize():
 
     assert_equal(_serialize_obj(42), 42)
 
+
 @responses.activate
 def test_nexus_find_by():
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/a-good-query',
@@ -106,8 +109,10 @@ def test_nexus_find_by():
 
     assert_equal(nx.find_by(collection_address='/no-redirection'), None)
 
+
 def test_from_url():
     assert_raises(Exception, from_url, 'https://no-python-class-at-this-url')
+
 
 @responses.activate
 def test_Identifiable_find_by():
@@ -119,7 +124,8 @@ def test_Identifiable_find_by():
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy/v0.1.0',
                   status=303,
                   headers={'Location': 'https://query-location-url-1?from=0&size=10'})
-    assert_equal(Dummy.find_by().url, 'https://query-location-url-1?from=0&size=10')
+    assert_equal(Dummy.find_by(dummy=OntologyTerm(url='A', label='B')).url,
+                 'https://query-location-url-1?from=0&size=10')
 
 
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy',
@@ -160,14 +166,16 @@ def test_find_unique():
         assert_raises(Exception, Identifiable.find_unique, name="whatever", throw=True)
         assert_equal(Identifiable.find_unique(name="whatever", on_no_result=lambda: 7), 7)
 
+
 def test_types():
     class Dummy(Identifiable):
         '''A dummy class'''
     dummy = Dummy()
-    assert_equal(dummy.meta.types, ['prov:Entity', ':Dummy'])
+    assert_equal(dummy.meta.types, ['prov:Entity', 'nsg:Dummy'])
 
     dummy.meta.types = 'value changed'
     assert_equal(dummy.evolve().meta.types, 'value changed')
+
 
 @responses.activate
 def test_get_current_agent():

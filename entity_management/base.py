@@ -283,7 +283,7 @@ class Identifiable(Frozen):
     requests to that entity.
     '''
     # entity namespace which should be used for json-ld @type attribute
-    _type_namespace = ''  # Entity classes from specific domains will override this
+    _type_namespace = 'nsg'  # Entity classes from specific domains can override this
     _type_name = ''  # Entity classes from specific domains will override this
     id = attr.ib(type=str, default=None)
     meta = attr.ib(type=Metadata, factory=Metadata, init=False)
@@ -466,6 +466,37 @@ class Identifiable(Frozen):
         rv[JSLD_CTX].append(NSG_CTX)
         rv[JSLD_TYPE] = self.meta.types
         return rv
+
+    def publish(self, use_auth=None):
+        '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
+        entity attributes.
+
+        Args:
+            use_auth(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        Returns:
+            New instance of the same class with revision updated.
+        '''
+        if self.id:
+            js = nexus.update(self.id, self.meta.rev, self.as_json_ld(), token=use_auth)
+        else:
+            js = nexus.create(self.base_url, self.as_json_ld(), token=use_auth)  # noqa pylint: disable=no-member
+
+        self.meta.rev = js[JSLD_REV]
+        return self.evolve(id=js[JSLD_ID])
+
+    def deprecate(self, use_auth=None):
+        '''Mark entity as deprecated.
+        Deprecated entities are not possible to retrieve by name.
+
+        Args:
+            use_auth(str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        '''
+        js = nexus.deprecate(self.id, self.meta.rev, token=use_auth)
+        self.meta.rev = js[JSLD_REV]
+        self.meta.deprecated = True
+        return self
 
 
 @attributes({

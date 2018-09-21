@@ -5,7 +5,7 @@ from typing import List, Union
 import entity_management.morphology as morphology
 from entity_management.base import (Distribution, Identifiable, attributes, Frozen,
                                     OntologyTerm, QuantitativeValue)
-from entity_management.core import (Activity, Agent, ProvenanceMixin,
+from entity_management.core import (Entity as CoreEntity, Activity, Agent, ProvenanceMixin,
                                     SoftwareAgent)
 from entity_management.electrophysiology import Trace
 from entity_management.mixins import DistributionMixin
@@ -25,7 +25,6 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
         description(str): Short description of the entity.
         wasDerivedFrom(List[Identifiable]): List of associated provenance entities.
     '''
-    _type_namespace = 'nsg'
     _url_version = 'v1.0.0'
 
 
@@ -267,9 +266,9 @@ class ExperimentalCell(Frozen):
     pass
 
 
-@attributes({'features': AttrOf(Entity),
-             'hadProtocol': AttrOf(Entity),
-             'hypampThreshold': AttrOf(Entity, default=None)})
+@attributes({'features': AttrOf(CoreEntity),
+             'hadProtocol': AttrOf(CoreEntity),
+             'hypampThreshold': AttrOf(CoreEntity, default=None)})
 class BluePyEfeFeatures(Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.3'
@@ -279,10 +278,10 @@ class BluePyEfeFeatures(Entity):
              'species': AttrOf(OntologyTerm),
              'mType': AttrOf(OntologyTerm),
              'experimentalCell': AttrOf(List[ExperimentalCell]),
-             'experimentalTraceLocation': AttrOf(Entity),
+             'experimentalTraceLocation': AttrOf(CoreEntity),
              'featureExtractionConfiguration': AttrOf(dict),
              'stimuliToExperimentMap': AttrOf(dict, default=None),
-             'masterListConfiguration': AttrOf(Entity, default=None)})
+             'masterListConfiguration': AttrOf(CoreEntity, default=None)})
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.3'

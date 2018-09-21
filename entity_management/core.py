@@ -12,61 +12,18 @@ import attr
 from entity_management import nexus
 from entity_management.base import Identifiable, attributes
 from entity_management.util import AttrOf
-from entity_management.settings import JSLD_ID, JSLD_REV, CORE_ORG
+from entity_management.settings import JSLD_ID, JSLD_REV
 from entity_management.mixins import DistributionMixin
 
 
-@attributes({'name': AttrOf(str)})
-class Entity(DistributionMixin, Identifiable):
-    '''Base class for core Enitities. No provenance data is attached to the core entities with
-    publish/deprecate.'''
-
-    _type_namespace = 'nsg'
-    _url_domain = 'core'
-    # in hbp we don't have access to neurosciencegraph only to brainsimulation, so allow
-    # overriding the in which org core instances will be located
-    _url_org = CORE_ORG
-
-    def publish(self, use_auth=None):
-        '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
-        entity attributes.
-
-        Args:
-            use_auth(str): OAuth token in case access is restricted.
-                Token should be in the format for the authorization header: Bearer VALUE.
-        Returns:
-            New instance of the same class with revision updated.
-        '''
-        if self.id:
-            js = nexus.update(self.id, self.meta.rev, self.as_json_ld(), token=use_auth)
-        else:
-            js = nexus.create(self.base_url, self.as_json_ld(), token=use_auth)  # noqa pylint: disable=no-member
-
-        self.meta.rev = js[JSLD_REV]
-        return self.evolve(id=js[JSLD_ID])
-
-    def deprecate(self, use_auth=None):
-        '''Mark entity as deprecated.
-        Deprecated entities are not possible to retrieve by name.
-
-        Args:
-            use_auth(str): OAuth token in case access is restricted.
-                Token should be in the format for the authorization header: Bearer VALUE.
-        '''
-        js = nexus.deprecate(self.id, self.meta.rev, token=use_auth)
-        self.meta.rev = js[JSLD_REV]
-        self.meta.deprecated = True
-        return self
-
-
 @attributes()
-class Agent(Entity):
+class Agent(Identifiable):
     '''Agent.
 
     Args:
         name(str): Name of the agent.
     '''
-    pass
+    _url_domain = 'core'
 
 
 @attributes({'email': AttrOf(str),
@@ -81,7 +38,6 @@ class Person(Agent):
         givenName(str): Given name.
         familyName(str): Family name.
     '''
-
     _vocab = 'http://schema.org/'
 
     @classmethod
@@ -129,7 +85,7 @@ class SoftwareAgent(Agent):
     'startedAtTime': AttrOf(datetime, default=None),
     'wasStartedBy': AttrOf(Agent, default=None),
 })
-class Activity(Entity):
+class Activity(Identifiable):
     '''Base class for provenance activity.
 
     Args:
@@ -139,7 +95,7 @@ class Activity(Entity):
         startedAtTime(datetime): Activity start time.
         wasStartedBy(Agent): Agent which started the activity.
     '''
-
+    _url_domain = 'core'
     _url_version = 'v0.1.3'
     _vocab = 'http://schema.org/'
 
@@ -150,7 +106,6 @@ class Activity(Entity):
 
 @attributes({'wasAttributedTo': AttrOf(Person, default=None),
              'dateCreated': AttrOf(datetime, default=None)})
-@attr.s
 class ProvenanceMixin(object):
     '''Enables provenance metadata when publishing/deprecating entities'''
 
@@ -192,14 +147,11 @@ class ProvenanceMixin(object):
 
         return self
 
-    def deprecate(self, use_auth=None):
-        '''Mark entity as deprecated.
-        Deprecated entities are not possible to retrieve by name.
 
-        Args:
-            use_auth(str): OAuth token in case access is restricted.
-                Token should be in the format for the authorization header: Bearer VALUE.
-        '''
-        js = nexus.deprecate(self.id, self.meta.rev, token=use_auth)
-        return self.evolve(meta=attr.evolve(self.meta,
-                                            rev=js[JSLD_REV], deprecated=True, token=use_auth))
+@attributes({'name': AttrOf(str)})
+class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
+    '''Base class for core Enitities. No provenance data is attached to the core entities with
+    publish/deprecate.
+    '''
+    _url_domain = 'core'
+    _url_version = 'v1.0.0'

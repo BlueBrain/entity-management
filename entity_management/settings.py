@@ -15,7 +15,6 @@ USERINFO = os.getenv('NEXUS_USERINFO', 'https://bbp-nexus.epfl.ch/staging/v0/oau
 BASE_CTXS = BASE + '/contexts'
 
 ORG = os.getenv('NEXUS_ORG', 'neurosciencegraph')
-CORE_ORG = os.getenv('NEXUS_CORE_ORG', 'neurosciencegraph')
 
 NSG_CTX = BASE_CTXS + '/neurosciencegraph/core/data/v1.0.4'
 

@@ -13,7 +13,6 @@ from entity_management.mixins import DistributionMixin
 @attributes()
 class Entity(DistributionMixin, Identifiable):
     '''Base class for morphology Enitities.'''
-    _type_namespace = 'nsg'
     _url_domain = 'morphology'
 
 
