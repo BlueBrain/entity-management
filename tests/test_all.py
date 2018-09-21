@@ -118,10 +118,27 @@ def test_Identifiable_find_by():
 
     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy/v0.1.0',
                   status=303,
-                  headers={'Location': 'https://query-location-url?from=0&size=10'})
+                  headers={'Location': 'https://query-location-url-1?from=0&size=10'})
+    assert_equal(Dummy.find_by().url, 'https://query-location-url-1?from=0&size=10')
 
 
-    ok_(Dummy.find_by(collection_address='/a-good-query') is not None)
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy',
+                  status=303,
+                  headers={'Location': 'https://query-location-url-2?from=0&size=10'})
+    assert_equal(Dummy.find_by(all_versions=True).url, 'https://query-location-url-2?from=0&size=10')
+
+
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org',
+                  status=303,
+                  headers={'Location': 'https://query-location-url-3?from=0&size=10'})
+    assert_equal(Dummy.find_by(all_domains=True).url, 'https://query-location-url-3?from=0&size=10')
+
+
+    responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries',
+                  status=303,
+                  headers={'Location': 'https://query-location-url-4?from=0&size=10'})
+    assert_equal(Dummy.find_by(all_organizations=True).url, 'https://query-location-url-4?from=0&size=10')
+
 
 
 def test_find_unique():
