@@ -41,6 +41,7 @@ class StimulusExperiment(Activity):
         used(PatchedCell): doc.
     '''
     _url_version = 'v1.0.0'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes({'activity': AttrOf(StimulusExperiment),
