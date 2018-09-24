@@ -371,9 +371,11 @@ class Identifiable(Frozen):
             else:
                 return None
 
-        if next(iterator, None):
-            raise Exception('find_unique found more than one result: '
-                            'This is not "unique"')
+        second = next(iterator, None)
+        if second:
+            raise Exception('ERROR: {}.find_unique({}) found more than one result.'
+                            '\nFirst 2 results are:\n- {}\n- {}'.format(
+                                cls, str(kwargs), result.id, second.id))
         return result
 
     @classmethod

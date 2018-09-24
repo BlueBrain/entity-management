@@ -54,15 +54,11 @@ class Person(Agent):
         if js is None:
             return None
 
-        email = js['email']
-        given_name = js['given_name']
-        family_name = js['family_name']
-
-        person = Person.find_unique(email=email, use_auth=use_auth)
+        person = Person.find_unique(email=js['email'], use_auth=use_auth)
         if person is None:
-            person = Person(email=email,
-                            givenName=given_name,
-                            familyName=family_name)
+            person = Person(email=js['email'],
+                            givenName=js['given_name'],
+                            familyName=js['family_name'])
             person = person.publish(use_auth=use_auth)
 
         return person

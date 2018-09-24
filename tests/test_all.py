@@ -31,6 +31,20 @@ PERSON_JSLD = {
         'nxv:rev': 1
 }
 
+CAT_WOMAN_JSON = {'email': 'cat@woman', 'given_name': 'Cat', 'family_name': 'Woman'}
+CAT_WOMAN_JSLD = {
+        '@id': 'http://url/to/core/person/v/id/cat_woman',
+        '@type': [
+            'nsg:Person',
+            'prov:Person'
+            ],
+        'email': 'Cat@Woman',
+        'familyName': 'Cat',
+        'givenName': 'Woman',
+        'nxv:deprecated': False,
+        'nxv:rev': 1
+}
+
 
 def test_dict_merg():
     assert {} == util._merge()
@@ -176,9 +190,11 @@ def test_types():
     dummy.meta.types = 'value changed'
     assert_equal(dummy.evolve().meta.types, 'value changed')
 
-
 @responses.activate
 def test_get_current_agent():
+    with patch('entity_management.core.nexus.get_current_agent', return_value=None):
+        ok_(core.Person.get_current(use_auth='token') is None)
+
     responses.add(responses.GET, USERINFO, json=AGENT_JSON)
     responses.add(responses.POST,
                   '%s/queries/neurosciencegraph/core/person/v0.1.0' % BASE,
@@ -192,3 +208,23 @@ def test_get_current_agent():
                   json=PERSON_JSLD)
 
     assert_equal(core.Person.get_current(use_auth='token').email, 'James@Bond')
+
+@responses.activate
+def test_get_current_agent_not_in_nexus():
+    '''Test that a Person entity is created if it does not exist'''
+    responses.add(responses.GET, USERINFO, json=CAT_WOMAN_JSON)
+    responses.add(responses.POST,
+                  '%s/queries/neurosciencegraph/core/person/v0.1.0' % BASE,
+                  status=303,
+                  headers={'Location': 'http://url/to/query/result?from=0&size=1'})
+
+    # Cat woman does not exist in DB
+    responses.add(responses.GET,
+                  'http://url/to/query/result',
+                  json={'results': [], 'total': 0})
+
+    # Creation of Cat Woman
+    responses.add(responses.POST,
+                  '%s/data/neurosciencegraph/core/person/v0.1.0' % BASE,
+                  json=CAT_WOMAN_JSLD)
+    assert_equal(core.Person.get_current(use_auth='token').email, 'cat@woman')
