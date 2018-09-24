@@ -107,7 +107,7 @@ class NexusResultsIterator(six.Iterator):
         if cls is None:
             print('No python class found for object at url: {} -> Skipping it'.format(id_url))
             return None
-        return cls._lazy_init(token=self.token, id=id_url)
+        return cls._lazy_init(id=id_url, token=self.token)
 
 
 def _deserialize_list(data_type, data_raw, token):
