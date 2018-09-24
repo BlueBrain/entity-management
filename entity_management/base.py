@@ -238,7 +238,7 @@ class _IdentifiableMeta(type):
 @attr.s
 class Metadata(object):
     '''A class storing all metadata attributes'''
-    token = attr.ib(default=False)
+    token = attr.ib(default=None)
     rev = attr.ib(default=None)
     deprecated = attr.ib(default=False)
     types = attr.ib(default=None)
