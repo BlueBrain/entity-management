@@ -30,11 +30,11 @@ Create brain region and species :class:`ontology terms<entity_management.base.On
 IonChannelMechanismRelease
 **************************
 
-Prepare the mod file release object(:class:`IonChannelMechanismRelease<entity_management.simulation.cell.IonChannelMechanismRelease>`):
+Prepare the mod file release object(:class:`IonChannelMechanismRelease<entity_management.simulation.IonChannelMechanismRelease>`):
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import IonChannelMechanismRelease
+    from entity_management.simulation import IonChannelMechanismRelease
 
     mod_release = IonChannelMechanismRelease(name='Release', brainRegion=BRAIN_REGION, species=SPECIES)
     mod_release = mod_release.publish(use_auth=TOKEN)
@@ -47,7 +47,7 @@ Create and upload the mod file which is part of ion channel mechanism(mod_releas
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import SubCellularModelScript, SubCellularModel,
+    from entity_management.simulation import SubCellularModelScript, SubCellularModel,
 
     mechanisms = []
     model_script = SubCellularModelScript(name='Script name', description='Some description')
@@ -66,11 +66,11 @@ Create and upload the mod file which is part of ion channel mechanism(mod_releas
 Cell hoc script
 ***************
 
-Create :class:`emodel script <entity_management.simulation.cell.EModelScript>` entity with attached hoc file:
+Create :class:`emodel script <entity_management.simulation.EModelScript>` entity with attached hoc file:
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import EModelScript
+    from entity_management.simulation import EModelScript
 
     emodel_script = EModelScript(name='Cell hoc model script')
     emodel_script = emodel_script.publish(use_auth=TOKEN)
@@ -81,11 +81,11 @@ Create :class:`emodel script <entity_management.simulation.cell.EModelScript>` e
 Neuron morphology
 *****************
 
-Create :class:`morphology <entity_management.simulation.cell.Morphology>` with the attached morphology file content:
+Create :class:`morphology <entity_management.simulation.Morphology>` with the attached morphology file content:
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import Morphology
+    from entity_management.simulation import Morphology
 
     morphology = Morphology(name='Morphology name',
                             description='Morphology description',
@@ -99,11 +99,11 @@ Create :class:`morphology <entity_management.simulation.cell.Morphology>` with t
 Cell emodel
 ***********
 
-Create :class:`emodel <entity_management.simulation.cell.EModel>` with required set of subcellular mechanisms:
+Create :class:`emodel <entity_management.simulation.EModel>` with required set of subcellular mechanisms:
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import EModel
+    from entity_management.simulation import EModel
 
     emodel = EModel(name='Model name',
                     subCellularMechanism=mechanisms,
@@ -115,12 +115,12 @@ Create :class:`emodel <entity_management.simulation.cell.EModel>` with required 
 Cell memodel
 ************
 
-Create :class:`single cell model <entity_management.simulation.cell.MEModel>` with linked emodel, morphology
+Create :class:`single cell model <entity_management.simulation.MEModel>` with linked emodel, morphology
 and model instantiation hoc script:
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import EModel
+    from entity_management.simulation import EModel
 
     memodel = MEModel(name='Model name',
                       description='Model description',
@@ -140,7 +140,7 @@ Retrieve entity by UUID
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import MEModel
+    from entity_management.simulation import MEModel
 
     memodel = MEModel.from_uuid('546ffb86-370e-4e6b-9e4f-20e7d3e979d0', use_auth=TOKEN)
 
@@ -150,7 +150,7 @@ Retrieve entity by Name
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import MEModel
+    from entity_management.simulation import MEModel
 
     memodel = MEModel.from_name('Model name', use_auth=TOKEN)
 
@@ -159,11 +159,11 @@ Retrieve memodel by name and save in a folder
 *********************************************
 
 The code below will save single cell model represented by
-:class:`MEModel <entity_management.simulation.cell.MEModel>` in the ``model_dir`` folder:
+:class:`MEModel <entity_management.simulation.MEModel>` in the ``model_dir`` folder:
 
 .. code-block:: python
 
-    from entity_management.simulation.cell import MEModel
+    from entity_management.simulation import MEModel
 
     model_dir = 'model_dir'
     os.makedirs(model_dir)
