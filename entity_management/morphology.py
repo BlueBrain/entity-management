@@ -31,7 +31,7 @@ class ReconstructedCell(Entity):
 
 
 @attributes({'name': AttrOf(str)})
-class ReconstructedPatchedCell(Entity):
+class ReconstructedPatchedCell(ReconstructedCell):
     '''Reconstructed patched cell.
 
     Args:
@@ -41,7 +41,7 @@ class ReconstructedPatchedCell(Entity):
 
 
 @attributes()
-class ReconstructedWholeBrainCell(ReconstructedPatchedCell):
+class ReconstructedWholeBrainCell(ReconstructedCell):
     '''Reconstructed wholeBrain cell.'''
     _url_version = 'v0.1.1'
 

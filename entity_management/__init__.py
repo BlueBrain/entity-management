@@ -1,5 +1,5 @@
 '''docstring'''
-from entity_management.version import version as __version__
+from entity_management.version import VERSION as __version__
 from entity_management.base import from_url, Identifiable
 
 import entity_management.morphology

@@ -146,8 +146,6 @@ class ProvenanceMixin(object):
 
 @attributes({'name': AttrOf(str)})
 class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
-    '''Base class for core Enitities. No provenance data is attached to the core entities with
-    publish/deprecate.
-    '''
+    '''Generic class for core Entities.'''
     _url_domain = 'core'
     _url_version = 'v1.0.0'

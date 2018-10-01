@@ -1,3 +1,2 @@
 '''version'''
-VERSION = '0.1.5'
-version = VERSION  # needed for sphinx docs
+VERSION = '0.1.6.dev0'
