@@ -7,7 +7,7 @@ from typing import List
 
 import attr
 import responses
-from mock import patch
+from mock import patch, MagicMock
 from nose.tools import assert_equal, assert_raises, ok_
 
 from entity_management.base import (Distribution, Identifiable, OntologyTerm,
@@ -122,6 +122,36 @@ def test_find_unique():
 
         assert_raises(Exception, Identifiable.find_unique, name="whatever", throw=True)
         assert_equal(Identifiable.find_unique(name="whatever", on_no_result=lambda: 7), 7)
+
+    mock_return_on_first_try = MagicMock(return_value=iter([1]))
+    with patch.object(Identifiable, 'find_by', mock_return_on_first_try):
+        assert_equal(Identifiable.find_unique(name="whatever",
+                                              on_no_result=lambda: 7,
+                                              poll_until_exists=True),
+                     1)
+        assert_equal(mock_return_on_first_try.call_count, 1)
+
+
+    mock_return_on_second_try = MagicMock(side_effect=[iter([]), iter([2])])
+    with patch.object(Identifiable, 'find_by', mock_return_on_second_try):
+        assert_equal(Identifiable.find_unique(name="whatever",
+                                              on_no_result=lambda: 7,
+                                              poll_until_exists=True),
+                     7)
+        assert_equal(mock_return_on_second_try.call_count, 2)
+
+    mock_never_finds = MagicMock(return_value=iter([]))
+    with patch.object(Identifiable, 'find_by', mock_never_finds):
+        with patch('entity_management.base.sleep'):
+            assert_raises(Exception,
+                          Identifiable.find_unique,
+                          name="whatever",
+                          on_no_result=lambda: 7,
+                          poll_until_exists=True)
+
+
+
+
 
 
 @responses.activate

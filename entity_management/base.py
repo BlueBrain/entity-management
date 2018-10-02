@@ -7,6 +7,7 @@ Base simulation entities
 '''
 from __future__ import print_function
 import operator
+from time import sleep
 import typing
 from datetime import datetime
 
@@ -351,13 +352,20 @@ class Identifiable(Frozen):
         return cls.from_url('{}/{}'.format(cls.base_url, uuid), use_auth=use_auth)
 
     @classmethod
-    def find_unique(cls, throw=False, on_no_result=None, **kwargs):
+    def find_unique(cls, throw=False, on_no_result=None, poll_until_exists=False, **kwargs):
         '''Wrapper around find_by that will:
         - return the result if there is only one result
         - throw if there are more than one results
-        - if there is 0 result: throw if arg "throw" is true, else if a callback function
-          'on_no_result' is passed it will return the result of 'on_no_result()'
+
+        Args:
+            throw(bool): Whether to throw when no result found
+            on_no_result(Callable): A function to be called when no result found and throw==False
+            poll_until_exists(bool): flag to enable polling after the execution of on_no_result()
+                                     until find_unique returns something. The polling frequency is
+                                     2 seconds and the timeout is 1 minute.
+            kwargs: Arguments to be passed to the underlying cls.find_by
         '''
+
         iterator = cls.find_by(**kwargs)
         try:
             result = next(iterator)
@@ -367,7 +375,15 @@ class Identifiable(Frozen):
                                 .format(cls, str(kwargs)))
 
             if on_no_result:
-                return on_no_result()
+                result = on_no_result()
+                if poll_until_exists:
+                    for _ in range(30):
+                        if cls.find_unique(**kwargs):
+                            return result
+                        sleep(2)
+                    raise Exception('Timeout reached while polling for {}.find_unique({})'
+                                    .format(cls, str(kwargs)))
+                return result
             else:
                 return None
 
