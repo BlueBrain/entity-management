@@ -59,7 +59,7 @@ class DistributionMixin(object):
             filename = os.path.basename(path)
             path = os.path.dirname(path)
         nexus.download(dist.downloadURL, path, filename, token=use_auth)
-        return os.path.join(os.path.realpath(path), dist.originalFileName)
+        return os.path.join(os.path.realpath(path), filename)
 
     def get_attachment(self):
         '''Get attachment distribution'''

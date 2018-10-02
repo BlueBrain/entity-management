@@ -495,6 +495,7 @@ class Identifiable(Frozen):
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
+        self._instantiate()
         js = nexus.deprecate(self.id, self.meta.rev, token=use_auth)
         self.meta.rev = js[JSLD_REV]
         self.meta.deprecated = True
