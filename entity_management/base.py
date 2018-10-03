@@ -6,6 +6,7 @@ Base simulation entities
    :parts: 2
 '''
 from __future__ import print_function
+import logging
 import operator
 from time import sleep
 import typing
@@ -26,6 +27,9 @@ from entity_management.settings import (BASE_DATA, JSLD_CTX, JSLD_DEPRECATED,
                                         ORG, VERSION)
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, resolve_path,
                                     _clean_up_dict, _get_list_params, _merge)
+
+
+logger = logging.getLogger()
 
 
 def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
@@ -377,7 +381,8 @@ class Identifiable(Frozen):
             if on_no_result:
                 result = on_no_result()
                 if poll_until_exists:
-                    for _ in range(30):
+                    for i in range(30):
+                        logger.debug('Poll #%s for %s.find_unique(%s)', i, cls, str(kwargs))
                         if cls.find_unique(**kwargs):
                             return result
                         sleep(2)

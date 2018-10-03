@@ -54,14 +54,17 @@ class Person(Agent):
         if js is None:
             return None
 
-        person = Person.find_unique(email=js['email'], use_auth=use_auth)
-        if person is None:
+        def publish_person():
+            '''Create and publish a Person entity'''
             person = Person(email=js['email'],
                             givenName=js['given_name'],
                             familyName=js['family_name'])
-            person = person.publish(use_auth=use_auth)
+            return person.publish(use_auth=use_auth)
 
-        return person
+        return Person.find_unique(email=js['email'],
+                                  use_auth=use_auth,
+                                  on_no_result=publish_person,
+                                  poll_until_exists=True)
 
 
 @attributes({'version': AttrOf(str)})

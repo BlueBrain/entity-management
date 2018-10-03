@@ -120,6 +120,12 @@ def test_get_current_agent_not_in_nexus():
     responses.add(responses.POST,
                   '%s/data/neurosciencegraph/core/person/v0.1.0' % BASE,
                   json=CAT_WOMAN_JSLD)
+
+    # Cat woman now exists in DB
+    responses.add(responses.GET,
+                  'http://url/to/query/result',
+                  json={'results': [{'resultId': 'http://url/to/core/person/v/id'}], 'total': 1})
+
     assert_equal(core.Person.get_current(use_auth='token').email, 'cat@woman')
 
 
