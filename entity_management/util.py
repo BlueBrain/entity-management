@@ -21,13 +21,19 @@ class _ListOfValidator(object):
         '''
         We use a callable class to be able to change the ``__repr__``.
         '''
-        if self.default is not None and not isinstance(value, list):
+        if self.default is not None and value is None:
+            raise TypeError(
+                "'{name}' must be provided"
+                .format(name=attribute.name), attribute, self.type_, value,
+            )
+
+        if value is not None and not isinstance(value, list):
             raise TypeError(
                 "'{name}' must be a list"
                 .format(name=attribute.name), attribute, self.type_, value,
             )
 
-        if self.default is not None and not all(isinstance(v, self.type_) for v in value):
+        if value is not None and not all(isinstance(v, self.type_) for v in value):
             raise TypeError(
                 "'{name}' must be list of {type!r} (got {value!r} that is a "
                 '{actual!r}).'
@@ -156,16 +162,18 @@ def _attrs_clone(cls, check_default):
     return fields
 
 
-def _merge(*dicts):
+def _merge(pos_inherited, pos_new, kw_new, kw_inherited):
     '''Merge dictionaries using update from left to right'''
     result = {}
-    for dictionary in dicts:
-        if dictionary:
-            # remove keys so they can be overridden and take proper ordering
-            # otherwise the order is preserved and mandatory/optional will be broken
-            for key in dictionary.keys():
-                result.pop(key, None)
-            result.update(dictionary)
+    # remove keys, so they can be overridden
+    for key in pos_new.keys():
+        kw_inherited.pop(key, None)
+    for key in kw_new.keys():
+        pos_inherited.pop(key, None)
+    result.update(pos_inherited)
+    result.update(pos_new)
+    result.update(kw_new)
+    result.update(kw_inherited)
     return result
 
 

@@ -12,6 +12,11 @@ VERSION = 'v0.1.0'
 
 USERINFO = os.getenv('NEXUS_USERINFO', 'https://bbp-nexus.epfl.ch/staging/v0/oauth2/userinfo')
 
+# if provided, nexus entities will have wasAttributedTo set to this AGENT
+# this is helpful when entity management library is used in some context which
+# already established some provenance regarding currently running agent
+AGENT = os.getenv('NEXUS_AGENT', None)
+
 BASE_CTXS = BASE + '/contexts'
 
 ORG = os.getenv('NEXUS_ORG', 'neurosciencegraph')

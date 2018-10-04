@@ -22,6 +22,7 @@ PERSON_JSLD = {
         '@id': 'http://url/to/core/person/v/id',
         '@type': [
             'nsg:Person',
+            'nsg:Dummy',
             'prov:Person'
             ],
         'email': 'James@Bond',
@@ -48,11 +49,7 @@ CAT_WOMAN_JSLD = {
 
 
 def test_dict_merg():
-    assert {} == util._merge()
-    assert {} == util._merge({})
-    assert {1: 2} == util._merge({1: 2})
-    assert {1: 2, 'a': 'b'} == util._merge({'a': 'b'}, {1: 2})
-    assert {1: 2, 'a': 'c'} == util._merge({'a': 'b'}, {1: 2}, {'a': 'c'})
+    assert {1: 2, 'a': 'c', 3: 4} == util._merge({'a': 'b'}, {1: 2}, {'a': 'c'}, {3: 4})
 
 def test_attrs_utils():
     # define attrs class
@@ -100,7 +97,9 @@ def test_get_current_agent():
                   'http://url/to/core/person/v/id',
                   json=PERSON_JSLD)
 
-    assert_equal(core.Person.get_current(use_auth='token').email, 'James@Bond')
+    person = core.Person.get_current(use_auth='token')
+    assert_equal(person.types, ['nsg:Person', 'nsg:Dummy', 'prov:Person'])
+    assert_equal(person.email, 'James@Bond')
 
 @responses.activate
 def test_get_current_agent_not_in_nexus():

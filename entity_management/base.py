@@ -157,9 +157,10 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pyli
             # or we have just Identifiable
             or issubclass(data_type, Identifiable)):
         url = data_raw[JSLD_ID]
+        types = data_raw[JSLD_TYPE]
         if data_type is Identifiable:  # root type was used, try to recover it from url
             data_type = nexus.get_type(url)
-        return data_type._lazy_init(id=url, token=token)
+        return data_type._lazy_init(id=url, types=types, token=token)
 
     if issubclass(data_type, OntologyTerm):
         return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
@@ -186,6 +187,8 @@ def _serialize_obj(value):
         return {JSLD_ID: value.url, 'label': value.label}
 
     if isinstance(value, Identifiable):
+        if value.meta.types is None and value.id:
+            value._instantiate()
         return {JSLD_ID: value.id, JSLD_TYPE: value.meta.types}
 
     if isinstance(value, datetime):
@@ -232,8 +235,9 @@ class _IdentifiableMeta(type):
         version = getattr(cls, '_url_version', VERSION)
         url_org = getattr(cls, '_url_org', ORG)
         url_domain = getattr(cls, '_url_domain', 'simulation')
+        url_name = getattr(cls, '_url_name', name.lower())
 
-        type_id = '%s/%s' % (url_domain, name.lower())
+        type_id = '%s/%s' % (url_domain, url_name)
         cls.base_url = '%s/%s/%s/%s' % (BASE_DATA, url_org, type_id, version)
         nexus.register_type(type_id, cls)
 
@@ -293,9 +297,6 @@ class Identifiable(Frozen):
     id = attr.ib(type=str, default=None)
     meta = attr.ib(type=Metadata, factory=Metadata, init=False)
 
-    def __attrs_post_init__(self):
-        self.meta.types = ['prov:Entity', self.get_type()]
-
     def _instantiate(self):
         '''Fetch nexus object with id=self.id and copy its attribute into current object'''
         fetched_instance = type(self).from_url(self.id, self.meta.token)
@@ -303,7 +304,7 @@ class Identifiable(Frozen):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
 
     @classmethod
-    def _lazy_init(cls, id, token):  # pylint: disable=redefined-builtin
+    def _lazy_init(cls, id, types=None, token=None):  # pylint: disable=redefined-builtin
         '''Instantiate an object and put all its attributes to NotInstantiated
         except "id"'''
         # Running the validator has the side effect of instantiating
@@ -313,6 +314,7 @@ class Identifiable(Frozen):
                   **{arg.name: NotInstantiated for arg in
                      set(attr.fields(cls)) - set(attr.fields(Identifiable))})
         obj.meta.token = token
+        obj.meta.types = types
         set_run_validators(True)
         return obj
 
@@ -320,6 +322,14 @@ class Identifiable(Frozen):
     def get_type(cls):
         '''Get class type. Can be overriden by class varable _type_name.'''
         return '%s:%s' % (cls._type_namespace, cls._type_name or cls.__name__)
+
+    @property
+    def types(self):
+        '''Get json-ld types'''
+        # in case object has identity(persisted) types might not have been yet retrieved
+        if self.meta.types is None and self.id:
+            self._instantiate()
+        return self.meta.types
 
     @property
     def incoming(self):
@@ -503,6 +513,7 @@ class Identifiable(Frozen):
         if self.id:
             js = nexus.update(self.id, self.meta.rev, self.as_json_ld(), token=use_auth)
         else:
+            self.meta.types = ['prov:Entity', self.get_type()]
             js = nexus.create(self.base_url, self.as_json_ld(), token=use_auth)  # noqa pylint: disable=no-member
 
         self.meta.rev = js[JSLD_REV]

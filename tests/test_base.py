@@ -14,16 +14,19 @@ from entity_management.base import (Distribution, Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj,
                                     from_url)
 from entity_management.mixins import DistributionMixin
+from entity_management.settings import JSLD_ID, JSLD_REV
 
 
 def test_types():
     class Dummy(Identifiable):
         '''A dummy class'''
     dummy = Dummy()
-    assert_equal(dummy.meta.types, ['prov:Entity', 'nsg:Dummy'])
+    with patch('entity_management.base.nexus.create', return_value={JSLD_ID: 'id', JSLD_REV: 1}):
+        dummy = dummy.publish()
+        assert_equal(dummy.types, ['prov:Entity', 'nsg:Dummy'])
 
     dummy.meta.types = 'value changed'
-    assert_equal(dummy.evolve().meta.types, 'value changed')
+    assert_equal(dummy.evolve().types, 'value changed')
 
 def test_from_url():
     assert_raises(Exception, from_url, 'https://no-python-class-at-this-url')

@@ -12,7 +12,7 @@ import attr
 from entity_management import nexus
 from entity_management.base import Identifiable, attributes
 from entity_management.util import AttrOf
-from entity_management.settings import JSLD_ID, JSLD_REV
+from entity_management.settings import JSLD_ID, JSLD_REV, AGENT
 from entity_management.mixins import DistributionMixin
 
 
@@ -77,6 +77,14 @@ class SoftwareAgent(Agent):
     pass
 
 
+@attributes()
+class Workflow(DistributionMixin, Agent):
+    '''Workflow agent'''
+    _url_domain = 'core'
+    _url_name = 'entity'
+    _url_version = 'v1.0.0'
+
+
 @attributes({
     'name': AttrOf(str, default=None),
     'used': AttrOf(Identifiable, default=None),
@@ -126,14 +134,19 @@ class ProvenanceMixin(object):
         if activity is not None:
             assert isinstance(activity, Activity)
 
-        if person is None:
-            person = Person.get_current(use_auth)
+        agent = person
+        if AGENT is not None:
+            # in case running in the context of externally provided agent
+            agent = Agent.from_url(AGENT)
+        elif person is None:
+            agent = Person.get_current(use_auth)
 
         if self.id:
             js = nexus.update(self.id, self.meta.rev,
                               self.as_json_ld(), token=use_auth)
         else:
-            self = self.evolve(wasAttributedTo=person,
+            self.meta.types = ['prov:Entity', self.get_type()]
+            self = self.evolve(wasAttributedTo=agent,
                                dateCreated=datetime.utcnow())
             js = nexus.create(
                 self.base_url, self.as_json_ld(), token=use_auth)
@@ -141,7 +154,7 @@ class ProvenanceMixin(object):
         self = self.evolve(id=js[JSLD_ID], meta=attr.evolve(self.meta, rev=js[JSLD_REV]))
 
         if activity is not None:
-            activity = activity.evolve(generated=self, wasStartedBy=person)
+            activity = activity.evolve(generated=self, wasStartedBy=agent)
             activity.publish(use_auth)
 
         return self

@@ -3,7 +3,7 @@ import responses
 from io import StringIO
 
 from mock import patch, Mock
-from nose.tools import raises, assert_equal, ok_
+from nose.tools import assert_equal, ok_, assert_raises
 
 import entity_management.nexus as nexus
 
@@ -51,10 +51,7 @@ MORPHOLOGY_RELEASE_JSLD = {
     "name": "Morphology Release",
     "nxv:deprecated": False,
     "nxv:rev": 1,
-    "types": [
-        "nsg:Entity",
-        "nsg:MorphologyRelease"
-    ]}
+    }
 
 MORPHOLOGY_RELEASE_JSLD_UPDATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
@@ -499,6 +496,25 @@ def test_subcellular_model():
             distribution=[base.Distribution(accessURL='file:///name')])
     model_script = SubCellularModelScript(name='name')
     model = SubCellularModel(name='name', isPartOf=[mod_release], modelScript=model_script)
+
+
+def test_distribution_must_be_list():
+    assert_raises(TypeError, lambda: Morphology(name='name', distribution=base.Distribution(accessURL='file:///name')))
+
+
+def test_mandatory_list_distribution():
+    assert_raises(TypeError, lambda: MorphologyRelease(name='name', distribution=None))
+
+
+def test_distribution_list_same_type():
+    assert_raises(TypeError, lambda: Morphology(name='name',
+                                                distribution=[base.Distribution(accessURL='file:///name'),
+                                                              Morphology(name='a')]))
+
+
+def test_name_should_be_provided_for_entity():
+    assert_raises(TypeError, lambda: Morphology())
+
 
 @responses.activate
 def test_incomming_outcoming():
