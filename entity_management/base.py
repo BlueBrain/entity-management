@@ -187,9 +187,7 @@ def _serialize_obj(value):
         return {JSLD_ID: value.url, 'label': value.label}
 
     if isinstance(value, Identifiable):
-        if value.meta.types is None and value.id:
-            value._instantiate()
-        return {JSLD_ID: value.id, JSLD_TYPE: value.meta.types}
+        return {JSLD_ID: value.id, JSLD_TYPE: 'prov:Entity'}
 
     if isinstance(value, datetime):
         return value.isoformat()

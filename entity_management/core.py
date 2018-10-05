@@ -6,6 +6,7 @@ Provenance entities
    :parts: 1
 '''
 from datetime import datetime
+from typing import List
 
 import attr
 
@@ -77,14 +78,6 @@ class SoftwareAgent(Agent):
     pass
 
 
-@attributes()
-class Workflow(DistributionMixin, Agent):
-    '''Workflow agent'''
-    _url_domain = 'core'
-    _url_name = 'entity'
-    _url_version = 'v1.0.0'
-
-
 @attributes({
     'name': AttrOf(str, default=None),
     'used': AttrOf(Identifiable, default=None),
@@ -111,7 +104,8 @@ class Activity(Identifiable):
             self.startedAtTime = datetime.utcnow()  # pylint: disable=attribute-defined-outside-init
 
 
-@attributes({'wasAttributedTo': AttrOf(Person, default=None),
+@attributes({'wasAttributedTo': AttrOf(Agent, default=None),
+             'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
              'dateCreated': AttrOf(datetime, default=None)})
 class ProvenanceMixin(object):
     '''Enables provenance metadata when publishing/deprecating entities'''
@@ -165,3 +159,10 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Generic class for core Entities.'''
     _url_domain = 'core'
     _url_version = 'v1.0.0'
+
+
+@attributes()
+class Workflow(Agent, Entity):
+    '''Workflow agent'''
+    _url_name = 'entity'
+    _type_name = 'Entity'

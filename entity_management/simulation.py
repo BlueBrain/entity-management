@@ -15,7 +15,6 @@ from entity_management.util import AttrOf
 @attributes({
     'name': AttrOf(str),
     'description': AttrOf(str, default=None),
-    'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
 })
 class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
