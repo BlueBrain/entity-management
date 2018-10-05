@@ -36,7 +36,7 @@ def test_serialize():
     obj.meta.types = 'changed types'
 
     assert_equal(_serialize_obj(obj),
-                 {'@id': None, '@type': 'prov:Entity'})
+                 {'@id': None, '@type': 'changed types'})
 
     assert_equal(_serialize_obj(datetime(2018, 12, 23)),
                  '2018-12-23T00:00:00')
