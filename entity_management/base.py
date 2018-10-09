@@ -189,7 +189,7 @@ def _serialize_obj(value, fix_types=False):
     if isinstance(value, Identifiable):
         # FIXME remove when nexus decides to fix this bug
         # identify entity by url and then remove nsg:Entity if fix_types
-        types = set(value.meta.types) if value.meta.types else {}
+        types = set(value.types) if value.types else {}
         if value.id and '/entity/v' in value.id and fix_types:
             types -= {'nsg:Entity'}
         return {JSLD_ID: value.id, JSLD_TYPE: list(types)}
@@ -480,7 +480,7 @@ class Identifiable(Frozen):
         '''
         attrs = set(attr.fields(type(self))) - set(attr.fields(Identifiable))
         rv = {}
-        fix_types = 'nsg:Entity' in self.meta.types if self.meta.types else False
+        fix_types = 'nsg:Entity' in self.types if self.types else False
         for attribute in attrs:  # pylint: disable=not-an-iterable
             attr_value = getattr(self, attribute.name)
             if attr_value is not None:  # ignore empty values
@@ -501,7 +501,7 @@ class Identifiable(Frozen):
         rv[JSLD_CTX].append({'wasAttributedTo': {'@id': 'prov:wasAttributedTo'},
                              'dateCreated': {'@id': 'schema:dateCreated'}})
         rv[JSLD_CTX].append(NSG_CTX)
-        rv[JSLD_TYPE] = self.meta.types
+        rv[JSLD_TYPE] = self.types
         return rv
 
     def publish(self, use_auth=None):
