@@ -187,7 +187,12 @@ def _serialize_obj(value):
         return {JSLD_ID: value.url, 'label': value.label}
 
     if isinstance(value, Identifiable):
-        return {JSLD_ID: value.id, JSLD_TYPE: value.meta.types}
+        # FIXME remove when nexus decides to fix this bug
+        # identify entity by url and then remove nsg:Entity
+        types = set(value.meta.types if value.meta.types else '')
+        if value.id and '/entity/v' in value.id:
+            types -= {'nsg:Entity'}
+        return {JSLD_ID: value.id, JSLD_TYPE: list(types)}
 
     if isinstance(value, datetime):
         return value.isoformat()
