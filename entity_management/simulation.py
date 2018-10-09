@@ -216,7 +216,7 @@ class EModel(ModelInstance):
     _url_version = 'v0.1.2'
 
 
-@attributes({'used': AttrOf(Morphology),
+@attributes({'used': AttrOf(morphology.ReconstructedCell),
              'generated': AttrOf(EModel),
              'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]], default=None),
              'bestScore': AttrOf(QuantitativeValue, default=None)})
@@ -225,12 +225,12 @@ class EModelBuilding(Activity):
 
     Args:
         bestScore(QuantitativeValue): Best score.
-        used(Morphology): Morphology which was used to generate the emodel.
+        used(morphology.ReconstructedCell): Morphology which was used to generate the emodel.
         generated(EModel): EModel which was produced.
         wasAssociatedWith(List[SoftwareAgent]): Agents associated with
             this activity.
     '''
-    _url_version = 'v0.1.3'
+    _url_version = 'v0.1.4'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
