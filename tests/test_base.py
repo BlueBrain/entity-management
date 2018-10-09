@@ -40,7 +40,7 @@ def test_serialize():
     id_ = '/entity/v1.0.0'
     obj = Identifiable(id=id_)
     obj.meta.types = ['nsg:Entity']
-    assert_equal(_serialize_obj(obj),
+    assert_equal(_serialize_obj(obj, True),
                  {'@id': id_, '@type': []})
 
     assert_equal(_serialize_obj(datetime(2018, 12, 23)),

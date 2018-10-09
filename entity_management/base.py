@@ -181,16 +181,16 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pyli
     return data_type(data_raw)
 
 
-def _serialize_obj(value):
+def _serialize_obj(value, fix_types=False):
     '''Serialize object'''
     if isinstance(value, OntologyTerm):
         return {JSLD_ID: value.url, 'label': value.label}
 
     if isinstance(value, Identifiable):
         # FIXME remove when nexus decides to fix this bug
-        # identify entity by url and then remove nsg:Entity
-        types = set(value.meta.types if value.meta.types else '')
-        if value.id and '/entity/v' in value.id:
+        # identify entity by url and then remove nsg:Entity if fix_types
+        types = set(value.meta.types) if value.meta.types else {}
+        if value.id and '/entity/v' in value.id and fix_types:
             types -= {'nsg:Entity'}
         return {JSLD_ID: value.id, JSLD_TYPE: list(types)}
 
@@ -480,19 +480,20 @@ class Identifiable(Frozen):
         '''
         attrs = set(attr.fields(type(self))) - set(attr.fields(Identifiable))
         rv = {}
+        fix_types = 'nsg:Entity' in self.meta.types if self.meta.types else False
         for attribute in attrs:  # pylint: disable=not-an-iterable
             attr_value = getattr(self, attribute.name)
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
                 if isinstance(attr_value, (tuple, list, set)):
-                    rv[attr_name] = [_serialize_obj(i) for i in attr_value]
+                    rv[attr_name] = [_serialize_obj(i, fix_types) for i in attr_value]
                 elif isinstance(attr_value, dict):
                     rv[attr_name] = dict((
                         attr.asdict(kk) if attr.has(type(kk)) else kk,
                         attr.asdict(vv) if attr.has(type(vv)) else vv)
                         for kk, vv in six.iteritems(attr_value))
                 else:
-                    rv[attr_name] = _serialize_obj(attr_value)
+                    rv[attr_name] = _serialize_obj(attr_value, fix_types)
         rv[JSLD_CTX] = []
         vocab = getattr(self, '_vocab', None)
         if vocab is not None:
