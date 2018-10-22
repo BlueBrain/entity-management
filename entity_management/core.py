@@ -149,6 +149,8 @@ class ProvenanceMixin(object):
 
         if activity is not None:
             activity = activity.evolve(generated=self, wasStartedBy=agent)
+            if activity.meta.types is None:
+                activity.meta.types = ['prov:Activity', activity.get_type()]
             activity.publish(use_auth)
 
         return self

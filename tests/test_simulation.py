@@ -14,7 +14,7 @@ from entity_management.simulation import (DetailedCircuit, NodeCollection, Model
                                           CircuitCellProperties, MEModelRelease, EModelRelease,
                                           MorphologyRelease, Morphology, MEModel,
                                           IonChannelMechanismRelease, SubCellularModelScript,
-                                          SubCellularModel)
+                                          SubCellularModel, MorphologyDiversification)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -88,6 +88,12 @@ MORPHOLOGY_RELEASE_JSLD_FILTER = {
     ],
     "total": 1
 }
+
+MORPHOLOGY_DIVERSIFICATION_JSLD_CREATE = {
+    "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
+    "@id": "%s/%s" % (MorphologyDiversification.base_url, UUID),
+    "nxv:rev": 1
+    }
 
 EMODEL_RELEASE_JSLD_CREATE = {
     '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0',
@@ -303,12 +309,15 @@ def test_update_morphology_release():
 
 @responses.activate
 def test_publish_morphology_release():
+    responses.add(responses.POST, '%s' % MorphologyDiversification.base_url,
+            json=MORPHOLOGY_DIVERSIFICATION_JSLD_CREATE)
     responses.add(responses.POST, '%s' % MorphologyRelease.base_url,
             json=MORPHOLOGY_RELEASE_JSLD)
 
     morphology_release = MorphologyRelease(name='MorphologyRelease',
                                            distribution=[base.Distribution(downloadURL='url')])
-    morphology_release = morphology_release.publish(person=DUMMY_PERSON)
+    morphology_release = morphology_release.publish(person=DUMMY_PERSON,
+            activity=MorphologyDiversification(used=[DUMMY_PERSON]))
 
     ok_(morphology_release.id is not None)
     ok_(morphology_release.meta.rev is not None)
