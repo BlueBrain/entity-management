@@ -100,8 +100,8 @@ class Activity(Identifiable):
     _vocab = 'http://schema.org/'
 
     def __attrs_post_init__(self):
-        if self.startedAtTime is None:  # pylint: disable=access-member-before-definition
-            self.startedAtTime = datetime.utcnow()  # pylint: disable=attribute-defined-outside-init
+        if self.startedAtTime is None:  # pylint: disable=no-member
+            self._force_attr('startedAtTime', datetime.utcnow())
 
 
 @attributes({'wasAttributedTo': AttrOf(Agent, default=None),
