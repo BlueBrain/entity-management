@@ -81,15 +81,13 @@ class MorphologyRelease(ModelRelease):
     _url_version = 'v0.1.2'
 
 
-@attributes({'used': AttrOf(Identifiable),
-             'generated': AttrOf(MorphologyRelease)})
+@attributes({'used': AttrOf(List[Identifiable])})
 class MorphologyDiversification(Activity):
     '''Morphology release building activity.
 
     Args:
-        used(Identifiable): Configurations(neurondb.xml, placement_rules.xml) which were used to
-            generate the emodel.
-        generated(MorphologyRelease): Morphology release which was produced.
+        used(List[Identifiable]): Configurations(neurondb.xml, placement_rules.xml) which were used
+            to generate the emodel.
     '''
     _url_version = 'v0.1.2'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'

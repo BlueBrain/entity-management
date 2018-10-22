@@ -437,8 +437,7 @@ class Identifiable(Frozen):
         url_org = getattr(cls, '_url_org', ORG)
         url_domain = getattr(cls, '_url_domain', 'simulation')
         if all_versions:
-            collection_address = '/%s/%s/%s' % (url_org,
-                                                url_domain, cls.__name__.lower())
+            collection_address = '/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower())
         elif all_domains:
             collection_address = '/%s' % url_org
         elif all_organizations:
