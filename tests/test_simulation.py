@@ -14,7 +14,8 @@ from entity_management.simulation import (DetailedCircuit, NodeCollection, Model
                                           CircuitCellProperties, MEModelRelease, EModelRelease,
                                           MorphologyRelease, Morphology, MEModel,
                                           IonChannelMechanismRelease, SubCellularModelScript,
-                                          SubCellularModel, MorphologyDiversification)
+                                          SubCellularModel, MorphologyDiversification,
+                                          Configuration)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -317,7 +318,7 @@ def test_publish_morphology_release():
     morphology_release = MorphologyRelease(name='MorphologyRelease',
                                            distribution=[base.Distribution(downloadURL='url')])
     morphology_release = morphology_release.publish(person=DUMMY_PERSON,
-            activity=MorphologyDiversification(used=[DUMMY_PERSON]))
+            activity=MorphologyDiversification(used=[Configuration(name='')]))
 
     ok_(morphology_release.id is not None)
     ok_(morphology_release.meta.rev is not None)

@@ -81,18 +81,6 @@ class MorphologyRelease(ModelRelease):
     _url_version = 'v0.1.2'
 
 
-@attributes({'used': AttrOf(List[Identifiable])})
-class MorphologyDiversification(Activity):
-    '''Morphology release building activity.
-
-    Args:
-        used(List[Identifiable]): Configurations(neurondb.xml, placement_rules.xml) which were used
-            to generate the emodel.
-    '''
-    _url_version = 'v0.1.2'
-    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
-
-
 @attributes()
 class IonChannelMechanismRelease(ModelRelease):
     '''Ion channel models release represents a collection of mod files.
@@ -114,6 +102,18 @@ class SynapseRelease(ModelRelease):
 class Configuration(Entity):
     '''Configuration file'''
     _url_version = 'v0.1.1'
+
+
+@attributes({'used': AttrOf(List[Configuration])})
+class MorphologyDiversification(Activity):
+    '''Morphology release building activity.
+
+    Args:
+        used(List[Identifiable]): Configurations(neurondb.xml, placement_rules.xml) which were used
+            to generate the emodel.
+    '''
+    _url_version = 'v0.1.3'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes({'distribution': AttrOf(List[Distribution]),
@@ -238,7 +238,7 @@ class SingleCellSimulationTrace(Entity):
     _url_version = 'v0.1.4'
 
 
-@attributes({'hadMember': AttrOf(List[Trace])})
+@attributes({'hadMember': AttrOf(List[Trace], default=None)})
 class TraceCollection(Entity):
     '''Collection of traces
 
@@ -247,6 +247,18 @@ class TraceCollection(Entity):
     '''
     _url_version = 'v0.1.2'
     _type_name = 'Collection'
+
+
+@attributes({'hadMember': AttrOf(List[Trace], default=None)})
+class CoreTraceCollection(Entity):
+    '''Collection of traces
+
+    Args:
+        hadMember(List[Trace]): List of traces.
+    '''
+    _url_domain = 'core'
+    _url_version = 'v0.1.0'
+    _type_name = 'TraceCollection'
 
 
 @attributes({'name': AttrOf(str),
@@ -275,13 +287,12 @@ class BluePyEfeFeatures(Entity):
              'species': AttrOf(OntologyTerm),
              'mType': AttrOf(OntologyTerm),
              'experimentalCell': AttrOf(List[ExperimentalCell]),
-             'experimentalTraceLocation': AttrOf(CoreEntity),
              'featureExtractionConfiguration': AttrOf(dict),
              'stimuliToExperimentMap': AttrOf(dict, default=None),
              'masterListConfiguration': AttrOf(CoreEntity, default=None)})
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.3'
+    _url_version = 'v0.1.4'
     _type_name = 'Configuration'
 
 
@@ -375,3 +386,40 @@ class DetailedCircuit(ModelInstance):
 class BluePyOptRun(Entity):
     '''Release base entity'''
     _url_version = 'v0.1.12'
+
+
+@attributes()
+class ETypeFeatureProtocol(Entity):
+    '''Trace protocol.'''
+    _url_version = 'v0.1.2'
+
+
+@attributes()
+class TraceFeature(Entity):
+    '''Trace feature.'''
+    _url_version = 'v0.1.1'
+
+
+@attributes()
+class Threshold(Entity):
+    '''Threshold.'''
+    _url_version = 'v0.1.2'
+
+
+@attributes({'activity': AttrOf(Activity)})
+class EModelGenerationShape(Entity):
+    '''EModel generation.'''
+    _url_version = 'v0.1.1'
+    _type_name = 'TraceGeneration'
+
+
+@attributes({'used': AttrOf(List[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
+             'generated': AttrOf(BluePyEfeFeatures)})
+class TraceFeatureExtraction(Activity):
+    '''Trace feature extraction activity.
+
+    Args:
+        used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
+        generated (BluePyEfeFeatures): Extracted features.
+    '''
+    _url_version = 'v0.1.2'
