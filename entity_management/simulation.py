@@ -112,7 +112,7 @@ class MorphologyDiversification(Activity):
         used(List[Identifiable]): Configurations(neurondb.xml, placement_rules.xml) which were used
             to generate the emodel.
     '''
-    _url_version = 'v0.1.3'
+    _url_version = 'v0.1.4'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
