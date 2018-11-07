@@ -47,15 +47,17 @@ class StimulusExperiment(Activity):
 @attributes({'activity': AttrOf(StimulusExperiment),
              'sweep': AttrOf(int),
              'providerExperimentId': AttrOf(str, default=None),
-             'providerExperimentName': AttrOf(str, default=None)})
+             'providerExperimentName': AttrOf(str, default=None),
+             'targetHoldingPotential': AttrOf(int, default=None)})
 class TraceGeneration(Entity):
     '''Trace generation.
 
     Args:
-        activity(StimulusExperiment): Points at stimulus experiment activity that generated trace.
-        sweep(int): Sweep number of the trace.
-        providerExperimentId(str): Points at stimulus experiment activity that generated trace.
-        providerExperimentName(str): Laboratory name of the experiment.
+        activity (StimulusExperiment): Points at stimulus experiment activity that generated trace.
+        sweep (int): Sweep number of the trace.
+        providerExperimentId (str): Points at stimulus experiment activity that generated trace.
+        providerExperimentName (str): Laboratory name of the experiment.
+        targetHoldingPotential (int): Target holding potential.
     '''
     _url_version = 'v1.0.0'
 

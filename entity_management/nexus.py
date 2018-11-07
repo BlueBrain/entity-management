@@ -108,6 +108,11 @@ def _nexus_wrapper(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         '''decorator function'''
+
+        if 'NEXUS_DRY_RUN' in os.environ and func.__name__ in ['create', 'update',
+                                                               'deprecate', 'attach']:
+            return None
+
         token_argument = kwargs.get('token', None)
         if token_argument is None:
             kwargs['token'] = os.getenv('NEXUS_TOKEN', None)
