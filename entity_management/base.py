@@ -267,8 +267,8 @@ def from_url(url, use_auth=None):
     Load entity from URL.
 
     Args:
-        url(str): URL of the entity to load.
-        use_auth(str): OAuth token in case access is restricted.
+        url (str): URL of the entity to load.
+        use_auth (str): OAuth token in case access is restricted.
             Token should be in the format for the authorization header: Bearer VALUE.
     '''
     cls = nexus.get_type(url)
@@ -350,8 +350,8 @@ class Identifiable(Frozen):
         Load entity from URL.
 
         Args:
-            url(str): URL of the entity to load.
-            use_auth(str): OAuth token in case access is restricted.
+            url (str): URL of the entity to load.
+            use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         return from_url(url, use_auth=use_auth)
@@ -362,8 +362,8 @@ class Identifiable(Frozen):
         Load entity from UUID.
 
         Args:
-            uuid(str): UUID of the entity to load.
-            use_auth(str): OAuth token in case access is restricted.
+            uuid (str): UUID of the entity to load.
+            use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         return cls.from_url('{}/{}'.format(cls.base_url, uuid), use_auth=use_auth)
@@ -375,9 +375,9 @@ class Identifiable(Frozen):
         - throw if there are more than one results
 
         Args:
-            throw(bool): Whether to throw when no result found
-            on_no_result(Callable): A function to be called when no result found and throw==False
-            poll_until_exists(bool): flag to enable polling after the execution of on_no_result()
+            throw (bool): Whether to throw when no result found
+            on_no_result (Callable): A function to be called when no result found and throw==False
+            poll_until_exists (bool): flag to enable polling after the execution of on_no_result()
                                      until find_unique returns something. The polling frequency is
                                      2 seconds and the timeout is 1 minute.
             kwargs: Arguments to be passed to the underlying cls.find_by
@@ -418,10 +418,10 @@ class Identifiable(Frozen):
         '''Load entity from properties.
 
         Args:
-            collection_address(str): Selected collection to list, filter or search;
+            collection_address (str): Selected collection to list, filter or search;
                 for example: ``/myorg/mydomain``, ``/myorg/mydomain/myschema/v1.0.0``
-            query(dict): Provide explicit nexus query.
-            use_auth(str): OAuth token in case access is restricted.
+            query (dict): Provide explicit nexus query.
+            use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
             **properties: Keyword args. If ``key`` has words separated by double underscore they
                 will be replaced with ``/`` forming deep path for the query. Single underscores
@@ -508,7 +508,7 @@ class Identifiable(Frozen):
         entity attributes.
 
         Args:
-            use_auth(str): OAuth token in case access is restricted.
+            use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         Returns:
             New instance of the same class with revision updated.
@@ -527,7 +527,7 @@ class Identifiable(Frozen):
         Deprecated entities are not possible to retrieve by name.
 
         Args:
-            use_auth(str): OAuth token in case access is restricted.
+            use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         self._instantiate()
@@ -551,13 +551,13 @@ class Distribution(Frozen):
     this can be a file or a folder on gpfs
 
     Args:
-        downloadURL(str): For directly accessible resources for example files.
-        accessURL(str): For container locations for example folders.
-        contentSize(int): If known in advance size of the resource.
-        digest(int): Hash/Checksum of the resource.
-        mediaType(str): Type of the resource accessible by the downloadURL.
-        originalFileName(str): File name which was submitted as an attachment.
-        storageType(str): storage type, will contain `gpfs` for gpfs links.
+        downloadURL (str): For directly accessible resources for example files.
+        accessURL (str): For container locations for example folders.
+        contentSize (int): If known in advance size of the resource.
+        digest (int): Hash/Checksum of the resource.
+        mediaType (str): Type of the resource accessible by the downloadURL.
+        originalFileName (str): File name which was submitted as an attachment.
+        storageType (str): storage type, will contain `gpfs` for gpfs links.
 
     either `downloadURL` for files or `accessURL` for folders must be provided'''
 
@@ -575,8 +575,8 @@ class QuantitativeValue(Frozen):
     this can be a file or a folder on gpfs
 
     Args:
-        value(str): Value.
-        unitCode(str): The unit of measurement given using the UN/CEFACT Common Code (3 characters)
+        value (str): Value.
+        unitCode (str): The unit of measurement given using the UN/CEFACT Common Code (3 characters)
             or a URL. Other codes than the UN/CEFACT Common Code may be used with a prefix followed
             by a colon.
     '''
@@ -585,14 +585,14 @@ class QuantitativeValue(Frozen):
 
 @attributes({
     'url': AttrOf(str),
-    'label': AttrOf(str),
+    'label': AttrOf(str, default=None),
 })
 class OntologyTerm(Frozen):
     '''Ontology term such as brain region or species
 
     Args:
-        url(str): Ontology term url identifier.
-        label(str): Label for the ontology term.
+        url (str): Ontology term url identifier.
+        label (str): Label for the ontology term.
     '''
     pass
 
