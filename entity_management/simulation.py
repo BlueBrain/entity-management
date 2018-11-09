@@ -116,14 +116,18 @@ class MorphologyDiversification(Activity):
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
-@attributes({'distribution': AttrOf(List[Distribution]),
-             'emodelIndex': AttrOf(ModelReleaseIndex)})
+@attributes({
+    'distribution': AttrOf(List[Distribution], default=None),
+    'emodelIndex': AttrOf(ModelReleaseIndex, default=None),
+    'isPartOf': AttrOf(Identifiable, default=None)
+})
 class EModelRelease(ModelRelease):
     '''Electrical model release
 
     Args:
-        distribution(List[Distribution]): EModel release location provides a path to ``hoc`` files.
-        emodelIndex(ModelReleaseIndex): EModel release index file.
+        distribution (List[Distribution]): EModel release location provides a path to ``hoc`` files.
+        emodelIndex (ModelReleaseIndex): EModel release index file.
+        isPartOf (Identifiable): Dataset this release is part of.
     '''
     _url_version = 'v0.1.3'
 
@@ -201,8 +205,10 @@ class SubCellularModel(ModelInstance):
     _url_version = 'v0.1.3'
 
 
-@attributes({'subCellularMechanism': AttrOf(List[SubCellularModel], default=None),
-             'modelScript': AttrOf(List[EModelScript], default=None)})
+@attributes({
+    'subCellularMechanism': AttrOf(List[SubCellularModel], default=None),
+    'modelScript': AttrOf(List[EModelScript], default=None),
+})
 class EModel(ModelInstance):
     '''Electrical model
 

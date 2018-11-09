@@ -48,6 +48,7 @@ class StimulusExperiment(Activity):
              'sweep': AttrOf(int),
              'providerExperimentId': AttrOf(str, default=None),
              'providerExperimentName': AttrOf(str, default=None),
+             'waveNumberRange': AttrOf(str, default=None),
              'targetHoldingPotential': AttrOf(int, default=None)})
 class TraceGeneration(Entity):
     '''Trace generation.
@@ -57,6 +58,7 @@ class TraceGeneration(Entity):
         sweep (int): Sweep number of the trace.
         providerExperimentId (str): Points at stimulus experiment activity that generated trace.
         providerExperimentName (str): Laboratory name of the experiment.
+        waveNumberRange (str): Python range expression into which sweep number should fall.
         targetHoldingPotential (int): Target holding potential.
     '''
     _url_version = 'v1.0.0'
