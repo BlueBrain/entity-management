@@ -208,6 +208,7 @@ class SubCellularModel(ModelInstance):
 @attributes({
     'subCellularMechanism': AttrOf(List[SubCellularModel], default=None),
     'modelScript': AttrOf(List[EModelScript], default=None),
+    'isPartOf': AttrOf(EModelRelease, default=None),
 })
 class EModel(ModelInstance):
     '''Electrical model
@@ -216,6 +217,7 @@ class EModel(ModelInstance):
         subCellularMechanism(List[SubCellularModel]): SubCellular mechanism collection.
         modelScript(List[EModelScript]): Model script collection. Scripts defining neuron model,
             e.g. a ``hoc`` files.
+        isPartOf (EModelRelease): EModel release this emodel is part of.
     '''
     _url_version = 'v0.1.2'
 
