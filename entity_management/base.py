@@ -433,18 +433,18 @@ class Identifiable(Frozen):
 
         # pylint: disable=too-many-locals
         # build collection address
-        version = getattr(cls, '_url_version', VERSION)
         url_org = getattr(cls, '_url_org', ORG)
         url_domain = getattr(cls, '_url_domain', 'simulation')
+        url_name = getattr(cls, '_url_name', cls.__name__.lower())
+        url_version = getattr(cls, '_url_version', VERSION)
         if all_versions:
-            collection_address = '/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower())
+            collection_address = '/%s/%s/%s' % (url_org, url_domain, url_name)
         elif all_domains:
             collection_address = '/%s' % url_org
         elif all_organizations:
             collection_address = None
         else:
-            collection_address = '/%s/%s/%s/%s' % (url_org, url_domain, cls.__name__.lower(),
-                                                   version)
+            collection_address = '/%s/%s/%s/%s' % (url_org, url_domain, url_name, url_version)
 
         if query is None:
             # prepare properties

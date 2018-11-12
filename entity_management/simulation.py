@@ -265,8 +265,8 @@ class CoreTraceCollection(Entity):
         hadMember(List[Trace]): List of traces.
     '''
     _url_domain = 'core'
-    _url_version = 'v0.1.0'
     _url_name = 'tracecollection'
+    _url_version = 'v0.1.0'
     _type_name = 'TraceCollection'
 
 
@@ -434,3 +434,4 @@ class TraceFeatureExtraction(Activity):
         generated (BluePyEfeFeatures): Extracted features.
     '''
     _url_version = 'v0.1.2'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
