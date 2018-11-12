@@ -421,8 +421,10 @@ class EModelGenerationShape(Entity):
     _type_name = 'TraceGeneration'
 
 
-@attributes({'used': AttrOf(List[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
-             'generated': AttrOf(BluePyEfeFeatures)})
+@attributes({
+    'used': AttrOf(List[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
+    'generated': AttrOf(BluePyEfeFeatures, default=None),
+})
 class TraceFeatureExtraction(Activity):
     '''Trace feature extraction activity.
 
