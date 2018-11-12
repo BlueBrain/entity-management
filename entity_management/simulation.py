@@ -266,6 +266,7 @@ class CoreTraceCollection(Entity):
     '''
     _url_domain = 'core'
     _url_version = 'v0.1.0'
+    _url_name = 'tracecollection'
     _type_name = 'TraceCollection'
 
 
