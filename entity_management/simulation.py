@@ -346,14 +346,13 @@ class NodeCollection(Entity):
     _url_version = 'v0.1.2'
 
 
-# noqa FIXME make it work for now, check schema
-@attributes({'edgePopulation': AttrOf(ModelReleaseIndex),
+@attributes({'edgePopulation': AttrOf(CoreEntity),
              'synapseRelease': AttrOf(SynapseRelease)})
 class EdgeCollection(Entity):
     '''Edge collection represents circuit connectivity(synapses, projections)
 
     Args:
-        edgePopulation(ModelReleaseIndex): Distribution providing path to the collection of nrn
+        edgePopulation(core.Entity): Distribution providing path to the collection of nrn
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''

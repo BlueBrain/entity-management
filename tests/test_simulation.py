@@ -404,8 +404,8 @@ def test_create_detailed_circuit():
     synapseRelease = SynapseRelease(
             name='SynapseRelease',
             distribution=[base.Distribution(downloadURL='url')])
-    edgePopulation = ModelReleaseIndex(name='index',
-                                       distribution=[base.Distribution(accessURL='url')])
+    edgePopulation = core.Entity(name='edges',
+                                 distribution=[base.Distribution(accessURL='url')])
     edgeCollection = EdgeCollection(
             name='EdgeCollection',
             edgePopulation=edgePopulation,
