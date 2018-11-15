@@ -158,7 +158,8 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pyli
             or issubclass(data_type, Identifiable)):
         url = data_raw[JSLD_ID]
         types = data_raw[JSLD_TYPE]
-        if data_type is Identifiable:  # root type was used, try to recover it from url
+        # root type was used or union of types, try to recover it from url
+        if data_type is Identifiable or type(data_type) is type(typing.Union):  # noqa
             data_type = nexus.get_type(url)
         return data_type._lazy_init(id=url, types=types, token=token)
 
@@ -192,13 +193,27 @@ def _serialize_obj(value, fix_types=False):
         types = set(value.types) if value.types else {}
         if value.id and '/entity/v' in value.id and fix_types:
             types -= {'nsg:Entity'}
-        return {JSLD_ID: value.id, JSLD_TYPE: list(types)}
+        return {JSLD_ID: value.id,
+                JSLD_TYPE: list(types),
+                'name': ''}  # add fake name to keep nexus happy
 
     if isinstance(value, datetime):
         return value.isoformat()
 
     if attr.has(type(value)):
-        return attr.asdict(value, recurse=True, filter=lambda _, value: value is not None)
+        rv = {}
+        for attribute in attr.fields(type(value)):
+            attr_name = attribute.name
+            attr_value = getattr(value, attr_name)
+            if attr_value is not None:  # ignore empty values
+                if isinstance(attr_value, (tuple, list, set)):
+                    rv[attr_name] = [_serialize_obj(i, fix_types) for i in attr_value]
+                elif isinstance(attr_value, dict):
+                    rv[attr_name] = dict((kk, _serialize_obj(vv))
+                                         for kk, vv in six.iteritems(attr_value))
+                else:
+                    rv[attr_name] = _serialize_obj(attr_value, fix_types)
+        return rv
 
     return value
 
@@ -487,10 +502,8 @@ class Identifiable(Frozen):
                 if isinstance(attr_value, (tuple, list, set)):
                     rv[attr_name] = [_serialize_obj(i, fix_types) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    rv[attr_name] = dict((
-                        attr.asdict(kk) if attr.has(type(kk)) else kk,
-                        attr.asdict(vv) if attr.has(type(vv)) else vv)
-                        for kk, vv in six.iteritems(attr_value))
+                    rv[attr_name] = dict((kk, _serialize_obj(vv))
+                                         for kk, vv in six.iteritems(attr_value))
                 else:
                     rv[attr_name] = _serialize_obj(attr_value, fix_types)
         rv[JSLD_CTX] = []

@@ -223,7 +223,7 @@ class EModel(ModelInstance):
 
 
 @attributes({'used': AttrOf(morphology.ReconstructedCell),
-             'generated': AttrOf(EModel),
+             'generated': AttrOf(EModel, default=None),
              'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]], default=None),
              'bestScore': AttrOf(QuantitativeValue, default=None)})
 class EModelBuilding(Activity):

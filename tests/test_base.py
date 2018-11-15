@@ -35,13 +35,13 @@ def test_serialize():
     obj = Identifiable()
     obj.meta.types = ['changed types']
     assert_equal(_serialize_obj(obj),
-                 {'@id': None, '@type': ['changed types']})
+                 {'@id': None, '@type': ['changed types'], 'name': ''})
 
     id_ = '/entity/v1.0.0'
     obj = Identifiable(id=id_)
     obj.meta.types = ['nsg:Entity']
     assert_equal(_serialize_obj(obj, True),
-                 {'@id': id_, '@type': []})
+                 {'@id': id_, '@type': [], 'name': ''})
 
     assert_equal(_serialize_obj(datetime(2018, 12, 23)),
                  '2018-12-23T00:00:00')
@@ -57,6 +57,10 @@ def test_serialize():
     dummy = Dummy(a=33, b=Dummy(a=12))
     assert_equal(_serialize_obj(dummy),
                  {'a': 33, 'b': {'a': 12}})
+
+    dummy = Dummy(a={1: 2}, b=[OntologyTerm(url='A', label='B')])
+    assert_equal(_serialize_obj(dummy),
+                 {'a': {1: 2}, 'b': [{'@id': 'A', 'label': 'B'}]})
 
     assert_equal(_serialize_obj(42), 42)
 

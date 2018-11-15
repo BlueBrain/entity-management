@@ -100,7 +100,8 @@ class Activity(Identifiable):
     _vocab = 'http://schema.org/'
 
     def __attrs_post_init__(self):
-        if self.startedAtTime is None:  # pylint: disable=no-member
+        # only init for newly created entities
+        if self.id is None and self.startedAtTime is None:  # pylint: disable=no-member
             self._force_attr('startedAtTime', datetime.utcnow())
 
 
