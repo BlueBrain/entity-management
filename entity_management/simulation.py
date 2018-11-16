@@ -240,7 +240,9 @@ class EModelBuilding(Activity):
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
-@attributes()
+@attributes({
+    'description': AttrOf(str, default=None),
+})
 class SingleCellTraceGeneration(Activity):
     '''Single cell simulation trace genaration activity'''
     _url_version = 'v0.1.3'
