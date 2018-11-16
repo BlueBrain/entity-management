@@ -241,6 +241,13 @@ class EModelBuilding(Activity):
 
 
 @attributes()
+class SingleCellTraceGeneration(Activity):
+    '''Single cell simulation trace genaration activity'''
+    _url_version = 'v0.1.3'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
+
+
+@attributes()
 class SingleCellSimulationTrace(Entity):
     '''Single cell simulation trace file'''
     _url_version = 'v0.1.4'
