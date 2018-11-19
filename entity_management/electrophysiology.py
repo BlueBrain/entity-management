@@ -8,7 +8,7 @@ Experimental morphologies entities
 '''
 from datetime import datetime
 
-from entity_management.base import Identifiable, OntologyTerm, attributes, Frozen
+from entity_management.base import Identifiable, OntologyTerm, QuantitativeValue, attributes, Frozen
 from entity_management.util import AttrOf
 from entity_management.mixins import DistributionMixin
 from entity_management.core import Activity
@@ -49,7 +49,7 @@ class StimulusExperiment(Activity):
              'providerExperimentId': AttrOf(str, default=None),
              'providerExperimentName': AttrOf(str, default=None),
              'waveNumberRange': AttrOf(str, default=None),
-             'targetHoldingPotential': AttrOf(int, default=None)})
+             'targetHoldingPotential': AttrOf(QuantitativeValue, default=None)})
 class TraceGeneration(Entity):
     '''Trace generation.
 
@@ -59,7 +59,7 @@ class TraceGeneration(Entity):
         providerExperimentId (str): Points at stimulus experiment activity that generated trace.
         providerExperimentName (str): Laboratory name of the experiment.
         waveNumberRange (str): Python range expression into which sweep number should fall.
-        targetHoldingPotential (int): Target holding potential.
+        targetHoldingPotential (QuantitativeValue): Target holding potential.
     '''
     _url_version = 'v1.0.0'
 

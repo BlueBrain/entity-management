@@ -12,6 +12,7 @@ from time import sleep
 import typing
 from datetime import datetime
 
+from pprint import pformat
 from dateutil.parser import parse
 
 import six
@@ -28,8 +29,7 @@ from entity_management.settings import (BASE_DATA, JSLD_CTX, JSLD_DEPRECATED,
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, resolve_path,
                                     _clean_up_dict, _get_list_params, _merge)
 
-
-logger = logging.getLogger()
+L = logging.getLogger(__name__)
 
 
 def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
@@ -148,38 +148,43 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pyli
     if data_raw is None:
         return None
 
-    if isinstance(data_raw, list):
-        return _deserialize_list(data_type, data_raw, token)
+    try:
+        if isinstance(data_raw, list):
+            return _deserialize_list(data_type, data_raw, token)
 
-    if (  # in case we have bunch of the Identifiable types as a Union
-            (type(data_type) is type(typing.Union)  # noqa
-                and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
-            # or we have just Identifiable
-            or issubclass(data_type, Identifiable)):
-        url = data_raw[JSLD_ID]
-        types = data_raw[JSLD_TYPE]
-        # root type was used or union of types, try to recover it from url
-        if data_type is Identifiable or type(data_type) is type(typing.Union):  # noqa
-            data_type = nexus.get_type(url)
-        return data_type._lazy_init(id=url, types=types, token=token)
+        if (  # in case we have bunch of the Identifiable types as a Union
+                (type(data_type) is type(typing.Union)  # noqa
+                    and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
+                # or we have just Identifiable
+                or issubclass(data_type, Identifiable)):
+            url = data_raw[JSLD_ID]
+            types = data_raw[JSLD_TYPE]
+            # root type was used or union of types, try to recover it from url
+            if data_type is Identifiable or type(data_type) is type(typing.Union):  # noqa
+                data_type = nexus.get_type(url)
+            return data_type._lazy_init(id=url, types=types, token=token)
 
-    if issubclass(data_type, OntologyTerm):
-        return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
+        if issubclass(data_type, OntologyTerm):
+            return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
 
-    if data_type == datetime:
-        return parse(data_raw)
+        if data_type == datetime:
+            return parse(data_raw)
 
-    if issubclass(data_type, Frozen):
-        # nested obj literals should be deserialized before passed to composite obj constructor
-        return data_type(
-            **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
-               for k, v in six.iteritems(data_raw)
-               if k in attr.fields_dict(data_type)})
+        if issubclass(data_type, Frozen):
+            # nested obj literals should be deserialized before passed to composite obj constructor
+            return data_type(
+                **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
+                   for k, v in six.iteritems(data_raw)
+                   if k in attr.fields_dict(data_type)})
 
-    if isinstance(data_raw, dict):
-        return data_type(**_clean_up_dict(data_raw))
+        if isinstance(data_raw, dict):
+            return data_type(**_clean_up_dict(data_raw))
 
-    return data_type(data_raw)
+        return data_type(data_raw)
+
+    except Exception:
+        L.error('Error deserializing type: %s for raw data:\n%s', data_type, pformat(data_raw))
+        raise
 
 
 def _serialize_obj(value, fix_types=False):
@@ -410,7 +415,7 @@ class Identifiable(Frozen):
                 result = on_no_result()
                 if poll_until_exists:
                     for i in range(30):
-                        logger.debug('Poll #%s for %s.find_unique(%s)', i, cls, str(kwargs))
+                        L.debug('Poll #%s for %s.find_unique(%s)', i, cls, str(kwargs))
                         if cls.find_unique(**kwargs):
                             return result
                         sleep(2)
@@ -581,7 +586,8 @@ class Distribution(Frozen):
 
 @attributes({
     'value': AttrOf(str),
-    'unitCode': AttrOf(str),
+    'unitText': AttrOf(str, default=None),
+    'unitCode': AttrOf(str, default=None),
 })
 class QuantitativeValue(Frozen):
     '''External resource representations,
@@ -589,6 +595,7 @@ class QuantitativeValue(Frozen):
 
     Args:
         value (str): Value.
+        unitText (str): Unit text.
         unitCode (str): The unit of measurement given using the UN/CEFACT Common Code (3 characters)
             or a URL. Other codes than the UN/CEFACT Common Code may be used with a prefix followed
             by a colon.
