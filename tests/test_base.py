@@ -35,13 +35,13 @@ def test_serialize():
     obj = Identifiable()
     obj.meta.types = ['changed types']
     assert_equal(_serialize_obj(obj),
-                 {'@id': None, '@type': ['changed types'], 'name': ''})
+                 {'@id': None, '@type': ['changed types']})
 
     id_ = '/entity/v1.0.0'
     obj = Identifiable(id=id_)
     obj.meta.types = ['nsg:Entity']
     assert_equal(_serialize_obj(obj, True),
-                 {'@id': id_, '@type': [], 'name': ''})
+                 {'@id': id_, '@type': []})
 
     assert_equal(_serialize_obj(datetime(2018, 12, 23)),
                  '2018-12-23T00:00:00')

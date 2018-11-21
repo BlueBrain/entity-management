@@ -129,7 +129,7 @@ class EModelRelease(ModelRelease):
         emodelIndex (ModelReleaseIndex): EModel release index file.
         isPartOf (Identifiable): Dataset this release is part of.
     '''
-    _url_version = 'v0.1.3'
+    _url_version = 'v0.1.4'
 
 
 @attributes({'emodelRelease': AttrOf(EModelRelease),

@@ -199,8 +199,7 @@ def _serialize_obj(value, fix_types=False):
         if value.id and '/entity/v' in value.id and fix_types:
             types -= {'nsg:Entity'}
         return {JSLD_ID: value.id,
-                JSLD_TYPE: list(types),
-                'name': ''}  # add fake name to keep nexus happy
+                JSLD_TYPE: list(types)}
 
     if isinstance(value, datetime):
         return value.isoformat()
