@@ -443,3 +443,13 @@ class TraceFeatureExtraction(Activity):
     '''
     _url_version = 'v0.1.2'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
+
+
+@attributes({
+    'configuration': AttrOf(dict),
+    'template': AttrOf(CoreEntity),
+})
+class SimWriterConfiguration(Entity):
+    '''SimWriter configuration entity.'''
+    _url_version = 'v0.1.1'
+    _type_name = 'Configuration'
