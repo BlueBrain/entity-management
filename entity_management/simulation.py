@@ -236,7 +236,7 @@ class EModelBuilding(Activity):
         wasAssociatedWith(List[SoftwareAgent]): Agents associated with
             this activity.
     '''
-    _url_version = 'v0.1.4'
+    _url_version = 'v0.1.5'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
