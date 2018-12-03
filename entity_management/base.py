@@ -198,7 +198,7 @@ def _serialize_obj(value, fix_types=False):
         types = set(value.types) if value.types else {}
         if value.id and '/entity/v' in value.id and fix_types:
             types -= {'nsg:Entity'}
-        return {JSLD_ID: value.id,
+        return {JSLD_ID: value.id_rev,
                 JSLD_TYPE: list(types)}
 
     if isinstance(value, datetime):
@@ -344,6 +344,11 @@ class Identifiable(Frozen):
     def get_type(cls):
         '''Get class type. Can be overriden by class varable _type_name.'''
         return '%s:%s' % (cls._type_namespace, cls._type_name or cls.__name__)
+
+    @property
+    def id_rev(self):
+        '''Id with revision'''
+        return '{}?rev={}'.format(self.id, self.meta.rev)
 
     @property
     def types(self):
