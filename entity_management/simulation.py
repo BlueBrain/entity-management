@@ -279,9 +279,11 @@ class CoreTraceCollection(Entity):
     _type_name = 'TraceCollection'
 
 
-@attributes({'name': AttrOf(str),
-             'channel': AttrOf(int),
-             'description': AttrOf(str, default=None)})
+@attributes({
+    'name': AttrOf(str),
+    'channel': AttrOf(int),
+    'description': AttrOf(str, default=None),
+})
 class ExperimentalCell(Frozen):
     '''Experimental cell.
 
@@ -293,24 +295,30 @@ class ExperimentalCell(Frozen):
     pass
 
 
-@attributes({'features': AttrOf(CoreEntity),
-             'hadProtocol': AttrOf(CoreEntity),
-             'hypampThreshold': AttrOf(CoreEntity, default=None)})
+@attributes({
+    'features': AttrOf(CoreEntity),
+    'hadProtocol': AttrOf(CoreEntity),
+    'eType': AttrOf(str),
+    'hypampThreshold': AttrOf(CoreEntity, default=None),
+    'isPartOf': AttrOf(EModelRelease, default=None),
+})
 class BluePyEfeFeatures(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.3'
+    _url_version = 'v0.1.4'
 
 
-@attributes({'brainRegion': AttrOf(OntologyTerm),
-             'species': AttrOf(OntologyTerm),
-             'mType': AttrOf(OntologyTerm),
-             'experimentalCell': AttrOf(List[ExperimentalCell]),
-             'featureExtractionConfiguration': AttrOf(dict),
-             'stimuliToExperimentMap': AttrOf(dict, default=None),
-             'masterListConfiguration': AttrOf(CoreEntity, default=None)})
+@attributes({
+    'brainRegion': AttrOf(OntologyTerm),
+    'species': AttrOf(OntologyTerm),
+    'mType': AttrOf(OntologyTerm),
+    'eType': AttrOf(str),
+    'experimentalCell': AttrOf(List[ExperimentalCell]),
+    'featureExtractionConfiguration': AttrOf(dict),
+    'stimuliToExperimentMap': AttrOf(dict, default=None),
+})
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.4'
+    _url_version = 'v0.1.5'
     _type_name = 'Configuration'
 
 
