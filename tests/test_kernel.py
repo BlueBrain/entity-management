@@ -17,6 +17,7 @@ from entity_management.nexus import _type_hint_from
 from entity_management.settings import BASE, USERINFO
 from utils import assert_substring, captured_output, strip_color_codes
 
+
 AGENT_JSON = {'email': 'James@Bond', 'given_name': 'James', 'family_name': 'Bond'}
 PERSON_JSLD = {
         '@id': 'http://url/to/core/person/v/id',
@@ -47,9 +48,9 @@ CAT_WOMAN_JSLD = {
 }
 
 
-
 def test_dict_merg():
     assert {1: 2, 'a': 'c', 3: 4} == util._merge({'a': 'b'}, {1: 2}, {'a': 'c'}, {3: 4})
+
 
 def test_attrs_utils():
     # define attrs class
@@ -80,6 +81,7 @@ def test_url_to_type():
     id_url = 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/0c7d5e80-c275-4187-897e-946da433b642'
     assert _type_hint_from(id_url) == 'simulation/morphologyrelease'
 
+
 @responses.activate
 def test_get_current_agent():
     with patch('entity_management.core.nexus.get_current_agent', return_value=None):
@@ -100,6 +102,7 @@ def test_get_current_agent():
     person = core.Person.get_current(use_auth='token')
     assert_equal(person.types, ['nsg:Person', 'nsg:Dummy', 'prov:Person'])
     assert_equal(person.email, 'James@Bond')
+
 
 @responses.activate
 def test_get_current_agent_not_in_nexus():
@@ -141,10 +144,6 @@ def test_nexus_find_by():
                   status=200)
 
     assert_equal(nx.find_by(collection_address='/no-redirection'), None)
-
-
-
-
 
 
 def test_print_violation_summary():

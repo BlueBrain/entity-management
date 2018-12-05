@@ -203,6 +203,8 @@ def resolve_path(key):
                 token = 'prov:%s' % token
             elif token in ['uuid', 'originalFileName']:
                 token = 'nxv:%s' % token
+            elif token in ['isPartOf']:
+                token = 'dcterms:%s' % token
             else:
                 token = 'nsg:%s' % token  # use default namespace
         path_list.append(token)

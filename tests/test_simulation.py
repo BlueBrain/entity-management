@@ -284,7 +284,9 @@ def test_load_morphology_release_by_uuid():
 
 
 @responses.activate
-def test_update_morphology_release():
+@patch('entity_management.core.nexus.get_current_agent')
+def test_update_morphology_release(get_current_agent):
+    get_current_agent.return_value = None
     responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),
             json=MORPHOLOGY_RELEASE_JSLD)
     responses.add(responses.PUT, '%s/%s' % (MorphologyRelease.base_url, UUID),
@@ -300,7 +302,7 @@ def test_update_morphology_release():
     new_distribution = morphology_release.distribution[0].evolve(downloadURL=new_url)
     morphology_release = morphology_release.evolve(distribution=[new_distribution])
 
-    morphology_release = morphology_release.publish(person=1)
+    morphology_release = morphology_release.publish()
 
     assert_equal(morphology_release.id, '%s/%s' % (MorphologyRelease.base_url, UUID))
     assert_equal(morphology_release.name, 'Morphology Release')

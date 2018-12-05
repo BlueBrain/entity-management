@@ -311,14 +311,14 @@ class BluePyEfeFeatures(Entity):
     'brainRegion': AttrOf(OntologyTerm),
     'species': AttrOf(OntologyTerm),
     'mType': AttrOf(OntologyTerm),
-    'eType': AttrOf(str),
+    'eType': AttrOf(OntologyTerm),
     'experimentalCell': AttrOf(List[ExperimentalCell]),
     'featureExtractionConfiguration': AttrOf(dict),
     'stimuliToExperimentMap': AttrOf(dict, default=None),
 })
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.5'
+    _url_version = 'v0.1.6'
     _type_name = 'Configuration'
 
 
