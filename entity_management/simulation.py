@@ -318,7 +318,7 @@ class BluePyEfeFeatures(Entity):
 })
 class BluePyEfeConfiguration(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.6'
+    _url_version = 'v0.1.7'
     _type_name = 'Configuration'
 
 
