@@ -198,7 +198,7 @@ def _serialize_obj(value, fix_types=False):
         types = set(value.types) if value.types else {}
         if value.id and '/entity/v' in value.id and fix_types:
             types -= {'nsg:Entity'}
-        return {JSLD_ID: value.id_rev,
+        return {JSLD_ID: value.id,
                 JSLD_TYPE: list(types)}
 
     if isinstance(value, datetime):
