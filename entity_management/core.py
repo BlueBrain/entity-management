@@ -68,7 +68,9 @@ class Person(Agent):
                                   poll_until_exists=True)
 
 
-@attributes({'version': AttrOf(str)})
+@attributes({
+    'version': AttrOf(str)
+})
 class SoftwareAgent(Agent):
     '''Software agent
 
@@ -105,9 +107,11 @@ class Activity(Identifiable):
             self._force_attr('startedAtTime', datetime.utcnow())
 
 
-@attributes({'wasAttributedTo': AttrOf(Agent, default=None),
-             'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
-             'dateCreated': AttrOf(datetime, default=None)})
+@attributes({
+    'wasAttributedTo': AttrOf(Agent, default=None),
+    'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
+    'dateCreated': AttrOf(datetime, default=None)
+})
 class ProvenanceMixin(object):
     '''Enables provenance metadata when publishing/deprecating entities'''
 
@@ -157,7 +161,10 @@ class ProvenanceMixin(object):
         return self
 
 
-@attributes({'name': AttrOf(str)})
+@attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str, default=None),
+})
 class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Generic class for core Entities.'''
     _url_domain = 'core'
