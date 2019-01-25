@@ -27,20 +27,19 @@ class _ListOfValidator(object):
                 .format(name=attribute.name), attribute, self.type_, value,
             )
 
-        if value is not None and not isinstance(value, list):
-            raise TypeError(
-                "'{name}' must be a list"
-                .format(name=attribute.name), attribute, self.type_, value,
-            )
-
-        if value is not None and not all(isinstance(v, self.type_) for v in value):
-            raise TypeError(
-                "'{name}' must be list of {type!r} (got {value!r} that is a "
-                '{actual!r}).'
-                .format(name=attribute.name, type=self.type_,
-                        actual=type(value), value=value),
-                attribute, self.type_, value,
-            )
+        if value is not None:
+            if not isinstance(value, list):
+                raise TypeError(
+                    "'{name}' must be a list"
+                    .format(name=attribute.name), attribute, self.type_, value,
+                )
+            if not all(isinstance(v, self.type_) for v in value):
+                raise TypeError(
+                    "'{name}' must be list of {type!r} (got {value!r} that is a "
+                    '{actual!r}).'
+                    .format(name=attribute.name, type=self.type_, actual=type(value), value=value),
+                    attribute, self.type_, value,
+                )
 
     def __repr__(self):
         return (
@@ -112,11 +111,12 @@ class AttrOf(object):
             '''optional_of'''
             return validators.optional(instance_of(type_))
 
-        if isinstance(type_, typing.GenericMeta):
+        if (hasattr(type_, '__origin__') and issubclass(type_.__origin__, typing.List)):
             # the collection was explicitly specified in attr.ib
             # like typing.List[Distribution]
             list_element_type = _get_list_params(type_)[0]
-            if type(list_element_type) is type(typing.Union):  # noqa
+            if (hasattr(list_element_type, '__args__') or
+                    hasattr(list_element_type, '__union_params__')):
                 types = _get_union_params(list_element_type)
                 validator = _list_of(types, default)
             else:

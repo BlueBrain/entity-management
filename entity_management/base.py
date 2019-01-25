@@ -118,10 +118,12 @@ class NexusResultsIterator(six.Iterator):
 def _deserialize_list(data_type, data_raw, token):
     '''Deserialize list of json elements'''
     result_list = []
+    is_explicit_list = False
     # find the type of collection element
-    if isinstance(data_type, typing.GenericMeta):
+    if (hasattr(data_type, '__origin__') and issubclass(data_type.__origin__, typing.List)):
         # the collection was explicitly specified in attr.ib
         # like typing.List[Distribution]
+        is_explicit_list = True
         list_element_type = _get_list_params(data_type)[0]
     else:
         # nexus returns a collection of one element
@@ -137,7 +139,7 @@ def _deserialize_list(data_type, data_raw, token):
     if not len(result_list):
         return None
     # do not use collection for single elements unless it was explicitly specified as typing.List
-    elif len(result_list) == 1 and not isinstance(data_type, typing.GenericMeta):
+    elif not is_explicit_list and len(result_list) == 1:
         return result_list[0]
     else:
         return result_list
