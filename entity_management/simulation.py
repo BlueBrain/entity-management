@@ -2,6 +2,8 @@
 
 from typing import List, Union
 
+from attr.validators import in_
+
 import entity_management.morphology as morphology
 from entity_management.base import (Distribution, Identifiable, attributes, Frozen,
                                     OntologyTerm, QuantitativeValue)
@@ -461,3 +463,37 @@ class SimWriterConfiguration(Entity):
     '''SimWriter configuration entity.'''
     _url_version = 'v0.1.1'
     _type_name = 'Configuration'
+
+
+@attributes({
+    'variable': AttrOf(str, validators=in_(['voltage', 'curent'])),
+    'target': AttrOf(str, validators=in_(['compartment',
+                                          'soma',
+                                          'summation',
+                                          'extra cellular recording'])),
+})
+class VariableReport(Entity):
+    '''Variable report.
+
+    Args:
+        variable (str): Variable shape(voltage, curent).
+        target (str): The variable report target
+            (compartment, soma, summation, extra cellular recording).
+    '''
+    _url_version = 'v0.1.1'
+
+
+@attributes({
+    'status': AttrOf(OntologyTerm),
+    'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]]),
+    'generated': AttrOf(VariableReport, default=None),
+})
+class Simulation(Activity):
+    '''Simulation activity.
+
+    Args:
+        used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
+        generated (BluePyEfeFeatures): Extracted features.
+    '''
+    _url_version = 'v0.2.0'
+    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'

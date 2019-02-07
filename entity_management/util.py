@@ -5,7 +5,7 @@ import typing
 from inspect import getmro
 
 import attr
-from attr import validators
+from attr.validators import instance_of as instance_of_validator, optional as optional_validator
 import six
 
 # copied from attrs, their standard way to make validators
@@ -102,14 +102,17 @@ class AttrOf(object):
     because they have a counter inside that is used to order them.
     '''
 
-    def __init__(self, type_, optional=Ellipsis, default=Ellipsis):
+    def __init__(self, type_, optional=Ellipsis, default=Ellipsis, validators=None):
+        if validators is None:
+            validators = []
+
         def instance_of(type_):
             '''instance_of'''
-            return validators.instance_of((type_, NotInstantiatedType))
+            return instance_of_validator((type_, NotInstantiatedType))
 
         def optional_of(type_):
             '''optional_of'''
-            return validators.optional(instance_of(type_))
+            return optional_validator(instance_of(type_))
 
         if (hasattr(type_, '__origin__') and issubclass(type_.__origin__, typing.List)):
             # the collection was explicitly specified in attr.ib
@@ -136,10 +139,11 @@ class AttrOf(object):
                     validator = optional_of(type_)
         self.is_positional = default is Ellipsis
 
+        validators = [validator] + validators if isinstance(validators, list) else [validators]
         if default is Ellipsis:  # no default value -> positional arg
-            self.fn = lambda: attr.ib(type=type_, validator=validator, repr=False)
+            self.fn = lambda: attr.ib(type=type_, validator=validators, repr=False)
         else:
-            self.fn = lambda: attr.ib(type=type_, default=default, validator=validator, repr=False)
+            self.fn = lambda: attr.ib(type=type_, default=default, validator=validators, repr=False)
 
     def __call__(self):
         return self.fn()
