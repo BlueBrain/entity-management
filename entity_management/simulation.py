@@ -8,6 +8,7 @@ from entity_management.base import (Distribution, Identifiable, attributes, Froz
 from entity_management.core import (Entity as CoreEntity, Activity, Agent, ProvenanceMixin,
                                     SoftwareAgent)
 from entity_management.electrophysiology import Trace
+from entity_management.atlas import CellAtlas
 from entity_management.mixins import DistributionMixin
 from entity_management.util import AttrOf
 
@@ -461,3 +462,65 @@ class SimWriterConfiguration(Entity):
     '''SimWriter configuration entity.'''
     _url_version = 'v0.1.1'
     _type_name = 'Configuration'
+
+
+@attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str),
+})
+class PointNeuronModel(Entity):
+    '''Point neuron model.
+
+    Args:
+        name (str): Name.
+        description (str): Reference to literature, params, doi.
+    '''
+
+
+@attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str),
+})
+class PointNeuronSynapseModel(Entity):
+    '''Synapse model of the point neurons.
+
+    Args:
+        name (str): Name.
+        description (str): Reference to literature, params, doi.
+    '''
+
+
+@attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str),
+    'neuronModels': AttrOf(List[PointNeuronModel]),
+    'synapseModels': AttrOf(List[PointNeuronSynapseModel]),
+    'distribution': AttrOf(Distribution),
+})
+class PointNeuronNetwork(Entity):
+    '''Point neuron network.
+
+    Args:
+        name (str): Name.
+        description (str): Description.
+        neuronModels (List[PointNeuronModel]): Neuron models used in the network.
+        synapseModels (List[PointNeuronSynapseModel]): Synapse models used in the network.
+        distribution (Distribution): Serialized representation of the network.
+    '''
+
+
+@attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str),
+    'used': AttrOf(CellAtlas),
+    'generated': AttrOf(PointNeuronNetwork),
+})
+class GenBrainActivity(Activity):
+    '''Generates point neuron network of the scaffold whole brain model.
+
+    Args:
+        name (str): Name.
+        description (str): Metadata, parameters, version of the algorithm.
+        used (CellAtlas): Used cell atlas.
+        generated (PointNeuronNetwork): Generated point neuron network.
+    '''
