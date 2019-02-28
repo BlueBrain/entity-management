@@ -335,8 +335,8 @@ class Identifiable(Frozen):
         # the object, which we do not want
         set_run_validators(False)
         obj = cls(id=id,
-                  **{arg.name: NotInstantiated for arg in
-                     set(attr.fields(cls)) - set(attr.fields(Identifiable))})
+                  **{arg.name: NotInstantiated for arg in attr.fields(cls)
+                     if arg.name not in attr.fields_dict(Identifiable)})
         obj.meta.token = token
         obj.meta.types = types
         set_run_validators(True)
@@ -503,10 +503,11 @@ class Identifiable(Frozen):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
         '''
-        attrs = set(attr.fields(type(self))) - set(attr.fields(Identifiable))
         rv = {}
         fix_types = 'nsg:Entity' in self.types if self.types else False
-        for attribute in attrs:  # pylint: disable=not-an-iterable
+        for attribute in attr.fields(type(self)):
+            if attribute.name in attr.fields_dict(Identifiable):
+                continue  # skip Identifiable attributes
             attr_value = getattr(self, attribute.name)
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
