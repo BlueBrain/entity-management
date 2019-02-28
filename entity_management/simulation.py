@@ -10,6 +10,7 @@ from entity_management.base import (Distribution, Identifiable, attributes, Froz
 from entity_management.core import (Entity as CoreEntity, Activity, Agent, ProvenanceMixin,
                                     SoftwareAgent)
 from entity_management.electrophysiology import Trace
+# from entity_management.atlas import CellAtlas
 from entity_management.mixins import DistributionMixin
 from entity_management.util import AttrOf
 
@@ -480,11 +481,10 @@ class VariableReport(Entity):
         target (str): The variable report target
             (compartment, soma, summation, extra cellular recording).
     '''
-    _url_version = 'v0.1.1'
+    _url_version = 'v0.1.2'
 
 
 @attributes({
-    'status': AttrOf(OntologyTerm),
     'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]]),
     'generated': AttrOf(VariableReport, default=None),
 })
@@ -495,5 +495,65 @@ class Simulation(Activity):
         used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
         generated (BluePyEfeFeatures): Extracted features.
     '''
-    _url_version = 'v0.2.0'
+    _url_version = 'v0.2.3'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
+
+
+# @attributes({
+#     'name': AttrOf(str),
+#     'description': AttrOf(str),
+# })
+# class PointNeuronModel(Entity):
+#     '''Point neuron model.
+#
+#     Args:
+#         name (str): Name.
+#         description (str): Reference to literature, params, doi.
+#     '''
+
+
+# @attributes({
+#     'name': AttrOf(str),
+#     'description': AttrOf(str),
+# })
+# class PointNeuronSynapseModel(Entity):
+#     '''Synapse model of the point neurons.
+#
+#     Args:
+#         name (str): Name.
+#         description (str): Reference to literature, params, doi.
+#     '''
+
+
+@attributes({
+    'version': AttrOf(str),
+    'neuronCount': AttrOf(int),
+    'synapseCount': AttrOf(int),
+    # 'neuronModels': AttrOf(List[PointNeuronModel]),
+    # 'synapseModels': AttrOf(List[PointNeuronSynapseModel]),
+})
+class PointNeuronNetwork(ModelInstance):
+    '''Point neuron network.
+
+    Args:
+        version (str): Point neuron network version.
+        neuronCount (int): Neuron count in the point neuron network.
+        synapseCount (int): Synapse count in the point neuron network.
+    '''
+
+
+# @attributes({
+#     'name': AttrOf(str),
+#     'description': AttrOf(str),
+#     'used': AttrOf(CellAtlas),
+#     'generated': AttrOf(PointNeuronNetwork),
+# })
+# class GenBrainActivity(Activity):
+#     '''Generates point neuron network of the scarfold whole brain model.
+#
+#     Args:
+#         name (str): Name.
+#         description (str): Metadata, parameters, version of the algorithm.
+#         used (CellAtlas): Used cell atlas.
+#         generated (PointNeuronNetwork): Generated point neuron network.
+#     '''
