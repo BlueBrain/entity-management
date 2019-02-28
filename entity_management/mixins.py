@@ -71,14 +71,18 @@ class DistributionMixin(object):
                     and dist.downloadURL.endswith('/attachment'))
         return next(filter_(is_attachment, self.distribution), None)
 
-    def get_gpfs_path(self):
+    def get_gpfs_path(self, media_type=None):
         '''Get gpfs link'''
         def is_gpfs(dist):
             '''Predicate to find gpfs distribution'''
             return (hasattr(dist, 'downloadURL')
                     and hasattr(dist, 'storageType')
                     and dist.storageType == 'gpfs'
-                    and dist.downloadURL.startswith('file:///gpfs/'))
+                    and dist.downloadURL.startswith('file:///gpfs/')
+                    and (media_type is not None
+                         and hasattr(dist, 'mediaType')
+                         and dist.mediaType == media_type
+                         or media_type is None))
         dist = next(filter_(is_gpfs, self.distribution), None)
         if dist is not None:
             return re.sub('^file://', '', dist.downloadURL)
