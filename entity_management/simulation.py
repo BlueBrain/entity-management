@@ -540,6 +540,7 @@ class PointNeuronNetwork(ModelInstance):
         neuronCount (int): Neuron count in the point neuron network.
         synapseCount (int): Synapse count in the point neuron network.
     '''
+    _url_version = 'v0.1.0'
 
 
 # @attributes({
