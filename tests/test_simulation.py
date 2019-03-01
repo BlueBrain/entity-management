@@ -19,6 +19,8 @@ from entity_management.simulation import (DetailedCircuit, NodeCollection, Model
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
+DUMMY_PERSON1 = core.Person(email='dummy_email1')
+DUMMY_PERSON2 = core.Person(email='dummy_email2')
 
 MORPHOLOGY_RELEASE_JSLD = {
     "@context": [
@@ -356,13 +358,19 @@ def test_publish_emodel_release():
 
     emodel_index = ModelReleaseIndex(
             name='index',
-            distribution=[base.Distribution(downloadURL='url')])
+            distribution=[base.Distribution(downloadURL='url')],
+            )
     emodel_index = emodel_index.publish(person=DUMMY_PERSON)
+    assert_equal(emodel_index.wasAttributedTo, [DUMMY_PERSON],
+                 'Attribution was not automatically set to the provided person')
 
     emodel_release = EModelRelease(
             name='EModelRelease',
             distribution=[base.Distribution(downloadURL='url')],
-            emodelIndex=emodel_index)
+            emodelIndex=emodel_index,
+            wasAttributedTo=[DUMMY_PERSON1, DUMMY_PERSON2])
+    assert_equal(emodel_release.wasAttributedTo, [DUMMY_PERSON1, DUMMY_PERSON2],
+                 'Explicitly set attribution on the entity was not kept')
 
     emodel_release = emodel_release.publish(person=DUMMY_PERSON)
 

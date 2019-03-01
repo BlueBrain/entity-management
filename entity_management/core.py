@@ -108,7 +108,7 @@ class Activity(Identifiable):
 
 
 @attributes({
-    'wasAttributedTo': AttrOf(Agent, default=None),
+    'wasAttributedTo': AttrOf(List[Agent], default=None),
     'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
     'dateCreated': AttrOf(datetime, default=None)
 })
@@ -123,8 +123,8 @@ class ProvenanceMixin(object):
         Args:
             activity(Activity): Provide custom activity to link with
                 generated entity new revision otherwise default activity will be created.
-            person(Person): Provide custom person to link with, otherwise identity will
-                be taken from the token if token is present.
+            person(Person): Override the agent with person to link with, otherwise identity will
+                be taken from the token if token is present or form env var AGENT.
             use_auth(str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         Returns:
@@ -133,20 +133,23 @@ class ProvenanceMixin(object):
         if activity is not None:
             assert isinstance(activity, Activity)
 
-        agent = person
         if AGENT is not None:
             # in case running in the context of externally provided agent
             agent = Agent.from_url(AGENT)
         elif person is None:
             agent = Person.get_current(use_auth)
+        else:
+            agent = person
 
         if self.id:
             js = nexus.update(self.id, self.meta.rev,
                               self.as_json_ld(), token=use_auth)
         else:
             self.meta.types = ['prov:Entity', self.get_type()]
-            self = self.evolve(wasAttributedTo=agent,
-                               dateCreated=datetime.utcnow())
+            if self.wasAttributedTo:
+                self = self.evolve(dateCreated=datetime.utcnow())
+            else:
+                self = self.evolve(wasAttributedTo=[agent], dateCreated=datetime.utcnow())
             js = nexus.create(
                 self.base_url, self.as_json_ld(), token=use_auth)
 
