@@ -2,5 +2,5 @@
 host=bbpcode.epfl.ch
 port=22
 project=nse/ProductionEntities
-defaultbranch=master
+defaultbranch=v0
 defaultremote=origin
