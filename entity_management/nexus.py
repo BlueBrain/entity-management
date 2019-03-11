@@ -98,18 +98,19 @@ def _print_violation_summary(data):
         if no_hash.startswith('Violation'):
             color = '\033[92m'
             end_color = '\033[0m'
-            color_url = re.sub(r'<(.*?)>', color + r'<\g<1>>' + end_color, no_hash)
+            no_hash = re.sub(r'<(.*?)>', color + r'<\g<1>>' + end_color, no_hash)
 
-        print(color_url + '\n', file=sys.stderr)
+        print(no_hash + '\n', file=sys.stderr)
 
 
 def _nexus_wrapper(func):
     '''Pretty print nexus error responses, inject token if set in env'''
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         '''decorator function'''
 
-        if 'NEXUS_DRY_RUN' in os.environ and func.__name__ in ['create', 'update',
+        if 'NEXUS_DRY_RUN' in os.environ and func.__name__ in ['create', 'update', 'patch',
                                                                'deprecate', 'attach']:
             return None
 
@@ -174,6 +175,29 @@ def update(id_url, rev, payload, token=None):
                             headers=_get_headers(token),
                             params={'rev': rev},
                             json=payload)
+    response.raise_for_status()
+    return response.json(object_hook=_byteify)
+
+
+@_nexus_wrapper
+def patch(id_url, rev, payload, token=None):
+    '''Patch entity, return json response
+
+     Args:
+         id_url(str): Url of the entity which will be updated.
+         rev(int): Revision number.
+         payload(dict): Json-ld serialization of the entity.
+         token(str): Optional OAuth token.
+
+     Returns:
+         Json response.
+    '''
+    assert id_url is not None
+    assert rev > 0
+    response = requests.patch(id_url,
+                              headers=_get_headers(token),
+                              params={'rev': rev},
+                              json=payload)
     response.raise_for_status()
     return response.json(object_hook=_byteify)
 

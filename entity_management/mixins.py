@@ -35,6 +35,7 @@ class DistributionMixin(object):
         Returns:
             New instance with distribution attribute updated.
         '''
+        self._instantiate()
         js = nexus.attach(self.id, self.meta.rev, file_name, data, content_type, token=use_auth)
         self.meta.rev = js[JSLD_REV]
         return self.evolve(distribution=_deserialize_list(List[Distribution],
