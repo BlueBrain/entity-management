@@ -156,6 +156,8 @@ class ProvenanceMixin(object):
         self = self.evolve(id=js[JSLD_ID], meta=attr.evolve(self.meta, rev=js[JSLD_REV]))
 
         if activity is not None:
+            if agent and 'prov:Agent' not in agent.meta.types:  # fix v0 nexus activity schema bug
+                agent.meta.types.append('prov:Agent')
             activity = activity.evolve(generated=self, wasStartedBy=agent)
             if activity.meta.types is None:
                 activity.meta.types = ['prov:Activity', activity.get_type()]

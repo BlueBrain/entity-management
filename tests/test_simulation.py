@@ -321,6 +321,7 @@ def test_publish_morphology_release():
 
     morphology_release = MorphologyRelease(name='MorphologyRelease',
                                            distribution=[base.Distribution(downloadURL='url')])
+    DUMMY_PERSON.meta.types = ['prov:Entity']  # initialize so the bugfix works
     morphology_release = morphology_release.publish(person=DUMMY_PERSON,
             activity=MorphologyDiversification(used=[Configuration(name='')]))
 
