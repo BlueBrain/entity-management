@@ -301,13 +301,11 @@ class ExperimentalCell(Frozen):
 @attributes({
     'features': AttrOf(CoreEntity),
     'hadProtocol': AttrOf(CoreEntity),
-    'eType': AttrOf(str),
     'hypampThreshold': AttrOf(CoreEntity, default=None),
-    'isPartOf': AttrOf(EModelRelease, default=None),
 })
 class BluePyEfeFeatures(Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.4'
+    _url_version = 'v0.1.5'
 
 
 @attributes({
