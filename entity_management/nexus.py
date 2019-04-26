@@ -11,35 +11,44 @@ from pprint import pprint
 import requests
 from six import PY2, iteritems, text_type
 # pylint: disable=import-error,no-name-in-module, relative-import,wrong-import-order
-from six.moves.urllib.parse import urlsplit
 
-from entity_management.settings import BASE, NSG_CTX, USERINFO
+from entity_management.util import quote
+from entity_management.settings import (BASE_RESOURCES, USERINFO, BASE_FILES, ORG, PROJ,
+                                        DASH, NSG)
 
 L = logging.getLogger(__name__)
 
 _URL_TO_CLS_MAP = {}
 
 
-def register_type(type_hint, cls):
+def register_type(schema_id, cls):
     '''Store type corresponding to type hint'''
-    _URL_TO_CLS_MAP[type_hint] = cls
+    _URL_TO_CLS_MAP[schema_id] = cls
 
 
-def _type_hint_from(id_url):
-    '''Ignore the ending UUID and take domain/entity as type hint'''
-    return '/'.join(urlsplit(id_url).path.split('/')[-4:-2])
-
-
-def get_type(id_url):
+def get_type(types):
     '''Get type which corresponds to the id_url'''
-    return _URL_TO_CLS_MAP.get(_type_hint_from(id_url), None)
+    raise Exception(types)
+    # return _URL_TO_CLS_MAP.get(_type_hint_from(id_url), None)
 
 
-def _get_headers(token):
+def get_type_from_id(resource_id, token=None):
+    '''Get type which corresponds to the id_url'''
+    url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, ORG, PROJ, quote(resource_id))
+    response = requests.get(url, headers=_get_headers(token))
+    response.raise_for_status()
+    constrained_by = response.json(object_hook=_byteify)['_constrainedBy']
+    constrained_by = constrained_by.replace('dash:', str(DASH)).replace('nsg:', str(NSG))
+    return _URL_TO_CLS_MAP[constrained_by]
+
+
+def _get_headers(token=None, accept='application/ld+json'):
     '''Get headers with additional authorization header if token is not None'''
-    headers = {'accept': 'application/ld+json'}
+    headers = {}
     if token is not None:
         headers['authorization'] = token
+    if accept is not None:
+        headers['accept'] = accept
     return headers
 
 
@@ -109,8 +118,7 @@ def _nexus_wrapper(func):
     def wrapper(*args, **kwargs):
         '''decorator function'''
 
-        if 'NEXUS_DRY_RUN' in os.environ and func.__name__ in ['create', 'update',
-                                                               'deprecate', 'attach']:
+        if 'NEXUS_DRY_RUN' in os.environ and func.__name__ in ['create', 'update', 'deprecate']:
             return None
 
         token_argument = kwargs.get('token', None)
@@ -123,21 +131,20 @@ def _nexus_wrapper(func):
             if e.response.status_code == 401:
                 _check_token_validity(kwargs['token'])
             print('NEXUS ERROR>>>', file=sys.stderr)
-            pprint(e.response.text, stream=sys.stderr)
-            if e.response.status_code == 400:
-                _print_violation_summary(e.response.json())
+            try:
+                response_data = e.response.json()
+            except ValueError:
+                response_data = e.response.text
+            pprint(response_data, stream=sys.stderr)
+            # if e.response.status_code == 400: TODO this is different in v1
+            #     _print_violation_summary(e.response.json())
             print('<<<', file=sys.stderr)
             raise
     return wrapper
 
 
-def get_uuid_from_url(url):
-    '''Extract last part of url path which is UUID'''
-    return urlsplit(url).path.split('/')[-1]
-
-
 @_nexus_wrapper
-def create(base_url, payload, token=None):
+def create(base_url, payload, resource_id=None, token=None):
     '''Create entity, return json response
 
     Args:
@@ -148,9 +155,11 @@ def create(base_url, payload, token=None):
     Returns:
         Json response.
     '''
-    response = requests.post(base_url,
-                             headers=_get_headers(token),
-                             json=payload)
+    if resource_id:
+        url = '%s/%s' % (base_url, resource_id)
+        response = requests.put(url, headers=_get_headers(token), json=payload)
+    else:
+        response = requests.post(base_url, headers=_get_headers(token), json=payload)
     response.raise_for_status()
     return response.json(object_hook=_byteify)
 
@@ -190,90 +199,54 @@ def deprecate(id_url, rev, token=None):
     return response.json(object_hook=_byteify)
 
 
+# @_nexus_wrapper
+# def find_by(collection_address=None, query=None, token=None):
+#     '''Find entities using NEXUS queries endpoint'''
+#     if query is not None:
+#         json = {'@context': NSG_CTX,
+#                 'resource': 'instances',
+#                 'deprecated': False,
+#                 'filter': query}
+#     else:
+#         json = {'@context': NSG_CTX,
+#                 'resource': 'instances', 'deprecated': False}
+#
+#     response = requests.post('%s/queries%s' % (BASE, collection_address or ''),
+#                              headers=_get_headers(token),
+#                              json=json,
+#                              allow_redirects=False)
+#
+#     # query successful follow redirect
+#     if response.status_code == 303:
+#         return response.headers.get('location')
+#
+#     response.raise_for_status()
+#     return None
+
+
 @_nexus_wrapper
-def attach(id_url, rev, file_name, data, content_type, token=None):
-    '''Attach binary to the entity.
+def load_by_url(url, params=None, stream=False, token=None):
+    '''Load json-ld from url
 
     Args:
-        id_url(str): Url of the entity to which the attachment will be added.
-        file_name(str): Original file name.
-        data(file): File like data stream.
-        content_type(str): Content type with which attachment will be delivered when accessed
-            with the download url.
-        token(str): Optional OAuth token.
+        url (str): Url of the entity which will be loaded.
+        params (dict): Url query params.
+        stream (bool): If True then ``response.content`` stream is returned.
+        token (str): Optional OAuth token.
 
     Returns:
-        Json response.
+        if stream is true then response stream content is returned otherwise
+        json response.
     '''
-    assert id_url is not None
-    assert rev > 0
-    response = requests.put('%s/attachment' % id_url,
-                            headers=_get_headers(token),
-                            params={'rev': rev},
-                            files={'file': (file_name, data, content_type)})
-    response.raise_for_status()
-    return response.json(object_hook=_byteify)
-
-
-@_nexus_wrapper
-def download(url, path, file_name, token=None):
-    '''Download entity attachment.
-
-    Args:
-        url(str): Url of the attachment.
-        path(str): Path where to save the file.
-        file_name(str): File name.
-        token(str): Optional OAuth token.
-
-    Returns:
-        Raw response.
-    '''
-    response = requests.get(
-        url, headers={'authorization': token} if token else {}, stream=True)
-    try:
-        response.raise_for_status()
-        with open(os.path.join(path, file_name), 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024):
-                f.write(chunk)
-    finally:
-        response.close()
-
-
-@_nexus_wrapper
-def find_by(collection_address=None, query=None, token=None):
-    '''Find entities using NEXUS queries endpoint'''
-    if query is not None:
-        json = {'@context': NSG_CTX,
-                'resource': 'instances',
-                'deprecated': False,
-                'filter': query}
-    else:
-        json = {'@context': NSG_CTX,
-                'resource': 'instances', 'deprecated': False}
-
-    response = requests.post('%s/queries%s' % (BASE, collection_address or ''),
-                             headers=_get_headers(token),
-                             json=json,
-                             allow_redirects=False)
-
-    # query successful follow redirect
-    if response.status_code == 303:
-        return response.headers.get('location')
-
-    response.raise_for_status()
-    return None
-
-
-@_nexus_wrapper
-def load_by_url(url, token=None):
-    '''Load json-ld from url'''
-    response = requests.get(url, headers=_get_headers(token))
+    response = requests.get(url, headers=_get_headers(token), params=params)
     # if not found then return None
     if response.status_code == 404:
         return None
     response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return js
+    if stream:
+        return response.content
+    else:
+        return response.json(object_hook=_byteify)
 
 
 @_nexus_wrapper
@@ -287,3 +260,118 @@ def get_current_agent(token=None):
     response.raise_for_status()
     js = response.json(object_hook=_byteify)
     return js
+
+
+def _get_files_endpoint():
+    return ''
+
+
+@_nexus_wrapper
+def _get_file_metadata(resource_id, tag=None, token=None):
+    '''Helper function'''
+    url = '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(resource_id))
+    response = requests.get(url,
+                            headers=_get_headers(token),
+                            params={'tag': tag if tag else None})
+
+    if response.status_code == 404:
+        return None
+
+    response.raise_for_status()
+    return response.json(object_hook=_byteify)
+
+
+def get_file_rev(resource_id, tag=None, token=None):
+    '''Get file rev.
+
+    Args:
+        resource_id (str): Nexus ID of the file.
+        tag (str): Provide tag to fetch specific file.
+        token(str): Optional OAuth token.
+
+    Returns:
+        File revision.
+    '''
+    return _get_file_metadata(resource_id, tag, token)['_rev']
+
+
+def get_file_name(resource_id, tag=None, token=None):
+    '''Get file rev.
+
+    Args:
+        resource_id (str): Nexus ID of the file.
+        tag (str): Provide tag to fetch specific file.
+        token(str): Optional OAuth token.
+
+    Returns:
+        File name.
+    '''
+    return _get_file_metadata(resource_id, tag, token)['_filename']
+
+
+@_nexus_wrapper
+def upload_file(name, data, content_type, resource_id=None, rev=None, token=None):
+    '''Upload file.
+
+    Args:
+        name (str): File name.
+        data (file): File like data stream.
+        content_type (str): Content type of the data stream.
+        resource_id (str): Nexus ID of the file.
+        rev (int): If you are reuploading file this needs to match current revision of the file.
+        token(str): OAuth token.
+
+    Returns:
+        Identifier of the uploaded file.
+    '''
+    if resource_id:
+        url = '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(resource_id))
+        response = requests.put(url,
+                                headers=_get_headers(token),
+                                params={'rev': rev if rev else None},
+                                files={'file': (name, data, content_type)})
+    else:
+        url = '%s/%s/%s' % (BASE_FILES, ORG, PROJ)
+        response = requests.post(url,
+                                 headers=_get_headers(token),
+                                 files={'file': (name, data, content_type)})
+
+    response.raise_for_status()
+    return response.json(object_hook=_byteify)
+
+
+@_nexus_wrapper
+def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=None):
+    '''Download file.
+
+    Args:
+        resource_id (str): Nexus ID of the file.
+        path (str): Path where to save the file.
+        file_name (str): Provide file name to use instead of original name.
+        tag (str): Provide tag to fetch specific file.
+        rev (int): Provide revision number to fetch specific file.
+        token(str): Optional OAuth token.
+
+    Returns:
+        Raw response.
+    '''
+    url = '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(resource_id))
+
+    response = requests.get(url,
+                            headers=_get_headers(token, accept=None),
+                            params={'tag': tag if tag else None,
+                                    'rev': rev if rev else None},
+                            stream=True)
+    try:
+        response.raise_for_status()
+        if file_name is None:
+            file_name = response.headers.get('content-disposition')
+            file_name = re.findall("filename\\*=UTF-8''(.+)", file_name)[0]
+        file_ = os.path.join(path, file_name)
+        with open(file_, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=1024):
+                f.write(chunk)
+    finally:
+        response.close()
+
+    return os.path.join(os.path.realpath(path), file_name)

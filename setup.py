@@ -6,7 +6,7 @@ import os
 from setuptools import setup, find_packages
 
 
-############ VERSION FINDING
+# VERSION FINDING
 def get_version(version_filepath):
     '''extract version information from a version.py file'''
     VERSION_VAR_NAME = 'VERSION'
@@ -17,8 +17,7 @@ def get_version(version_filepath):
     version = None
     for node in tree.body:
         if isinstance(node, ast.Assign):
-            if (isinstance(node.targets[0], ast.Name) and
-                  isinstance(node.value, ast.Str)):
+            if (isinstance(node.targets[0], ast.Name) and isinstance(node.value, ast.Str)):
                 if node.targets[0].id == VERSION_VAR_NAME:
                     version = node.value.s
 
@@ -27,14 +26,15 @@ def get_version(version_filepath):
 
     return version
 
+
 VERSION = get_version(os.path.join(os.path.dirname(__file__),
                                    'entity_management/version.py'))
 
 TESTS_REQUIRE = [
-        'nose==1.3.0',
-        'mock==1.0.1',
-        'responses',
-        ]
+    'nose==1.3.0',
+    'mock==1.0.1',
+    'responses',
+]
 
 setup(
     name="entity-management",
@@ -45,7 +45,9 @@ setup(
         'attrs>=18.1.0',
         'six',
         'python-dateutil',
-        ],
+        'sparqlwrapper',
+        'rdflib-jsonld',
+    ],
     tests_require=TESTS_REQUIRE,
     extras_require={
         'extension_tests': TESTS_REQUIRE,

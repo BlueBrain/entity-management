@@ -27,7 +27,7 @@ class is available under `Bases` section.
 **Simulation domain entities**:
 
 .. inheritance-diagram:: entity_management.simulation
-   :top-classes: entity_management.simulation.Entity
+   :top-classes: entity_management.simulation._Entity
    :parts: 1
 
 

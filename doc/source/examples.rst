@@ -135,60 +135,11 @@ and model instantiation hoc script:
 Quering entities
 ################
 
-Retrieve entity by UUID
-***********************
+Retrieve entity by ID
+*********************
 
 .. code-block:: python
 
     from entity_management.simulation import MEModel
 
-    memodel = MEModel.from_uuid('546ffb86-370e-4e6b-9e4f-20e7d3e979d0', use_auth=TOKEN)
-
-
-Retrieve entity by Name
-***********************
-
-.. code-block:: python
-
-    from entity_management.simulation import MEModel
-
-    memodel = MEModel.from_name('Model name', use_auth=TOKEN)
-
-
-Retrieve memodel by name and save in a folder
-*********************************************
-
-The code below will save single cell model represented by
-:class:`MEModel <entity_management.simulation.MEModel>` in the ``model_dir`` folder:
-
-.. code-block:: python
-
-    from entity_management.simulation import MEModel
-
-    model_dir = 'model_dir'
-    os.makedirs(model_dir)
-
-    memodel = next(MEModel.find_by(name='Model name', use_auth=TOKEN))
-    if memodel is not None:
-        memodel.mainModelScript.download(model_dir, use_auth=TOKEN)
-        memodel.morphology.download(model_dir, use_auth=TOKEN)
-        [s.modelScript.download(model_dir, use_auth=TOKEN) for s in memodel.eModel.subCellularMechanism]
-
-
-Retrieve BluePyEfe configuration
-********************************
-
-The code below will save single cell model represented by
-:class:`BluePyEfeConfiguration <entity_management.simulation.BluePyEfeConfiguration>` in the ``config`` folder:
-
-.. code-block:: python
-
-    from entity_management.simulation import BluePyEfeConfiguration
-
-    config_dir = 'config'
-    os.makedirs(config_dir)
-
-    config = next(BluePyEfeConfiguration.find_by(name='Rt config', use_auth=TOKEN))
-    if config is not None:
-        [print(cell) for cell in config.experimentalCellList]
-        xlsx = config.masterListConfiguration.download(model_dir, use_auth=TOKEN)
+    memodel = MEModel.from_id(resource_id='546ffb86-370e-4e6b-9e4f-20e7d3e979d0', use_auth=TOKEN)

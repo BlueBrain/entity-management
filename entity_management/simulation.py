@@ -5,13 +5,12 @@ from typing import List, Union
 from attr.validators import in_
 
 import entity_management.morphology as morphology
-from entity_management.base import (Distribution, Identifiable, attributes, Frozen,
-                                    OntologyTerm, QuantitativeValue)
-from entity_management.core import (Entity as CoreEntity, Activity, Agent, ProvenanceMixin,
-                                    SoftwareAgent)
+from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
+                                    QuantitativeValue)
+from entity_management.core import (Entity, Activity, Agent, ProvenanceMixin,
+                                    SoftwareAgent, DataDownload, DistributionMixin)
 from entity_management.electrophysiology import Trace
 # from entity_management.atlas import CellAtlas
-from entity_management.mixins import DistributionMixin
 from entity_management.util import AttrOf
 
 
@@ -19,7 +18,7 @@ from entity_management.util import AttrOf
     'name': AttrOf(str),
     'description': AttrOf(str, default=None),
 })
-class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
+class _Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
     Args:
@@ -33,7 +32,7 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
 @attributes({'modelOf': AttrOf(str, default=None),
              'brainRegion': AttrOf(OntologyTerm, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
-class ModelInstance(Entity):
+class ModelInstance(_Entity):
     '''Abstract model instance.
 
     Args:
@@ -46,31 +45,31 @@ class ModelInstance(Entity):
 
 @attributes({'brainRegion': AttrOf(OntologyTerm, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
-class ModelRelease(Entity):
+class ModelRelease(_Entity):
     '''Release base entity'''
     _url_version = 'v0.1.3'
 
 
 @attributes()
-class ModelScript(Entity):
+class ModelScript(_Entity):
     '''Base entity for the scripts attached to the model.'''
     _url_version = 'v0.1.1'
 
 
 @attributes()
-class ModelReleaseIndex(Entity):
+class ModelReleaseIndex(_Entity):
     '''Index files attached to release entities'''
     _url_version = 'v0.1.2'
 
 
-@attributes({'distribution': AttrOf(List[Distribution]),
+@attributes({'distribution': AttrOf(List[DataDownload]),
              'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
 class MorphologyRelease(ModelRelease):
     '''Morphology release can be located at the external location or constituted from individual
     :class:`Morphology` entities.
 
     Args:
-        distribution(List[Distribution]): If morphology release is provided at the external
+        distribution(List[DataDownload]): If morphology release is provided at the external
             location distribution should provide the path to locate it. It should contain
 
             * ``v1`` folder with morphologies in H5v1 format
@@ -91,18 +90,18 @@ class IonChannelMechanismRelease(ModelRelease):
     _url_version = 'v0.1.3'
 
 
-@attributes({'distribution': AttrOf(List[Distribution])})
+@attributes({'distribution': AttrOf(List[DataDownload])})
 class SynapseRelease(ModelRelease):
     '''Synapse release represents a collection of mod files.
 
     Args:
-        distribution(List[Distribution]): Location of the synapse release/mod files.
+        distribution(List[DataDownload]): Location of the synapse release/mod files.
     '''
     _url_version = 'v0.1.1'
 
 
 @attributes()
-class Configuration(Entity):
+class Configuration(_Entity):
     '''Configuration file'''
     _url_version = 'v0.1.1'
 
@@ -120,7 +119,7 @@ class MorphologyDiversification(Activity):
 
 
 @attributes({
-    'distribution': AttrOf(List[Distribution], default=None),
+    'distribution': AttrOf(List[DataDownload], default=None),
     'emodelIndex': AttrOf(ModelReleaseIndex, default=None),
     'isPartOf': AttrOf(Identifiable, default=None)
 })
@@ -128,7 +127,7 @@ class EModelRelease(ModelRelease):
     '''Electrical model release
 
     Args:
-        distribution (List[Distribution]): EModel release location provides a path to ``hoc`` files.
+        distribution (List[DataDownload]): EModel release location provides a path to ``hoc`` files.
         emodelIndex (ModelReleaseIndex): EModel release index file.
         isPartOf (Identifiable): Dataset this release is part of.
     '''
@@ -149,7 +148,7 @@ class MEModelRelease(ModelRelease):
     _url_version = 'v0.1.2'
 
 
-@attributes({'distribution': AttrOf(List[Distribution], default=None),
+@attributes({'distribution': AttrOf(List[DataDownload], default=None),
              'mType': AttrOf(OntologyTerm, default=None),
              'isPartOf': AttrOf(MorphologyRelease, default=None),
              'view2d': AttrOf(Identifiable, default=None),
@@ -160,7 +159,7 @@ class Morphology(ModelInstance):
     provided in the distribution attribute.
 
     Args:
-        distribution(List[Distribution]): If morphology is stored at the external location
+        distribution(List[DataDownload]): If morphology is stored at the external location
             distribution should provide the path to it.
         mType(OntologyTerm): Morphological cell type.
         isPartOf(MorphologyRelease): Release this morphology is part of.
@@ -175,7 +174,7 @@ class SubCellularModelScript(ModelScript):
     '''Scripts attached to the model: ``mod`` file.
 
     Args:
-        distribution(List[Distribution]): If model script is provided at the external location then
+        distribution(List[DataDownload]): If model script is provided at the external location then
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
@@ -187,7 +186,7 @@ class EModelScript(ModelScript):
     '''Scripts attached to the model: ``hoc``, ``neuroml`` file.
 
     Args:
-        distribution(List[Distribution]): If model script is provided at the external location then
+        distribution(List[DataDownload]): If model script is provided at the external location then
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
@@ -253,13 +252,13 @@ class SingleCellTraceGeneration(Activity):
 
 
 @attributes()
-class SingleCellSimulationTrace(Entity):
+class SingleCellSimulationTrace(_Entity):
     '''Single cell simulation trace file'''
     _url_version = 'v0.1.4'
 
 
 @attributes({'hadMember': AttrOf(List[Trace], default=None)})
-class TraceCollection(Entity):
+class TraceCollection(_Entity):
     '''Collection of traces
 
     Args:
@@ -270,7 +269,7 @@ class TraceCollection(Entity):
 
 
 @attributes({'hadMember': AttrOf(List[Trace], default=None)})
-class CoreTraceCollection(Entity):
+class CoreTraceCollection(_Entity):
     '''Collection of traces
 
     Args:
@@ -299,13 +298,13 @@ class ExperimentalCell(Frozen):
 
 
 @attributes({
-    'features': AttrOf(CoreEntity),
-    'hadProtocol': AttrOf(CoreEntity),
+    'features': AttrOf(Entity),
+    'hadProtocol': AttrOf(Entity),
     'eType': AttrOf(str),
-    'hypampThreshold': AttrOf(CoreEntity, default=None),
+    'hypampThreshold': AttrOf(Entity, default=None),
     'isPartOf': AttrOf(EModelRelease, default=None),
 })
-class BluePyEfeFeatures(Entity):
+class BluePyEfeFeatures(_Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.4'
 
@@ -319,7 +318,7 @@ class BluePyEfeFeatures(Entity):
     'featureExtractionConfiguration': AttrOf(dict),
     'stimuliToExperimentMap': AttrOf(dict, default=None),
 })
-class BluePyEfeConfiguration(Entity):
+class BluePyEfeConfiguration(_Entity):
     '''BluePyEfe configuration entity'''
     _url_version = 'v0.1.7'
     _type_name = 'Configuration'
@@ -343,19 +342,19 @@ class MEModel(ModelInstance):
     _url_version = 'v0.1.3'
 
 
-@attributes({'distribution': AttrOf(List[Distribution])})
-class CircuitCellProperties(Entity):
+@attributes({'distribution': AttrOf(List[DataDownload])})
+class CircuitCellProperties(_Entity):
     '''Cell properties provides locationd of the MVD3 file with cell properties.
 
     Args:
-        distribution(List[Distribution]): Location of the cell placement file.
+        distribution(List[DataDownload]): Location of the cell placement file.
     '''
     _url_version = 'v0.1.1'
 
 
 @attributes({'memodelRelease': AttrOf(MEModelRelease),
              'circuitCellProperties': AttrOf(CircuitCellProperties)})
-class NodeCollection(Entity):
+class NodeCollection(_Entity):
     '''Node collection represents circuit nodes(positions, orientations)
 
     Args:
@@ -366,25 +365,25 @@ class NodeCollection(Entity):
     _url_version = 'v0.1.2'
 
 
-@attributes({'edgePopulation': AttrOf(CoreEntity),
+@attributes({'edgePopulation': AttrOf(Entity),
              'synapseRelease': AttrOf(SynapseRelease)})
-class EdgeCollection(Entity):
+class EdgeCollection(_Entity):
     '''Edge collection represents circuit connectivity(synapses, projections)
 
     Args:
-        edgePopulation(core.Entity): Distribution providing path to the collection of nrn
+        edgePopulation(core.Entity): DataDownload providing path to the collection of nrn
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
     _url_version = 'v0.1.2'
 
 
-@attributes({'distribution': AttrOf(List[Distribution])})
-class Target(Entity):
+@attributes({'distribution': AttrOf(List[DataDownload])})
+class Target(_Entity):
     '''Location of the text file defining cell targets (i.e. named collections of cell GIDs)
 
     Args:
-        distribution(List[Distribution]): Location of the target file.
+        distribution(List[DataDownload]): Location of the target file.
     '''
     _url_version = 'v0.1.1'
 
@@ -411,31 +410,31 @@ class DetailedCircuit(ModelInstance):
              'experimentalFeatures': AttrOf(BluePyEfeFeatures, default=None),
              'morphology': AttrOf(morphology.Entity, default=None),
              'hasOutput': AttrOf(EModelRelease, default=None)})
-class BluePyOptRun(Entity):
+class BluePyOptRun(_Entity):
     '''Release base entity'''
     _url_version = 'v0.1.12'
 
 
 @attributes()
-class ETypeFeatureProtocol(Entity):
+class ETypeFeatureProtocol(_Entity):
     '''Trace protocol.'''
     _url_version = 'v0.1.2'
 
 
 @attributes()
-class TraceFeature(Entity):
+class TraceFeature(_Entity):
     '''Trace feature.'''
     _url_version = 'v0.1.1'
 
 
 @attributes()
-class Threshold(Entity):
+class Threshold(_Entity):
     '''Threshold.'''
     _url_version = 'v0.1.2'
 
 
 @attributes({'activity': AttrOf(Activity)})
-class EModelGenerationShape(Entity):
+class EModelGenerationShape(_Entity):
     '''EModel generation.'''
     _url_version = 'v0.1.1'
     _type_name = 'TraceGeneration'
@@ -458,9 +457,9 @@ class TraceFeatureExtraction(Activity):
 
 @attributes({
     'configuration': AttrOf(dict),
-    'template': AttrOf(CoreEntity),
+    'template': AttrOf(Entity),
 })
-class SimWriterConfiguration(Entity):
+class SimWriterConfiguration(_Entity):
     '''SimWriter configuration entity.'''
     _url_version = 'v0.1.1'
     _type_name = 'Configuration'
@@ -473,7 +472,7 @@ class SimWriterConfiguration(Entity):
                                           'summation',
                                           'extra cellular recording'])),
 })
-class VariableReport(Entity):
+class VariableReport(_Entity):
     '''Variable report.
 
     Args:
@@ -503,7 +502,7 @@ class Simulation(Activity):
 #     'name': AttrOf(str),
 #     'description': AttrOf(str),
 # })
-# class PointNeuronModel(Entity):
+# class PointNeuronModel(_Entity):
 #     '''Point neuron model.
 #
 #     Args:
@@ -516,7 +515,7 @@ class Simulation(Activity):
 #     'name': AttrOf(str),
 #     'description': AttrOf(str),
 # })
-# class PointNeuronSynapseModel(Entity):
+# class PointNeuronSynapseModel(_Entity):
 #     '''Synapse model of the point neurons.
 #
 #     Args:

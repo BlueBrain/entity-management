@@ -8,6 +8,5 @@ API Documentation
    entity_management.core
    entity_management.electrophysiology
    entity_management.experiment
-   entity_management.mixins
    entity_management.morphology
    entity_management.simulation

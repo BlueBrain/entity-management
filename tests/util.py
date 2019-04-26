@@ -1,10 +1,12 @@
+# pylint: disable=missing-docstring
 import re
 import sys
 
 from contextlib import contextmanager
+from nose.tools import ok_
+
 from entity_management.compat import StringIO
 
-from nose.tools import ok_
 
 @contextmanager
 def captured_output():

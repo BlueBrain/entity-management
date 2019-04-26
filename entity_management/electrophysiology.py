@@ -2,7 +2,7 @@
 Experimental morphologies entities
 
 .. inheritance-diagram:: entity_management.electrophysiology
-   :top-classes: entity_management.electrophysiology.Entity,
+   :top-classes: entity_management.electrophysiology._Entity,
     entity_management.electrophysiology.StimulusType, entity_management.core.Activity
    :parts: 1
 '''
@@ -10,13 +10,12 @@ from datetime import datetime
 
 from entity_management.base import Identifiable, OntologyTerm, QuantitativeValue, attributes, Frozen
 from entity_management.util import AttrOf
-from entity_management.mixins import DistributionMixin
-from entity_management.core import Activity
+from entity_management.core import Activity, DistributionMixin
 from entity_management.experiment import PatchedCell
 
 
 @attributes()
-class Entity(Identifiable):
+class _Entity(Identifiable):
     '''Base class for electrophysiology Enitities'''
     _url_domain = 'electrophysiology'
 
@@ -50,7 +49,7 @@ class StimulusExperiment(Activity):
              'providerExperimentName': AttrOf(str, default=None),
              'waveNumberRange': AttrOf(str, default=None),
              'targetHoldingPotential': AttrOf(QuantitativeValue, default=None)})
-class TraceGeneration(Entity):
+class TraceGeneration(_Entity):
     '''Trace generation.
 
     Args:
@@ -69,7 +68,7 @@ class TraceGeneration(Entity):
              'wasGeneratedBy': AttrOf(StimulusExperiment),
              'projectName': AttrOf(str, default=None),
              'retrievalDate': AttrOf(datetime, default=None)})
-class Trace(DistributionMixin, Entity):
+class Trace(DistributionMixin, _Entity):
     '''Trace.
 
     Args:

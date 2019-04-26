@@ -3,6 +3,7 @@
 import re
 import typing
 from inspect import getmro
+from six.moves.urllib.parse import quote as parse_quote
 
 import attr
 from attr.validators import instance_of as instance_of_validator, optional as optional_validator
@@ -64,16 +65,28 @@ def _list_of(type_, default):
     return _ListOfValidator(type_, default)
 
 
-class NotInstantiatedType(object):  # pylint: disable=no-init
+@attr.s(repr=False, slots=True, hash=True)
+class _NotInstatiatedValidator(object):
+    '''A validator that allows NotInstantiated values.'''
+    validator = attr.ib()
+
+    def __call__(self, inst, attribute, value):
+        if value is NotInstantiated:
+            return
+
+        self.validator(inst, attribute, value)  # pylint: disable=not-callable
+
+    def __repr__(self):
+        return "<not instantiated validator for {what} or None>".format(what=repr(self.validator))
+
+
+class NotInstantiated(object):  # pylint: disable=no-init
     '''A class for not instantiated attributes
     Trying to access an attribute with this value will trigger
     the instantiation. A Nexus query will be performed and the attribute
     will be filled with the real value'''
     def __repr__(self):
         return '<not instantiated>'
-
-
-NotInstantiated = NotInstantiatedType()
 
 
 def _get_union_params(union):
@@ -108,7 +121,7 @@ class AttrOf(object):
 
         def instance_of(type_):
             '''instance_of'''
-            return instance_of_validator((type_, NotInstantiatedType))
+            return _NotInstatiatedValidator(instance_of_validator(type_))
 
         def optional_of(type_):
             '''optional_of'''
@@ -214,3 +227,8 @@ def resolve_path(key):
         path_list.append(token)
 
     return path_list[0] if len(path_list) == 1 else ' / '.join(path_list)
+
+
+def quote(url):
+    '''Helper function for urllib.parse.quote with safe="".'''
+    return parse_quote(url, safe='')
