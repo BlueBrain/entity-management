@@ -56,7 +56,7 @@ def custom_getattr(obj, name):
         return object.__getattribute__(obj, name)
 
     value = object.__getattribute__(obj, name)
-    if value is NotInstantiated:
+    if value is NotInstantiated and obj._id is not None:
         obj._instantiate()
         return getattr(obj, name)
     else:
@@ -249,8 +249,9 @@ def _deserialize_list(data_type, data_raw, token):
         return result_list
 
 
-def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pylint: disable=too-many-return-statements
+def _deserialize_json_to_datatype(data_type, data_raw, token=None):
     '''Deserialize raw data json to data_type'''
+    # pylint: disable=too-many-return-statements,too-many-branches
     if data_raw is None:
         return None
 
@@ -303,14 +304,17 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):  # noqa pyli
 
 def _deserialize_resource(json_ld, cls, use_auth=None):
     '''Build class instance from json.'''
-    # prepare all entity init args
-    init_args = dict()
-    for field in attr.fields(cls):
-        raw = json_ld.get(field.name)
-        if field.init and raw is not None:
-            type_ = field.type
-            init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
-    instance = cls(**init_args)
+    if cls == Unconstrained:
+        instance = Unconstrained(json=json_ld)
+    else:
+        # prepare all entity init args
+        init_args = dict()
+        for field in attr.fields(cls):
+            raw = json_ld.get(field.name)
+            if field.init and raw is not None:
+                type_ = field.type
+                init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
+        instance = cls(**init_args)
 
     # augment instance with extra params present in the response
     instance._force_attr('_id', json_ld.get(JSLD_ID))
@@ -319,6 +323,13 @@ def _deserialize_resource(json_ld, cls, use_auth=None):
     for key, value in six.iteritems(json_ld):
         if key in SYS_ATTRS:
             instance._force_attr(key, value)
+
+    if cls == Unconstrained:
+        for sys_attr in SYS_ATTRS:
+            json_ld.pop(sys_attr, None)
+        json_ld.pop(JSLD_ID, None)
+        json_ld.pop(JSLD_TYPE, None)
+        json_ld.pop(JSLD_CTX, None)
 
     return instance
 
@@ -331,8 +342,11 @@ class _IdentifiableMeta(type):
         org = getattr(cls, '_url_org', ORG)
         proj = getattr(cls, '_url_proj', PROJ)
         schema = getattr(cls, '_url_schema', name.lower())
-        constrained_by = str(DASH[schema])
-        nexus.register_type(constrained_by, cls)
+        if schema != '_':
+            constrained_by = str(DASH[schema])
+            nexus.register_type(constrained_by, cls)
+        else:
+            constrained_by = '_'
         cls._base_url = '%s/%s/%s/%s' % (BASE_RESOURCES, org, proj, quote(constrained_by))
         cls._nsg_type = NSG[name]
         cls.__getattribute__ = custom_getattr
@@ -348,6 +362,7 @@ class Identifiable(Frozen):
     requests to that entity.
     '''
     _id = None
+    _self = None
     _type = NotInstantiated
     _context = NotInstantiated
     _constrainedBy = NotInstantiated
@@ -356,7 +371,6 @@ class Identifiable(Frozen):
     _deprecated = NotInstantiated
     _project = NotInstantiated
     _rev = NotInstantiated
-    _self = NotInstantiated
     _updatedAt = NotInstantiated
     _updatedBy = NotInstantiated
 
@@ -409,6 +423,9 @@ class Identifiable(Frozen):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
         '''
+        if isinstance(self, Unconstrained):
+            return self.json  # pylint: disable=no-member
+
         json_ld = {}
         for attribute in attr.fields(type(self)):
             attr_value = getattr(self, attribute.name)
@@ -453,9 +470,12 @@ class Identifiable(Frozen):
                                    resource_id,
                                    token=use_auth)
 
-        _copy_sys_meta(json_ld, self)
+        for sys_attr in SYS_ATTRS:
+            if sys_attr in json_ld:
+                self._force_attr(sys_attr, json_ld[sys_attr])
         self._force_attr('_id', json_ld.get(JSLD_ID))
         self._force_attr('_type', json_ld.get(JSLD_TYPE))
+        self._force_attr('_context', json_ld.get(JSLD_CTX))
         return self
 
     def _instantiate(self, use_auth=None):
@@ -490,8 +510,15 @@ class Identifiable(Frozen):
         return obj
 
 
+@attributes({
+    'json': AttrOf(dict),
+})
 class Unconstrained(Identifiable):
-    '''Shapeless data base class.'''
+    '''Shapeless data.
+
+    Args:
+        json (dict): python dictionary which will be seralized into json.
+    '''
     _url_schema = '_'
 
 

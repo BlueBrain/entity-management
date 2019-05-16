@@ -132,6 +132,21 @@ and model instantiation hoc script:
     memodel = memodel.publish(use_auth=TOKEN)
 
 
+Unconstrained json
+******************
+
+Upload raw json using :class:`Unconstrained<entity_management.base.Unconstrained>`:
+
+.. code-block:: python
+
+    from entity_management.base import Unconstrained
+
+    obj = Unconstrained(json=dict(key1='value1', key2='value2'))
+    obj = raw.publish(use_auth=TOKEN)
+    # retrieve it back
+    obj = Unconstrained.from_id(resource_id=obj._id)
+
+
 Quering entities
 ################
 

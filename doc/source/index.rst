@@ -1,8 +1,3 @@
-.. entity_management documentation master file, created by
-   sphinx-quickstart on Fri Aug  4 11:34:33 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to simulation domain entity_management's documentation!
 ===============================================================
 
@@ -33,13 +28,14 @@ class is available under `Bases` section.
 
 **Nexus instance to use**:
 By default BBP Staging Nexus instance is accessed. Provide environment variables
-`NEXUS_BASE(default=https://bbp-nexus.epfl.ch/staging/v0)` and
-`NEXUS_ORG(default=neurosciencegraph)` to specify nexus instance and organization
+`NEXUS_BASE(default=https://bbp-nexus.epfl.ch/staging/v1)`,
+`NEXUS_ORG(default=myorg)` and
+`NEXUS_PROJ(default=myproj)` to specify nexus instance, organization and project.
 contexts.
 
 For example in order to use HBP production nexus instance run you application
 with the following environment variables set:
-`NEXUS_BASE=https://nexus.humanbrainproject.org/v0` `NEXUS_ORG=brainsimulation`
+`NEXUS_BASE=https://nexus.humanbrainproject.org/v1`
 
 
 **Contents**:

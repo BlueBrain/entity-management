@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring
+# pylint: disable=missing-docstring,no-member
 import json
 import os
 import tempfile
@@ -9,12 +9,12 @@ from typing import List
 import attr
 import responses
 from mock import patch, MagicMock
-from nose.tools import assert_equal, assert_raises, ok_
+from nose.tools import assert_raises, ok_, eq_
 
 from entity_management.base import (Identifiable, OntologyTerm,
-                                    _deserialize_list, _serialize_obj)
+                                    _deserialize_list, _serialize_obj, Unconstrained)
 from entity_management.core import DataDownload, DistributionMixin
-from entity_management.settings import JSLD_ID, JSLD_REV
+from entity_management.settings import BASE_RESOURCES, ORG, PROJ
 
 
 DISTRIBUTION_RESPONSE = {
@@ -31,8 +31,24 @@ DISTRIBUTION_RESPONSE = {
     '_self': 'https://bbp-nexus.epfl.ch/staging/v1/files/myorg/myproj/nxv:myfile',
     '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/file.json',
     '_project': 'https://bbp-nexus.epfl.ch/staging/v1/projects/myorg/myproj',
-    '_rev': 4,
-    '_deprecated': True,
+    '_rev': 1,
+    '_deprecated': False,
+    '_createdAt': '2019-01-28T12:15:33.238Z',
+    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
+    '_updatedAt': '2019-12-28T12:15:33.238Z',
+    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
+}
+
+UUID = '03a8d151-0a1a-4735-8b81-2696422e04b8'
+
+UNCONSTRAINED_RESPONSE = {
+    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
+    '@id': 'https://bbp-nexus.epfl.ch/staging/v1/resources/myorg/myproj/_/%s' % UUID,
+    '_self': 'https://bbp-nexus.epfl.ch/staging/v1/resources/myorg/myproj/_/%s' % UUID,
+    '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/unconstrained.json',
+    '_project': 'https://bbp-nexus.epfl.ch/staging/v1/projects/myorg/myproj',
+    '_rev': 1,
+    '_deprecated': False,
     '_createdAt': '2019-01-28T12:15:33.238Z',
     '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
     '_updatedAt': '2019-12-28T12:15:33.238Z',
@@ -90,15 +106,25 @@ DISTRIBUTION_RESPONSE = {
 
 
 def test_deserialize_list():
-    assert_equal(_deserialize_list(dict, [{'a': 'b'}], token=None),
-                 {'a': 'b'})
+    eq_(_deserialize_list(dict, [{'a': 'b'}], token=None), {'a': 'b'})
 
     @attr.s
     class Dummy(object):
         a = attr.ib(default=42)
         b = attr.ib(default=None)
-    assert_equal(_deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None),
-                 [Dummy(a=1, b=2)])
+    eq_(_deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None), [Dummy(a=1, b=2)])
+
+
+@responses.activate
+def test_unconstraint():
+    responses.add(
+        responses.POST,
+        '%s/%s/%s/_' % (BASE_RESOURCES, ORG, PROJ),
+        json=UNCONSTRAINED_RESPONSE)
+    obj = Unconstrained(json=dict(key1='value1', key2='value2'))
+    eq_(obj._base_url, '%s/%s/%s/_' % (BASE_RESOURCES, ORG, PROJ))
+    obj = obj.publish()
+    eq_(obj._constrainedBy, 'https://bluebrain.github.io/nexus/schemas/unconstrained.json')
 
 
 # @responses.activate
