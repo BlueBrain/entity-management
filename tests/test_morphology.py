@@ -5,8 +5,7 @@ from mock import patch
 from nose.tools import eq_
 import responses
 
-from entity_management.settings import BASE_FILES, BASE_RESOURCES, ORG, PROJ
-from entity_management.base import NSG, DASH
+from entity_management.settings import BASE_FILES, BASE_RESOURCES, ORG, PROJ, NSG, DASH
 from entity_management.core import Entity
 from entity_management.morphology import ReconstructedPatchedCell
 from entity_management.util import quote

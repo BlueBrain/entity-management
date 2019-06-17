@@ -13,6 +13,7 @@ BASE = os.getenv('NEXUS_BASE', 'https://bbp-nexus.epfl.ch/staging/v1')
 DEFAULT_TAG = 'v0.1.0'
 
 USERINFO = os.getenv('NEXUS_USERINFO', 'https://bbp-nexus.epfl.ch/staging/v1/identities')
+KEYCLOAK_SECRET = os.getenv('KC_SCR', None)
 
 # if provided, nexus entities will have wasAttributedTo set to this AGENT
 # this is helpful when entity management library is used in some context which

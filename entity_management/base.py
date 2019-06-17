@@ -19,7 +19,7 @@ from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
 from entity_management.settings import (BASE_RESOURCES, JSLD_DEPRECATED, JSLD_ID, JSLD_REV,
-                                        JSLD_TYPE, JSLD_CTX, ORG, PROJ, RDF, NXV, DASH, NSG)
+                                        JSLD_TYPE, JSLD_CTX, ORG, PROJ, RDF, NXV, NSG, DASH)
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
                                     _get_list_params, _merge, quote)
 
@@ -341,12 +341,16 @@ class _IdentifiableMeta(type):
         # tag = getattr(cls, '_url_tag', DEFAULT_TAG)
         org = getattr(cls, '_url_org', ORG)
         proj = getattr(cls, '_url_proj', PROJ)
-        schema = getattr(cls, '_url_schema', name.lower())
-        if schema != '_':
-            constrained_by = str(DASH[schema])
-            nexus.register_type(constrained_by, cls)
-        else:
+
+        # Always register constrained type hint, so we can recover in a unique way class from
+        # _constrainedBy
+        constrained_by = str(DASH[name.lower()])
+        nexus.register_type(constrained_by, cls)
+        # by default entities are unconstrained unless _is_constrained is provided
+        if not getattr(cls, '_is_constrained', False):
             constrained_by = '_'
+            nexus.register_type(name, cls)
+
         cls._base_url = '%s/%s/%s/%s' % (BASE_RESOURCES, org, proj, quote(constrained_by))
         cls._nsg_type = NSG[name]
         cls.__getattribute__ = custom_getattr
@@ -438,14 +442,14 @@ class Identifiable(Frozen):
                                               for kk, vv in six.iteritems(attr_value))
                 else:
                     json_ld[attr_name] = _serialize_obj(attr_value)
-        if hasattr(self, '_context'):
+        if hasattr(self, '_context') and self._context is not NotInstantiated:
             json_ld[JSLD_CTX] = self._context
         else:
             json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org']
 
         # obj was already deserialized from nexus => we have type
         # or we explicitly set the _type in the class
-        if self._type:
+        if self._type is not NotInstantiated:
             json_ld[JSLD_TYPE] = self._type  # pylint: disable=no-member
         else:  # by default use class name
             json_ld[JSLD_TYPE] = type(self).__name__

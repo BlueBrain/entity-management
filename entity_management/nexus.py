@@ -8,28 +8,73 @@ import sys
 from functools import wraps
 from pprint import pprint
 
-import requests
 from six import PY2, iteritems, text_type
-# pylint: disable=import-error,no-name-in-module, relative-import,wrong-import-order
+
+import requests
+from keycloak import KeycloakOpenID
+import jwt
 
 from entity_management.util import quote
-from entity_management.settings import (BASE_RESOURCES, USERINFO, BASE_FILES, ORG, PROJ,
-                                        DASH, NSG)
+from entity_management.settings import (BASE_RESOURCES, USERINFO, BASE_FILES, ORG, PROJ, DASH, NSG,
+                                        JSLD_TYPE, KEYCLOAK_SECRET)
+
+KEYCLOAK = KeycloakOpenID(server_url='https://bbpteam.epfl.ch/auth/',
+                          client_id='bbp-workflow',
+                          client_secret_key=KEYCLOAK_SECRET,
+                          realm_name='BBP')
+TOKEN = os.getenv('NEXUS_TOKEN', None)  # can be access token or offline if running in bbp-workflow
+ACCESS_TOKEN = None
+OFFLINE_TOKEN = None
 
 L = logging.getLogger(__name__)
 
-_URL_TO_CLS_MAP = {}
+_HINT_TO_CLS_MAP = {}
+_UNCONSTRAINED = 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
 
 
-def register_type(schema_id, cls):
-    '''Store type corresponding to type hint'''
-    _URL_TO_CLS_MAP[schema_id] = cls
+def _refresh_token(offline_token):
+    '''Get new access token from the offline token.'''
+    return KEYCLOAK.refresh_token(offline_token)['access_token']
 
 
-def get_type(types):
-    '''Get type which corresponds to the id_url'''
-    raise Exception(types)
-    # return _URL_TO_CLS_MAP.get(_type_hint_from(id_url), None)
+def _ensure_token():
+    '''Ensures that global ACCESS_TOKEN is set. Checks that if global TOKEN is in fact offline
+    then get the new access token from it and sets global ACCESS_TOKEN. Otherwise if TOKEN is
+    already of type `access~bearer` prepends Bearer to it and assigns ACCESS_TOKEN to that value'''
+    global ACCESS_TOKEN, OFFLINE_TOKEN  # pylint: disable=global-statement
+
+    if TOKEN is None:
+        return
+
+    token_info = jwt.decode(TOKEN, verify=False)
+
+    if token_info['typ'] == 'Bearer':
+        ACCESS_TOKEN = 'Bearer ' + TOKEN
+    elif token_info['typ'] == 'Offline':
+        OFFLINE_TOKEN = TOKEN
+        ACCESS_TOKEN = _refresh_token(TOKEN)
+
+
+_ensure_token()  # will assign access token global variable
+
+
+def register_type(key, cls):
+    '''Store type corresponding type hint.
+
+    Args:
+        hint (str): Type hint. In general can be any string such as id of the schema which
+            constraines the type or @type name in the case of unconstrained type.
+        cls (type): Entity python class which maps to this hint.
+    '''
+    _HINT_TO_CLS_MAP[key] = cls
+
+
+def _find_type(types):
+    '''Get type from the json-ld @types. It can be a list of types or a single string.'''
+    if isinstance(types, str):
+        return types
+    else:
+        return types[0]  # just return the first one from the list for now.
 
 
 def get_type_from_id(resource_id, token=None):
@@ -37,9 +82,13 @@ def get_type_from_id(resource_id, token=None):
     url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, ORG, PROJ, quote(resource_id))
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
-    constrained_by = response.json(object_hook=_byteify)['_constrainedBy']
-    constrained_by = constrained_by.replace('dash:', str(DASH)).replace('nsg:', str(NSG))
-    return _URL_TO_CLS_MAP[constrained_by]
+    response_json = response.json(object_hook=_byteify)
+    constrained_by = response_json['_constrainedBy']
+    if constrained_by == _UNCONSTRAINED:
+        return _HINT_TO_CLS_MAP[_find_type(response_json[JSLD_TYPE])]
+    else:
+        constrained_by = constrained_by.replace('dash:', str(DASH)).replace('nsg:', str(NSG))
+        return _HINT_TO_CLS_MAP[constrained_by]
 
 
 def _get_headers(token=None, accept='application/ld+json'):
@@ -71,32 +120,6 @@ def _byteify(data, ignore_dicts=False):
     return data
 
 
-def _check_token_validity(token):
-    '''Check that token is valid'''
-
-    if token is None:
-        raise Exception(
-            'Environment variable NEXUS_TOKEN is empty. It should contain a Nexus token.'
-            'You can get one by going to https://bbp-nexus.epfl.ch/staging/explorer/ '
-            'and clicking the "Copy token" button')
-
-    r = requests.get(USERINFO, headers={'accept': 'application/json', 'authorization': token})
-
-    if r.status_code == 200:
-        return
-    if r.status_code == 500:
-        raise Exception('GET {} is returning an Error 500. Nexus is probably down. '
-                        'Try again later'.format(USERINFO))
-    if r.status_code == 401:
-        raise Exception('Error 401: your token has expired or you are not authorized.\n'
-                        'Current token: {}\n'
-                        'Suggestion: try renewing the token stored in the environment variable: '
-                        'NEXUS_TOKEN'.format(token))
-
-    raise Exception('Received error code for query\nGET {}:\nError {}, {}'.format(
-        USERINFO, r.status_code, r.text))
-
-
 def _print_violation_summary(data):
     '''Add colors, remove hashes and other superfluous things from error message'''
     print('\nNEXUS ERROR SUMMARY:\n', file=sys.stderr)
@@ -112,6 +135,18 @@ def _print_violation_summary(data):
         print(color_url + '\n', file=sys.stderr)
 
 
+def _print_nexus_error(http_error):
+    '''Helper function to log in stderr nexus error response.'''
+    print('NEXUS ERROR>>>', file=sys.stderr)
+    try:
+        response_data = http_error.response.json()
+    except ValueError:
+        response_data = http_error.response.text
+    pprint(response_data, stream=sys.stderr)
+    print('<<<', file=sys.stderr)
+    sys.stderr.flush()
+
+
 def _nexus_wrapper(func):
     '''Pretty print nexus error responses, inject token if set in env'''
     @wraps(func)
@@ -123,22 +158,22 @@ def _nexus_wrapper(func):
 
         token_argument = kwargs.get('token', None)
         if token_argument is None:
-            kwargs['token'] = os.getenv('NEXUS_TOKEN', None)
+            kwargs['token'] = ACCESS_TOKEN
 
         try:
             return func(*args, **kwargs)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 401:
-                _check_token_validity(kwargs['token'])
-            print('NEXUS ERROR>>>', file=sys.stderr)
-            try:
-                response_data = e.response.json()
-            except ValueError:
-                response_data = e.response.text
-            pprint(response_data, stream=sys.stderr)
-            # if e.response.status_code == 400: TODO this is different in v1
-            #     _print_violation_summary(e.response.json())
-            print('<<<', file=sys.stderr)
+        except requests.exceptions.HTTPError as http_error:
+            # retry function call only when got Unauthorized, we have offline token to produce the
+            # new access token and token was not explicitly provided
+            if http_error.response.status_code == 401 and OFFLINE_TOKEN and token_argument is None:
+                _ensure_token()
+                kwargs['token'] = ACCESS_TOKEN
+                try:
+                    return func(*args, **kwargs)
+                except requests.exceptions.HTTPError as http_error:
+                    _print_nexus_error(http_error)
+                    raise
+            _print_nexus_error(http_error)
             raise
     return wrapper
 

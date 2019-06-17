@@ -47,6 +47,8 @@ setup(
         'python-dateutil',
         'sparqlwrapper',
         'rdflib-jsonld',
+        'pyjwt',
+        'python-keycloak',
     ],
     tests_require=TESTS_REQUIRE,
     extras_require={

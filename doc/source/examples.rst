@@ -5,8 +5,8 @@ Code examples
 .. contents::
 
 
-TOKEN is the OAuth2 optional authorization token. Provide it in case the endpoint you are trying
-to access has restricted access.
+TOKEN is the OAuth2 optional access token. Provide it in case the endpoint has OAuth2 protected
+access control.
 
 Creating entities
 #################
