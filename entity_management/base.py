@@ -18,8 +18,9 @@ import attr
 from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
+from entity_management.state import get_org, get_proj
 from entity_management.settings import (BASE_RESOURCES, JSLD_DEPRECATED, JSLD_ID, JSLD_REV,
-                                        JSLD_TYPE, JSLD_CTX, ORG, PROJ, RDF, NXV, NSG, DASH)
+                                        JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH)
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
                                     _get_list_params, _merge, quote)
 
@@ -101,7 +102,7 @@ class _NexusListIterator(six.Iterator):
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
             self.page_from = self._item_index
             data = nexus.load_by_url(
-                self.cls._base_url,
+                self.cls.get_base_url(),
                 stream=True,
                 params={
                     'from': self.page_from,
@@ -335,23 +336,16 @@ def _deserialize_resource(json_ld, cls, use_auth=None):
 
 
 class _IdentifiableMeta(type):
-    '''Initialize class variable _base_url.'''
+    '''Initialize class variables.'''
 
     def __init__(cls, name, bases, attrs):
-        # tag = getattr(cls, '_url_tag', DEFAULT_TAG)
-        org = getattr(cls, '_url_org', ORG)
-        proj = getattr(cls, '_url_proj', PROJ)
-
         # Always register constrained type hint, so we can recover in a unique way class from
         # _constrainedBy
         constrained_by = str(DASH[name.lower()])
         nexus.register_type(constrained_by, cls)
-        # by default entities are unconstrained unless _is_constrained is provided
-        if not getattr(cls, '_is_constrained', False):
-            constrained_by = '_'
-            nexus.register_type(name, cls)
+        # also registre by class name so we can recover from @type
+        nexus.register_type(name, cls)
 
-        cls._base_url = '%s/%s/%s/%s' % (BASE_RESOURCES, org, proj, quote(constrained_by))
         cls._nsg_type = NSG[name]
         cls.__getattribute__ = custom_getattr
 
@@ -391,6 +385,11 @@ class Identifiable(Frozen):
         return obj
 
     @classmethod
+    def get_base_url(cls):
+        '''Get base url.'''
+        return '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj())
+
+    @classmethod
     def from_id(cls, resource_id, on_no_result=None, use_auth=None):
         '''
         Load entity from resource id.
@@ -402,7 +401,7 @@ class Identifiable(Frozen):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        id_ = '{}/{}'.format(cls._base_url, quote(resource_id))
+        id_ = '%s/%s' % (cls.get_base_url(), quote(resource_id))
         json_ld = nexus.load_by_url(id_, token=use_auth)
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls, use_auth)
@@ -469,7 +468,7 @@ class Identifiable(Frozen):
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            json_ld = nexus.create(self._base_url,  # pylint: disable=no-member
+            json_ld = nexus.create(self.get_base_url(),
                                    self.as_json_ld(),
                                    resource_id,
                                    token=use_auth)

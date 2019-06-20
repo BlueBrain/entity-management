@@ -6,6 +6,7 @@ API Documentation
 
    entity_management.base
    entity_management.core
+   entity_management.state
    entity_management.electrophysiology
    entity_management.experiment
    entity_management.morphology

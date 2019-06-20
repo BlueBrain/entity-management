@@ -11,51 +11,16 @@ from pprint import pprint
 from six import PY2, iteritems, text_type
 
 import requests
-from keycloak import KeycloakOpenID
-import jwt
 
 from entity_management.util import quote
-from entity_management.settings import (BASE_RESOURCES, USERINFO, BASE_FILES, ORG, PROJ, DASH, NSG,
-                                        JSLD_TYPE, KEYCLOAK_SECRET)
-
-KEYCLOAK = KeycloakOpenID(server_url='https://bbpteam.epfl.ch/auth/',
-                          client_id='bbp-workflow',
-                          client_secret_key=KEYCLOAK_SECRET,
-                          realm_name='BBP')
-TOKEN = os.getenv('NEXUS_TOKEN', None)  # can be access token or offline if running in bbp-workflow
-ACCESS_TOKEN = None
-OFFLINE_TOKEN = None
+from entity_management.state import get_org, get_proj, get_token, refresh_token, has_offline_token
+from entity_management.settings import (BASE_RESOURCES, USERINFO, BASE_FILES, DASH, NSG,
+                                        JSLD_TYPE)
 
 L = logging.getLogger(__name__)
 
 _HINT_TO_CLS_MAP = {}
 _UNCONSTRAINED = 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
-
-
-def _refresh_token(offline_token):
-    '''Get new access token from the offline token.'''
-    return KEYCLOAK.refresh_token(offline_token)['access_token']
-
-
-def _ensure_token():
-    '''Ensures that global ACCESS_TOKEN is set. Checks that if global TOKEN is in fact offline
-    then get the new access token from it and sets global ACCESS_TOKEN. Otherwise if TOKEN is
-    already of type `access~bearer` prepends Bearer to it and assigns ACCESS_TOKEN to that value'''
-    global ACCESS_TOKEN, OFFLINE_TOKEN  # pylint: disable=global-statement
-
-    if TOKEN is None:
-        return
-
-    token_info = jwt.decode(TOKEN, verify=False)
-
-    if token_info['typ'] == 'Bearer':
-        ACCESS_TOKEN = 'Bearer ' + TOKEN
-    elif token_info['typ'] == 'Offline':
-        OFFLINE_TOKEN = TOKEN
-        ACCESS_TOKEN = _refresh_token(TOKEN)
-
-
-_ensure_token()  # will assign access token global variable
 
 
 def register_type(key, cls):
@@ -79,7 +44,7 @@ def _find_type(types):
 
 def get_type_from_id(resource_id, token=None):
     '''Get type which corresponds to the id_url'''
-    url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, ORG, PROJ, quote(resource_id))
+    url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(resource_id))
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
     response_json = response.json(object_hook=_byteify)
@@ -95,7 +60,7 @@ def _get_headers(token=None, accept='application/ld+json'):
     '''Get headers with additional authorization header if token is not None'''
     headers = {}
     if token is not None:
-        headers['authorization'] = token
+        headers['authorization'] = 'Bearer ' + token
     if accept is not None:
         headers['accept'] = accept
     return headers
@@ -158,16 +123,17 @@ def _nexus_wrapper(func):
 
         token_argument = kwargs.get('token', None)
         if token_argument is None:
-            kwargs['token'] = ACCESS_TOKEN
+            kwargs['token'] = get_token()
 
         try:
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as http_error:
             # retry function call only when got Unauthorized, we have offline token to produce the
             # new access token and token was not explicitly provided
-            if http_error.response.status_code == 401 and OFFLINE_TOKEN and token_argument is None:
-                _ensure_token()
-                kwargs['token'] = ACCESS_TOKEN
+            if (http_error.response.status_code == 401
+                    and has_offline_token()
+                    and token_argument is None):
+                kwargs['token'] = refresh_token()
                 try:
                     return func(*args, **kwargs)
                 except requests.exceptions.HTTPError as http_error:
@@ -183,9 +149,9 @@ def create(base_url, payload, resource_id=None, token=None):
     '''Create entity, return json response
 
     Args:
-        base_url(str): Base url of the entity which will be saved.
-        payload(dict): Json-ld serialization of the entity.
-        token(str): Optional OAuth token.
+        base_url (str): Base url of the entity which will be saved.
+        payload (dict): Json-ld serialization of the entity.
+        token (str): Optional OAuth token.
 
     Returns:
         Json response.
@@ -204,10 +170,10 @@ def update(id_url, rev, payload, token=None):
     '''Update entity, return json response
 
     Args:
-        id_url(str): Url of the entity which will be updated.
-        rev(int): Revision number.
-        payload(dict): Json-ld serialization of the entity.
-        token(str): Optional OAuth token.
+        id_url (str): Url of the entity which will be updated.
+        rev (int): Revision number.
+        payload (dict): Json-ld serialization of the entity.
+        token (str): Optional OAuth token.
 
     Returns:
         Json response.
@@ -291,7 +257,7 @@ def get_current_agent(token=None):
         return None
 
     response = requests.get(USERINFO, headers={'accept': 'application/json',
-                                               'authorization': token})
+                                               'authorization': 'Bearer ' + token})
     response.raise_for_status()
     js = response.json(object_hook=_byteify)
     return js
@@ -304,7 +270,7 @@ def _get_files_endpoint():
 @_nexus_wrapper
 def _get_file_metadata(resource_id, tag=None, token=None):
     '''Helper function'''
-    url = '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(resource_id))
+    url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
     response = requests.get(url,
                             headers=_get_headers(token),
                             params={'tag': tag if tag else None})
@@ -322,7 +288,7 @@ def get_file_rev(resource_id, tag=None, token=None):
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
-        token(str): Optional OAuth token.
+        token (str): Optional OAuth token.
 
     Returns:
         File revision.
@@ -336,7 +302,7 @@ def get_file_name(resource_id, tag=None, token=None):
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
-        token(str): Optional OAuth token.
+        token (str): Optional OAuth token.
 
     Returns:
         File name.
@@ -354,19 +320,19 @@ def upload_file(name, data, content_type, resource_id=None, rev=None, token=None
         content_type (str): Content type of the data stream.
         resource_id (str): Nexus ID of the file.
         rev (int): If you are reuploading file this needs to match current revision of the file.
-        token(str): OAuth token.
+        token (str): OAuth token.
 
     Returns:
         Identifier of the uploaded file.
     '''
     if resource_id:
-        url = '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(resource_id))
+        url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
         response = requests.put(url,
                                 headers=_get_headers(token),
                                 params={'rev': rev if rev else None},
                                 files={'file': (name, data, content_type)})
     else:
-        url = '%s/%s/%s' % (BASE_FILES, ORG, PROJ)
+        url = '%s/%s/%s' % (BASE_FILES, get_org(), get_proj())
         response = requests.post(url,
                                  headers=_get_headers(token),
                                  files={'file': (name, data, content_type)})
@@ -385,12 +351,12 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=N
         file_name (str): Provide file name to use instead of original name.
         tag (str): Provide tag to fetch specific file.
         rev (int): Provide revision number to fetch specific file.
-        token(str): Optional OAuth token.
+        token (str): Optional OAuth token.
 
     Returns:
         Raw response.
     '''
-    url = '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(resource_id))
+    url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
 
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),

@@ -28,7 +28,7 @@ MORPHOLOGY_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": '%s/%s' % (MorphologyRelease._base_url, UUID),
+    "@id": '%s/%s' % (MorphologyRelease.get_base_url(), UUID),
     "@type": [
         "nsg:Entity",
         "nsg:MorphologyRelease"
@@ -42,13 +42,13 @@ MORPHOLOGY_RELEASE_JSLD = {
     ],
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "incoming": "%s/%s/incoming" % (MorphologyRelease._base_url, UUID),
-        "outgoing": "%s/%s/outgoing" % (MorphologyRelease._base_url, UUID),
+        "incoming": "%s/%s/incoming" % (MorphologyRelease.get_base_url(), UUID),
+        "outgoing": "%s/%s/outgoing" % (MorphologyRelease.get_base_url(), UUID),
         "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.1",
-        "self": "%s/%s" % (MorphologyRelease._base_url, UUID)
+        "self": "%s/%s" % (MorphologyRelease.get_base_url(), UUID)
     },
     "morphologyIndex": {
-        '@id': '%s/%s' % (ModelReleaseIndex._base_url, UUID),
+        '@id': '%s/%s' % (ModelReleaseIndex.get_base_url(), UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "name": "Morphology Release",
@@ -58,13 +58,13 @@ MORPHOLOGY_RELEASE_JSLD = {
 
 MORPHOLOGY_RELEASE_JSLD_UPDATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
+    "@id": "%s/%s" % (MorphologyRelease.get_base_url(), UUID),
     "nxv:rev": 2
     }
 
 MORPHOLOGY_RELEASE_JSLD_DELETE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
+    "@id": "%s/%s" % (MorphologyRelease.get_base_url(), UUID),
     "nxv:rev": 2
     }
 
@@ -94,7 +94,7 @@ MORPHOLOGY_RELEASE_JSLD_FILTER = {
 
 MORPHOLOGY_DIVERSIFICATION_JSLD_CREATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyDiversification._base_url, UUID),
+    "@id": "%s/%s" % (MorphologyDiversification.get_base_url(), UUID),
     "nxv:rev": 1
     }
 
@@ -116,7 +116,7 @@ EMODEL_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "%s/%s" % (EModelRelease._base_url, UUID),
+    "@id": "%s/%s" % (EModelRelease.get_base_url(), UUID),
     "@type": [
         "nsg:Entity",
         "nsg:EModelRelease"
@@ -155,7 +155,7 @@ MEMODEL_RELEASE_JSLD = {
         "nsg:MEModelRelease"
     ],
     "emodelRelease": {
-        "@id": "%s/%s" % (EModelRelease._base_url, UUID),
+        "@id": "%s/%s" % (EModelRelease.get_base_url(), UUID),
         "@type": [
             "nsg:Entity",
             "nsg:EModelRelease"
@@ -169,11 +169,11 @@ MEMODEL_RELEASE_JSLD = {
         "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID
     },
     "memodelIndex": {
-        '@id': '%s/%s' % (ModelReleaseIndex._base_url, UUID),
+        '@id': '%s/%s' % (ModelReleaseIndex.get_base_url(), UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "morphologyRelease": {
-        "@id": "%s/%s" % (MorphologyRelease._base_url, UUID),
+        "@id": "%s/%s" % (MorphologyRelease.get_base_url(), UUID),
         "@type": [
             "nsg:Entity",
             "nsg:MorphologyRelease"
@@ -190,7 +190,7 @@ MORPHOLOGY_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "%s/%s" % (Morphology._base_url, UUID),
+    "@id": "%s/%s" % (Morphology.get_base_url(), UUID),
     "@type": [
         "nsg:Entity",
         "nsg:Morphology"
@@ -253,11 +253,11 @@ ACTIVITY_JSLD = {
     'name': 'test activity',
     'startedAtTime': '2018-03-27T16:04:35.886105',
     'used': {
-        '@id': '%s/%s' % (MEModel._base_url, UUID),
+        '@id': '%s/%s' % (MEModel.get_base_url(), UUID),
         '@type': ['nsg:MEModel', 'prov:Entity']
     },
     'wasStartedBy': {
-        '@id': '%s/%s' % (core.Agent._base_url, UUID),
+        '@id': '%s/%s' % (core.Agent.get_base_url(), UUID),
         '@type': ['nsg:Agent', 'prov:Agent']
     }
 }

@@ -27,9 +27,11 @@ as environment variable and not explicitly provided with every method interactin
 nexus.
 
 By default BBP Production Nexus instance is used. To use staging environment set
-`NEXUS_BASE` to `https://bbp-nexus.epfl.ch/staging/v1`. `NEXUS_ORG` variable sets the
-organization to use with the default value: `myorg`. `NEXUS_PROJ` variable sets the
-project to use with the default value: `myproj`.
+`NEXUS_BASE` to `https://bbp-nexus.epfl.ch/staging/v1`.
+`NEXUS_ORG` variable sets the organization to use which is initialized with the default value:
+`myorg`.
+`NEXUS_PROJ` variable sets the project to use which is initialized with the default value:
+`myproj`.
 
 Access token can be provided with the `NEXUS_TOKEN` environment variable. The following code
 snippet can be used to obtain access token for the BBP Nexus instance using
@@ -46,6 +48,9 @@ snippet can be used to obtain access token for the BBP Nexus instance using
 For example in order to use HBP production nexus instance run your application
 with the following environment variable set:
 `NEXUS_BASE=https://nexus.humanbrainproject.org/v1`
+
+To establish nexus context programatically use the :mod:`state.py<entity_management.state>` module
+functions.
 
 
 **Simulation domain entities**:

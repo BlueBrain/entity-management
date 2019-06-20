@@ -1,13 +1,14 @@
 # pylint: disable=missing-docstring,no-member
 from six.moves import builtins
 from mock import patch
-from nose.tools import assert_equal
+from nose.tools import assert_equal, eq_
 
 import responses
 
 import entity_management.nexus as nexus
+from entity_management.state import get_org, get_proj, set_token, get_token
 from entity_management.util import quote
-from entity_management.settings import BASE_FILES, ORG, PROJ, NSG
+from entity_management.settings import BASE_FILES, NSG
 
 FILE_NAME = 'myfile'
 FILE_NAME_EXT = '%s.jpg' % FILE_NAME
@@ -41,7 +42,7 @@ FILE_RESPONSE = {
 def test_download_file(_):
     responses.add(
         responses.GET,
-        '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(FILE_ID)),
+        '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(FILE_ID)),
         headers={'Content-Disposition': "attachment; filename*=UTF-8''myfile.jpg"},
         json=FILE_RESPONSE)
 
@@ -54,7 +55,7 @@ def test_download_file(_):
 def test_download_file_with_name():
     responses.add(
         responses.GET,
-        '%s/%s/%s/%s' % (BASE_FILES, ORG, PROJ, quote(FILE_ID)),
+        '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(FILE_ID)),
         headers={'Content-Disposition': "attachment; filename*=UTF-8''myfile.jpg"},
         json=FILE_RESPONSE)
 
@@ -62,3 +63,13 @@ def test_download_file_with_name():
     with patch('%s.open' % builtins.__name__):
         file_path = nexus.download_file(FILE_ID, path='/tmp', file_name=new_name)
         assert_equal(file_path, '/tmp/%s' % new_name)
+
+
+def test_token():
+    token = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9l'
+             'IiwidHlwIjoiQmVhcmVyIiwiaWF0IjoxNTE2MjM5MDIyfQ.8xXouRWxnH6gHxUZSAAxplzmUb5OEWy61K6SF0'
+             '5Hgi0')
+    set_token(token)
+    eq_(token, get_token())
+    from entity_management.state import ACCESS_TOKEN
+    eq_(token, ACCESS_TOKEN)
