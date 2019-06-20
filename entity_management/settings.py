@@ -9,7 +9,7 @@ JSLD_CTX = '@context'
 JSLD_REV = 'nxv:rev'
 JSLD_DEPRECATED = 'nxv:deprecated'
 
-BASE = os.getenv('NEXUS_BASE', 'https://bbp-nexus.epfl.ch/staging/v1')
+BASE = os.getenv('NEXUS_BASE', 'https://bbp.epfl.ch/nexus/v1')
 DEFAULT_TAG = 'v0.1.0'
 
 USERINFO = os.getenv('NEXUS_USERINFO', 'https://bbp-nexus.epfl.ch/staging/v1/identities')
