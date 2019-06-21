@@ -73,3 +73,23 @@ def test_token():
     eq_(token, get_token())
     from entity_management.state import ACCESS_TOKEN
     eq_(token, ACCESS_TOKEN)
+
+
+@responses.activate
+def test_offline_token():
+    token = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9l'
+             'IiwidHlwIjoiQmVhcmVyIiwiaWF0IjoxNTE2MjM5MDIyfQ.8xXouRWxnH6gHxUZSAAxplzmUb5OEWy61K6SF0'
+             '5Hgi0')
+    responses.add(
+        responses.POST,
+        'https://bbpteam.epfl.ch/auth/realms/BBP/protocol/openid-connect/token',
+        json={'access_token': token})
+
+    offline = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG'
+               '9lIiwidHlwIjoiT2ZmbGluZSIsImlhdCI6MTUxNjIzOTAyMn0.ulLat2ZoDCKcpKtvrTWb1hCRvvHfShU9s'
+               '5eZIALS2xo')
+    set_token(offline)
+    eq_(token, get_token())
+    from entity_management.state import ACCESS_TOKEN, OFFLINE_TOKEN
+    eq_(token, ACCESS_TOKEN)
+    eq_(offline, OFFLINE_TOKEN)

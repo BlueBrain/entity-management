@@ -52,7 +52,7 @@ def set_token(token):
 
     if token_info['typ'] == 'Bearer':
         ACCESS_TOKEN = token
-    elif token_info['typ'] == 'Offline':
+    elif token_info['typ'] in ['Offline', 'Refresh']:
         OFFLINE_TOKEN = token
         refresh_token()
 
