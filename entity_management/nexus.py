@@ -42,20 +42,6 @@ def _find_type(types):
         return types[0]  # just return the first one from the list for now.
 
 
-def get_type_from_id(resource_id, token=None):
-    '''Get type which corresponds to the id_url'''
-    url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(resource_id))
-    response = requests.get(url, headers=_get_headers(token))
-    response.raise_for_status()
-    response_json = response.json(object_hook=_byteify)
-    constrained_by = response_json['_constrainedBy']
-    if constrained_by == _UNCONSTRAINED:
-        return _HINT_TO_CLS_MAP[_find_type(response_json[JSLD_TYPE])]
-    else:
-        constrained_by = constrained_by.replace('dash:', str(DASH)).replace('nsg:', str(NSG))
-        return _HINT_TO_CLS_MAP[constrained_by]
-
-
 def _get_headers(token=None, accept='application/ld+json'):
     '''Get headers with additional authorization header if token is not None'''
     headers = {}
@@ -142,6 +128,22 @@ def _nexus_wrapper(func):
             _print_nexus_error(http_error)
             raise
     return wrapper
+
+
+@_nexus_wrapper
+def get_type_from_id(resource_id, token=None):
+    '''Get type which corresponds to the id_url'''
+    url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(resource_id))
+    print(url)
+    response = requests.get(url, headers=_get_headers(token))
+    response.raise_for_status()
+    response_json = response.json(object_hook=_byteify)
+    constrained_by = response_json['_constrainedBy']
+    if constrained_by == _UNCONSTRAINED:
+        return _HINT_TO_CLS_MAP[_find_type(response_json[JSLD_TYPE])]
+    else:
+        constrained_by = constrained_by.replace('dash:', str(DASH)).replace('nsg:', str(NSG))
+        return _HINT_TO_CLS_MAP[constrained_by]
 
 
 @_nexus_wrapper

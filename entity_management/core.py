@@ -13,7 +13,7 @@ from typing import List
 import attr
 
 from entity_management import nexus
-from entity_management.base import Identifiable, BlankNode, attributes
+from entity_management.base import Identifiable, BlankNode, OntologyTerm, attributes
 from entity_management.util import AttrOf, NotInstantiated
 from entity_management.settings import AGENT, JSLD_ID
 
@@ -211,4 +211,15 @@ class WorkflowEngine(Activity):
         name (str): The distribution name.
         license (Identifiable): A Link towards the distribution license.
         contentUrl (str): When followed this link leads to the actual data.
+    '''
+
+
+@attributes({
+    'species': AttrOf(OntologyTerm, default=None)
+})
+class Subject(ProvenanceMixin, DistributionMixin, Identifiable):
+    '''Subject.
+
+    Args:
+        species (OntologyTerm): Species ontology term.
     '''
