@@ -215,11 +215,15 @@ class WorkflowEngine(Activity):
 
 
 @attributes({
-    'species': AttrOf(OntologyTerm, default=None)
+    'name': AttrOf(str, default=None),
+    'species': AttrOf(OntologyTerm, default=None),
+    'strain': AttrOf(OntologyTerm, default=None),
 })
 class Subject(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Subject.
 
     Args:
+        name (str): Subject name.
         species (OntologyTerm): Species ontology term.
+        strain (OntologyTerm): Strain ontology term.
     '''
