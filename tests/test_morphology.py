@@ -138,7 +138,7 @@ def test_reconstructed_patched_cell():
 
     responses.add(  # mock patched cell listing response
         responses.GET,
-        ReconstructedPatchedCell.get_base_url(),
+        ReconstructedPatchedCell.get_constrained_url(),
         json=CELL_LIST_RESPONSE)
 
     responses.add(  # mock patched cell detailed response
@@ -151,7 +151,7 @@ def test_reconstructed_patched_cell():
         '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(IMAGE_ID)),
         json=IMAGE_RESPOSE)
 
-    cells = ReconstructedPatchedCell.list()
+    cells = ReconstructedPatchedCell.list_by_schema()
     cell = next(cells)
     eq_(cell.name, 'cell_name')
     eq_(type(cell.wasDerivedFrom[0]), Entity)

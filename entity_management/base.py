@@ -83,7 +83,7 @@ def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
 
 
 @attr.s
-class _NexusListIterator(six.Iterator):
+class _NexusBySchemaIterator(six.Iterator):
     '''Nexus paginated list iterator.'''
     cls = attr.ib()
     total_items = attr.ib(type=int, default=None)
@@ -102,7 +102,7 @@ class _NexusListIterator(six.Iterator):
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
             self.page_from = self._item_index
             data = nexus.load_by_url(
-                self.cls.get_base_url(),
+                self.cls.get_constrained_url(),
                 stream=True,
                 params={
                     'from': self.page_from,
@@ -390,6 +390,12 @@ class Identifiable(Frozen):
         return '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj())
 
     @classmethod
+    def get_constrained_url(cls):
+        '''Get schema constrained url.'''
+        constrained_by = str(DASH[cls.__name__.lower()])
+        return '%s/%s/%s/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(constrained_by))
+
+    @classmethod
     def from_id(cls, resource_id, on_no_result=None, use_auth=None):
         '''
         Load entity from resource id.
@@ -411,7 +417,7 @@ class Identifiable(Frozen):
             return None
 
     @classmethod
-    def list(cls):
+    def list_by_schema(cls):
         '''List all instances belonging to the schema this type defines.
 
         Args:
@@ -420,7 +426,7 @@ class Identifiable(Frozen):
         Returns:
             New instance of the same class with changes applied.
         '''
-        return _NexusListIterator(cls)
+        return _NexusBySchemaIterator(cls)
 
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
