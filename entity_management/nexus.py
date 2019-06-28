@@ -134,7 +134,6 @@ def _nexus_wrapper(func):
 def get_type_from_id(resource_id, token=None):
     '''Get type which corresponds to the id_url'''
     url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(resource_id))
-    print(url)
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
     response_json = response.json(object_hook=_byteify)

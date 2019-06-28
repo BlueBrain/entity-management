@@ -6,7 +6,8 @@ Code examples
 
 
 TOKEN is the OAuth2 optional access token. Provide it in case the endpoint has OAuth2 protected
-access control.
+access control. If token is available in the environment variable `NEXUS_TOKEN` it will be used
+by default unless it was explicitly provided in the method argument.
 
 Creating entities
 #################
@@ -47,13 +48,17 @@ Create and upload the mod file which is part of ion channel mechanism(mod_releas
 
 .. code-block:: python
 
+    from entity_management.core import DataDownload
     from entity_management.simulation import SubCellularModelScript, SubCellularModel,
 
     mechanisms = []
-    model_script = SubCellularModelScript(name='Script name', description='Some description')
+    model_script = SubCellularModelScript(
+        name='Script name',
+        description='Some description'
+        distribution=[DataDownload.from_file(file_path='cacumm.mod',
+                                             content_type='application/neuron-mod',
+                                             use_auth=TOKEN)])
     model_script = model_script.publish(use_auth=TOKEN)
-    with open('cacumm.mod') as f:
-        model_script.attach('cacumm.mod', f, 'application/neuron-mod', use_auth=TOKEN)
     model = SubCellularModel(name='cacumm',
                              isPartOf=[mod_release],
                              modelScript=model_script,
@@ -70,12 +75,15 @@ Create :class:`emodel script <entity_management.simulation.EModelScript>` entity
 
 .. code-block:: python
 
+    from entity_management.core import DataDownload
     from entity_management.simulation import EModelScript
 
-    emodel_script = EModelScript(name='Cell hoc model script')
+    emodel_script = EModelScript(
+        name='Cell hoc model script',
+        distribution=[DataDownload.from_file(file_path='cell.hoc',
+                                             content_type='application/neuron-hoc',
+                                             use_auth=TOKEN)])
     emodel_script = emodel_script.publish(use_auth=TOKEN)
-    with open(hoc_file) as f:
-        emodel_script.attach('cell.hoc', f, 'application/neuron-hoc', use_auth=TOKEN)
 
 
 Neuron morphology
@@ -85,15 +93,18 @@ Create :class:`morphology <entity_management.simulation.Morphology>` with the at
 
 .. code-block:: python
 
+    from entity_management.core import DataDownload
     from entity_management.simulation import Morphology
 
-    morphology = Morphology(name='Morphology name',
-                            description='Morphology description',
-                            brainRegion=BRAIN_REGION,
-                            species=SPECIES)
+    morphology = Morphology(
+        name='Morphology name',
+        description='Morphology description',
+        brainRegion=BRAIN_REGION,
+        species=SPECIES,
+        distribution=[DataDownload.from_file(file_path='/path/to/morphology.asc',
+                                             content_type='application/neurolucida',
+                                             use_auth=TOKEN)])
     morphology = morphology.publish(use_auth=TOKEN)
-    with open('/path/to/morphology.asc') as f:
-        morphology.attach('morphology.asc', f, 'application/neurolucida', use_auth=TOKEN)
 
 
 Cell emodel
