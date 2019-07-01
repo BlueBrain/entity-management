@@ -411,8 +411,8 @@ class Identifiable(Frozen):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        id_ = '%s/%s' % (cls.get_base_url(), quote(resource_id))
-        json_ld = nexus.load_by_url(id_, token=use_auth)
+        url = '%s/%s' % (cls.get_base_url(), quote(resource_id))
+        json_ld = nexus.load_by_url(url, token=use_auth)
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls, use_auth)
         elif on_no_result is not None:

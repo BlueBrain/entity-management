@@ -15,16 +15,16 @@ from entity_management.util import AttrOf
 
 
 @attributes({
-    'name': AttrOf(str),
+    'name': AttrOf(str, default=None),
     'description': AttrOf(str, default=None),
 })
 class _Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
     Args:
-        name(str): Required entity name which can later be used for retrieval.
-        description(str): Short description of the entity.
-        wasDerivedFrom(List[Identifiable]): List of associated provenance entities.
+        name (str): Entity name.
+        description (str): Short description of the entity.
+        wasDerivedFrom (List[Identifiable]): List of associated provenance entities.
     '''
     _url_version = 'v1.0.0'
 
