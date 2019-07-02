@@ -1,14 +1,12 @@
+# pylint: disable=missing-docstring,no-member
 import responses
 
-from io import StringIO
+from nose.tools import eq_
 
-from mock import patch, Mock
-from nose.tools import assert_equal, ok_, assert_raises
-
-import entity_management.nexus as nexus
-
-import entity_management.base as base
 import entity_management.core as core
+from entity_management.settings import BASE_FILES, BASE_RESOURCES, NSG, DASH
+from entity_management.core import DataDownload
+from entity_management.util import quote
 from entity_management.simulation import (DetailedCircuit, NodeCollection, ModelReleaseIndex,
                                           SynapseRelease, EdgeCollection, Target,
                                           CircuitCellProperties, MEModelRelease, EModelRelease,
@@ -21,6 +19,37 @@ UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
 DUMMY_PERSON1 = core.Person(email='dummy_email1')
 DUMMY_PERSON2 = core.Person(email='dummy_email2')
+
+CFG_NAME = 'myid'
+CFG_ID = NSG[CFG_NAME]
+
+CFG_JSLD = {
+    "@context": [
+        "https://bbp.neuroshapes.org",
+        "https://bluebrain.github.io/nexus/contexts/resource.json"
+    ],
+    "@id": CFG_ID,
+    "@type": "Configuration",
+    "distribution": {
+        "@type": "DataDownload",
+        "url": "/gpfs/bbp.cscs.ch/project/proj/name/file.json"
+    },
+    "wasAttributedTo": {
+        "@id": "https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/_/"
+        "bd8de6b8-3e81-40ed-8119-67d20a97b837",
+        "@type": "WorkflowExecution"
+    },
+    "_self": "https://bbp.epfl.ch/nexus/v1/resources/nse/test/_/%s" % quote(CFG_ID),
+    "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
+    "_project": "https://bbp.epfl.ch/nexus/v1/projects/myorg/myproj",
+    "_rev": 1,
+    "_deprecated": False,
+    "_createdAt": "2019-07-02T07:27:14.162Z",
+    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
+    "_updatedAt": "2019-07-02T07:27:14.162Z",
+    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
+}
+
 
 MORPHOLOGY_RELEASE_JSLD = {
     "@context": [
@@ -261,6 +290,22 @@ ACTIVITY_JSLD = {
         '@type': ['nsg:Agent', 'prov:Agent']
     }
 }
+
+
+@responses.activate
+def test_get_configuration():
+    responses.add(
+        responses.GET,
+        '%s/%s' % (Configuration.get_base_url(), quote(CFG_ID)),
+        json=CFG_JSLD)
+
+    cfg = Configuration.from_id(CFG_ID)
+    eq_(cfg._id, str(CFG_ID))
+
+
+def test_configuration_serialization():
+    cfg = Configuration(distribution=[DataDownload(url='test_url')])
+    eq_(cfg.as_json_ld()['distribution'][0]['url'], 'test_url')
 
 
 # @responses.activate

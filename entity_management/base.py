@@ -50,6 +50,19 @@ def _copy_sys_meta(src, dest):
             dest._force_attr(attribute, getattr(src, attribute))
 
 
+def _type_class(type_):
+    '''Get type class.'''
+    try:
+        return type_.__extra__  # 3.6
+    except AttributeError:
+        return type_.__origin__  # 3.7
+
+
+def _is_typing_generic(type_):
+    '''Check if type is typing.Generic.'''
+    return hasattr(type_, '__origin__')
+
+
 def custom_getattr(obj, name):
     '''Overload of __getattribute__ to trigger instantiation of Nexus object
     if the attribute is NotInstantiated'''
@@ -220,6 +233,8 @@ def _serialize_obj(value):
                                          for kk, vv in six.iteritems(attr_value))
                 else:
                     rv[attr_name] = _serialize_obj(attr_value)
+        if hasattr(value, '_type'):  # BlankNode have types
+            rv[JSLD_TYPE] = value._type
         return rv
 
     return value
@@ -230,7 +245,7 @@ def _deserialize_list(data_type, data_raw, token):
     result_list = []
     is_explicit_list = False
     # find the type of collection element
-    if (hasattr(data_type, '__origin__') and issubclass(data_type.__origin__, typing.List)):
+    if _is_typing_generic(data_type) and issubclass(_type_class(data_type), list):
         # the collection was explicitly specified in attr.ib
         # like typing.List[Distribution]
         is_explicit_list = True
@@ -269,8 +284,8 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         if (  # in case we have bunch of the Identifiable types as a Union
                 (type(data_type) is type(typing.Union)  # noqa
                     and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
-                # or we have just Identifiable
-                or issubclass(data_type, Identifiable)):
+                # or we have just Identifiable, make sure it is not typing.Generic
+                or (not _is_typing_generic(data_type) and issubclass(data_type, Identifiable))):
             resource_id = data_raw[JSLD_ID]
             type_ = data_raw[JSLD_TYPE]
             # root type was used or union of types, try to recover it from resource_id
@@ -278,13 +293,13 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
                 data_type = nexus.get_type_from_id(resource_id)
             return data_type._lazy_init(resource_id, type_)
 
-        if issubclass(data_type, OntologyTerm):
+        if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
             return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
 
         if data_type == datetime:
             return parse(data_raw)
 
-        if issubclass(data_type, Frozen):
+        if not _is_typing_generic(data_type) and issubclass(data_type, Frozen):
             # nested obj literals should be deserialized before passed to composite obj constructor
             data = data_type(
                 **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
@@ -295,7 +310,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
             return data
 
         if isinstance(data_raw, Mapping):  # we have dict although in class it is specified as List
-            if (hasattr(data_type, '__origin__') and issubclass(data_type.__origin__, typing.List)):
+            if _is_typing_generic(data_type) and issubclass(_type_class(data_type), typing.List):
                 return _deserialize_list(data_type, [data_raw], token)
             else:
                 return data_type(**_clean_up_dict(data_raw))
@@ -416,7 +431,7 @@ class Identifiable(Frozen):
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls, use_auth)
         elif on_no_result is not None:
-            return on_no_result(use_auth=use_auth)
+            return on_no_result()
         else:
             return None
 

@@ -202,7 +202,10 @@ class ProvenanceMixin(object):
         else:
             if agent:
                 self = self.evolve(wasAttributedTo=[agent])
-            json_ld = nexus.create(self._base_url, self.as_json_ld(), resource_id, token=use_auth)
+            json_ld = nexus.create(self.get_base_url(),
+                                   self.as_json_ld(),
+                                   resource_id,
+                                   token=use_auth)
 
         self._force_attr('_id', json_ld.get(JSLD_ID))
         self._force_attr('_rev', json_ld.get('_rev'))

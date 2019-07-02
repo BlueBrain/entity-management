@@ -32,8 +32,7 @@ CELL_RESPONSE = {
     '_deprecated': False,
     '_project': 'https://bbp.epfl.ch/nexus/v1/projects/myorg/myproj',
     '_rev': 1,
-    '_self': 'https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/%s/%s' % (
-             quote(DASH.reconstructedpatchedcell), quote(CELL_ID)),
+    '_self': 'https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/_/%s' % quote(CELL_ID),
     '_updatedAt': '2019-04-26T15:30:21.011Z',
     '_updatedBy': 'https://bbp.epfl.ch/nexus/v1/anonymous',
     'brainLocation': {
