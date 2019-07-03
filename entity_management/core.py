@@ -232,7 +232,7 @@ class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
     'task': AttrOf(str),
     'version': AttrOf(str),
     'parameters': AttrOf(str, default=None),
-    'files': AttrOf(DataDownload, default=None),
+    'distribution': AttrOf(DataDownload, default=None),
 })
 class WorkflowExecution(Activity):
     '''Represents activity of a workflow execution.
@@ -245,8 +245,8 @@ class WorkflowExecution(Activity):
         version (str): Version of the workflow engine used to execute the workflow.
         parameters (str): Concatenated list of parameters provided on the command line
             when the workflow was launched.
-        files (DataDownload): Zip file of the additional python modules and the configuration file
-            used to launch the workflow.
+        distribution (DataDownload): Zip file of the additional python modules and the configuration
+            file used to launch the workflow.
     '''
 
 
