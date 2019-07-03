@@ -421,8 +421,8 @@ class Identifiable(Frozen):
 
         Args:
             resource_id (str): id of the entity to load.
-            on_no_result (Callable): A function to be called when no result found. Usually it is
-                a lambda calling publish with resource_id.
+            on_no_result (Callable): A function to be called when no result found. It will receive
+                `resource_id` as a first argument.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
@@ -431,7 +431,7 @@ class Identifiable(Frozen):
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls, use_auth)
         elif on_no_result is not None:
-            return on_no_result()
+            return on_no_result(resource_id)
         else:
             return None
 
