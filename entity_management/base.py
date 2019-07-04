@@ -447,6 +447,10 @@ class Identifiable(Frozen):
         '''
         return _NexusBySchemaIterator(cls)
 
+    def get_id(self):
+        '''Retrieve _id property.'''
+        return self._id
+
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
