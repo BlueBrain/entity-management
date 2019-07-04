@@ -1,12 +1,12 @@
 # pylint: disable=missing-docstring,no-member
 from six.moves import builtins
 from mock import patch
-from nose.tools import assert_equal, eq_
+from nose.tools import assert_equal, eq_, ok_
 
 import responses
 
 import entity_management.nexus as nexus
-from entity_management.state import get_org, get_proj, set_token, get_token
+from entity_management.state import get_org, get_proj, set_token, get_token, has_offline_token
 from entity_management.util import quote
 from entity_management.settings import BASE_FILES, NSG
 
@@ -89,6 +89,7 @@ def test_offline_token():
                '9lIiwidHlwIjoiT2ZmbGluZSIsImlhdCI6MTUxNjIzOTAyMn0.ulLat2ZoDCKcpKtvrTWb1hCRvvHfShU9s'
                '5eZIALS2xo')
     set_token(offline)
+    ok_(has_offline_token())
     eq_(token, get_token())
     from entity_management.state import ACCESS_TOKEN, OFFLINE_TOKEN
     eq_(token, ACCESS_TOKEN)

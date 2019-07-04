@@ -4,16 +4,12 @@ import responses
 from nose.tools import eq_
 
 import entity_management.core as core
-from entity_management.settings import BASE_FILES, BASE_RESOURCES, NSG, DASH
+from entity_management.settings import NSG
 from entity_management.core import DataDownload
 from entity_management.util import quote
-from entity_management.simulation import (DetailedCircuit, NodeCollection, ModelReleaseIndex,
-                                          SynapseRelease, EdgeCollection, Target,
-                                          CircuitCellProperties, MEModelRelease, EModelRelease,
-                                          MorphologyRelease, Morphology, MEModel,
-                                          IonChannelMechanismRelease, SubCellularModelScript,
-                                          SubCellularModel, MorphologyDiversification,
-                                          Configuration)
+from entity_management.simulation import (ModelReleaseIndex, EModelRelease, MorphologyRelease,
+                                          Morphology, MEModel, IonChannelMechanismRelease,
+                                          MorphologyDiversification, Configuration)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -157,7 +153,7 @@ EMODEL_RELEASE_JSLD = {
         }
     ],
     "emodelIndex": {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/' + ModelReleaseIndex._url_version + '/' + UUID,
+        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/_/' + UUID,
         '@type': ['nsg:ModelReleaseIndex']
     },
     "links": {
@@ -264,7 +260,7 @@ MEMODEL_JSLD = {
     'mainModelScript': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelscript/v0.1.0/baeda23e-b868-4bae-a48d-98ff069b3a70',
                         '@type': ['nsg:Entity', 'nsg:EModelScript'],
                         'name': 'dummy'},
-    'morphology': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/%s/baeda23e-b868-4bae-a48d-98ff069b3a70' % Morphology._url_version,
+    'morphology': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/_/baeda23e-b868-4bae-a48d-98ff069b3a70',
                    '@type': ['nsg:Entity', 'nsg:Morphology'],
                    'name': 'dummy'},
     'name': 'name',
@@ -304,8 +300,8 @@ def test_get_configuration():
 
 
 def test_configuration_serialization():
-    cfg = Configuration(distribution=[DataDownload(url='test_url')])
-    eq_(cfg.as_json_ld()['distribution'][0]['url'], 'test_url')
+    cfg = Configuration(distribution=DataDownload(url='test_url'))
+    eq_(cfg.as_json_ld()['distribution']['url'], 'test_url')
 
 
 # @responses.activate

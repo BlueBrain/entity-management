@@ -55,9 +55,9 @@ Create and upload the mod file which is part of ion channel mechanism(mod_releas
     model_script = SubCellularModelScript(
         name='Script name',
         description='Some description'
-        distribution=[DataDownload.from_file(file_path='cacumm.mod',
-                                             content_type='application/neuron-mod',
-                                             use_auth=TOKEN)])
+        distribution=DataDownload.from_file(file_path='cacumm.mod',
+                                            content_type='application/neuron-mod',
+                                            use_auth=TOKEN))
     model_script = model_script.publish(use_auth=TOKEN)
     model = SubCellularModel(name='cacumm',
                              isPartOf=[mod_release],
@@ -80,9 +80,9 @@ Create :class:`emodel script <entity_management.simulation.EModelScript>` entity
 
     emodel_script = EModelScript(
         name='Cell hoc model script',
-        distribution=[DataDownload.from_file(file_path='cell.hoc',
-                                             content_type='application/neuron-hoc',
-                                             use_auth=TOKEN)])
+        distribution=DataDownload.from_file(file_path='cell.hoc',
+                                            content_type='application/neuron-hoc',
+                                            use_auth=TOKEN))
     emodel_script = emodel_script.publish(use_auth=TOKEN)
 
 
@@ -101,9 +101,9 @@ Create :class:`morphology <entity_management.simulation.Morphology>` with the at
         description='Morphology description',
         brainRegion=BRAIN_REGION,
         species=SPECIES,
-        distribution=[DataDownload.from_file(file_path='/path/to/morphology.asc',
-                                             content_type='application/neurolucida',
-                                             use_auth=TOKEN)])
+        distribution=DataDownload.from_file(file_path='/path/to/morphology.asc',
+                                            content_type='application/neurolucida',
+                                            use_auth=TOKEN))
     morphology = morphology.publish(use_auth=TOKEN)
 
 

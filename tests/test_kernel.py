@@ -8,11 +8,12 @@ import operator
 import attr
 import responses
 from mock import patch
-from nose.tools import assert_equal, ok_
+from nose.tools import assert_equal, ok_, eq_
 
 import entity_management.core as core
 import entity_management.nexus as nx
 from entity_management import util
+from entity_management.state import get_org, set_org, get_proj, set_proj
 from entity_management.settings import BASE, USERINFO
 from util import assert_substring, captured_output, strip_color_codes
 
@@ -74,6 +75,16 @@ def test_resolve_path():
     assert util.resolve_path('a_b') == 'a:b'
     assert util.resolve_path('a__b') == 'nsg:a / nsg:b'
     assert util.resolve_path('a_b__c_d') == 'a:b / c:d'
+
+
+def test_state_proj():
+    set_proj('tmp')
+    eq_(get_proj(), 'tmp')
+
+
+def test_state_org():
+    set_org('tmp')
+    eq_(get_org(), 'tmp')
 
 
 # def test_url_to_type():

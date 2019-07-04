@@ -8,7 +8,7 @@ import entity_management.morphology as morphology
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
                                     QuantitativeValue)
 from entity_management.core import (Entity, Activity, Agent, ProvenanceMixin,
-                                    SoftwareAgent, DataDownload, DistributionMixin)
+                                    SoftwareAgent, DataDownload)
 from entity_management.electrophysiology import Trace
 # from entity_management.atlas import CellAtlas
 from entity_management.util import AttrOf
@@ -17,8 +17,9 @@ from entity_management.util import AttrOf
 @attributes({
     'name': AttrOf(str, default=None),
     'description': AttrOf(str, default=None),
+    'distribution': AttrOf(DataDownload, default=None),
 })
-class _Entity(ProvenanceMixin, DistributionMixin, Identifiable):
+class _Entity(ProvenanceMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
     Args:
@@ -26,7 +27,6 @@ class _Entity(ProvenanceMixin, DistributionMixin, Identifiable):
         description (str): Short description of the entity.
         wasDerivedFrom (List[Identifiable]): List of associated provenance entities.
     '''
-    _url_version = 'v1.0.0'
 
 
 @attributes({'modelOf': AttrOf(str, default=None),
@@ -40,26 +40,22 @@ class ModelInstance(_Entity):
         brainRegion(OntologyTerm): Brain region ontology term.
         species(OntologyTerm): Species ontology term.
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'brainRegion': AttrOf(OntologyTerm, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
 class ModelRelease(_Entity):
     '''Release base entity'''
-    _url_version = 'v0.1.3'
 
 
 @attributes()
 class ModelScript(_Entity):
     '''Base entity for the scripts attached to the model.'''
-    _url_version = 'v0.1.1'
 
 
 @attributes()
 class ModelReleaseIndex(_Entity):
     '''Index files attached to release entities'''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(List[DataDownload]),
@@ -80,14 +76,12 @@ class MorphologyRelease(ModelRelease):
             morphology properties (MType, region ids) for the performance purposes. This attribute
             should provide a path to locate this file(such as neurondb.dat).
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes()
 class IonChannelMechanismRelease(ModelRelease):
     '''Ion channel models release represents a collection of mod files.
     '''
-    _url_version = 'v0.1.3'
 
 
 @attributes({'distribution': AttrOf(List[DataDownload])})
@@ -97,13 +91,11 @@ class SynapseRelease(ModelRelease):
     Args:
         distribution(List[DataDownload]): Location of the synapse release/mod files.
     '''
-    _url_version = 'v0.1.1'
 
 
 @attributes()
 class Configuration(_Entity):
     '''Configuration file'''
-    _url_version = 'v0.1.1'
 
 
 @attributes({'used': AttrOf(List[Configuration])})
@@ -114,7 +106,6 @@ class MorphologyDiversification(Activity):
         used(List[Identifiable]): Configurations(neurondb.xml, placement_rules.xml) which were used
             to generate the emodel.
     '''
-    _url_version = 'v0.1.4'
     _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
@@ -131,7 +122,6 @@ class EModelRelease(ModelRelease):
         emodelIndex (ModelReleaseIndex): EModel release index file.
         isPartOf (Identifiable): Dataset this release is part of.
     '''
-    _url_version = 'v0.1.4'
 
 
 @attributes({'emodelRelease': AttrOf(EModelRelease),
@@ -145,7 +135,6 @@ class MEModelRelease(ModelRelease):
         morphologyRelease(MorphologyRelease): morphology model release
         memodelIndex(ModelReleaseIndex): optional morpho-electrical model index
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(List[DataDownload], default=None),
@@ -166,7 +155,6 @@ class Morphology(ModelInstance):
         view2d(Identifiable): Morphology view in 2D.
         view3d(Identifiable): Morphology view in 3D.
     '''
-    _url_version = 'v0.1.4'
 
 
 @attributes()
@@ -178,7 +166,6 @@ class SubCellularModelScript(ModelScript):
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
-    _url_version = 'v0.1.1'
 
 
 @attributes()
@@ -190,7 +177,6 @@ class EModelScript(ModelScript):
             distribution should provide the path to that location. Otherwise model script must
             be in the attachment of the entity.
     '''
-    _url_version = 'v0.1.1'
 
 
 @attributes({'modelScript': AttrOf(SubCellularModelScript),
@@ -204,7 +190,6 @@ class SubCellularModel(ModelInstance):
         isPartOf(List[Union[IonChannelMechanismRelease, SynapseRelease]]): Optional list of synapse
             releases or ion channel releases this model is part of.
     '''
-    _url_version = 'v0.1.3'
 
 
 @attributes({
@@ -221,7 +206,6 @@ class EModel(ModelInstance):
             e.g. a ``hoc`` files.
         isPartOf (EModelRelease): EModel release this emodel is part of.
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'used': AttrOf(morphology.ReconstructedCell),
@@ -238,8 +222,6 @@ class EModelBuilding(Activity):
         wasAssociatedWith(List[SoftwareAgent]): Agents associated with
             this activity.
     '''
-    _url_version = 'v0.1.5'
-    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes({
@@ -247,14 +229,11 @@ class EModelBuilding(Activity):
 })
 class SingleCellTraceGeneration(Activity):
     '''Single cell simulation trace genaration activity'''
-    _url_version = 'v0.1.3'
-    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes()
 class SingleCellSimulationTrace(_Entity):
     '''Single cell simulation trace file'''
-    _url_version = 'v0.1.4'
 
 
 @attributes({'hadMember': AttrOf(List[Trace], default=None)})
@@ -264,7 +243,6 @@ class TraceCollection(_Entity):
     Args:
         hadMember(List[Trace]): List of traces.
     '''
-    _url_version = 'v0.1.2'
     _type_name = 'Collection'
 
 
@@ -277,7 +255,6 @@ class CoreTraceCollection(_Entity):
     '''
     _url_domain = 'core'
     _url_name = 'tracecollection'
-    _url_version = 'v0.1.0'
     _type_name = 'TraceCollection'
 
 
@@ -294,7 +271,6 @@ class ExperimentalCell(Frozen):
         channel(int): TODO.
         description(str): TODO.
     '''
-    pass
 
 
 @attributes({
@@ -306,7 +282,6 @@ class ExperimentalCell(Frozen):
 })
 class BluePyEfeFeatures(_Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.4'
 
 
 @attributes({
@@ -320,7 +295,6 @@ class BluePyEfeFeatures(_Entity):
 })
 class BluePyEfeConfiguration(_Entity):
     '''BluePyEfe configuration entity'''
-    _url_version = 'v0.1.7'
     _type_name = 'Configuration'
 
 
@@ -339,7 +313,6 @@ class MEModel(ModelInstance):
             responsible for loading that morphology from the folder specified in the first
             template argument.
     '''
-    _url_version = 'v0.1.3'
 
 
 @attributes({'distribution': AttrOf(List[DataDownload])})
@@ -349,7 +322,6 @@ class CircuitCellProperties(_Entity):
     Args:
         distribution(List[DataDownload]): Location of the cell placement file.
     '''
-    _url_version = 'v0.1.1'
 
 
 @attributes({'memodelRelease': AttrOf(MEModelRelease),
@@ -362,7 +334,6 @@ class NodeCollection(_Entity):
         circuitCellProperties(CircuitCellProperties): Cell properties which are used in this node
                                                       collection.
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'edgePopulation': AttrOf(Entity),
@@ -375,7 +346,6 @@ class EdgeCollection(_Entity):
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'distribution': AttrOf(List[DataDownload])})
@@ -385,7 +355,6 @@ class Target(_Entity):
     Args:
         distribution(List[DataDownload]): Location of the target file.
     '''
-    _url_version = 'v0.1.1'
 
 
 @attributes({'nodeCollection': AttrOf(NodeCollection),
@@ -399,7 +368,6 @@ class DetailedCircuit(ModelInstance):
         edgeCollection(EdgeCollection): Edge collection.
         target(Target): Target.
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'gitHash': AttrOf(str),
@@ -412,31 +380,26 @@ class DetailedCircuit(ModelInstance):
              'hasOutput': AttrOf(EModelRelease, default=None)})
 class BluePyOptRun(_Entity):
     '''Release base entity'''
-    _url_version = 'v0.1.12'
 
 
 @attributes()
 class ETypeFeatureProtocol(_Entity):
     '''Trace protocol.'''
-    _url_version = 'v0.1.2'
 
 
 @attributes()
 class TraceFeature(_Entity):
     '''Trace feature.'''
-    _url_version = 'v0.1.1'
 
 
 @attributes()
 class Threshold(_Entity):
     '''Threshold.'''
-    _url_version = 'v0.1.2'
 
 
 @attributes({'activity': AttrOf(Activity)})
 class EModelGenerationShape(_Entity):
     '''EModel generation.'''
-    _url_version = 'v0.1.1'
     _type_name = 'TraceGeneration'
 
 
@@ -451,8 +414,6 @@ class TraceFeatureExtraction(Activity):
         used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
         generated (BluePyEfeFeatures): Extracted features.
     '''
-    _url_version = 'v0.1.2'
-    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes({
@@ -483,7 +444,6 @@ class VariableReport(_Entity):
         target (str): The variable report target
             (compartment, soma, summation, extra cellular recording).
     '''
-    _url_version = 'v0.1.2'
 
 
 @attributes({
@@ -497,8 +457,6 @@ class Simulation(Activity):
         used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
         generated (BluePyEfeFeatures): Extracted features.
     '''
-    _url_version = 'v0.2.3'
-    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 # @attributes({
@@ -542,7 +500,6 @@ class PointNeuronNetwork(ModelInstance):
         neuronCount (int): Neuron count in the point neuron network.
         synapseCount (int): Synapse count in the point neuron network.
     '''
-    _url_version = 'v0.1.0'
 
 
 # @attributes({
