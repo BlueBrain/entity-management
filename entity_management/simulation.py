@@ -58,21 +58,16 @@ class ModelReleaseIndex(_Entity):
     '''Index files attached to release entities'''
 
 
-@attributes({'distribution': AttrOf(List[DataDownload]),
+@attributes({'distribution': AttrOf(DataDownload),
              'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
 class MorphologyRelease(ModelRelease):
     '''Morphology release can be located at the external location or constituted from individual
     :class:`Morphology` entities.
 
     Args:
-        distribution(List[DataDownload]): If morphology release is provided at the external
-            location distribution should provide the path to locate it. It should contain
-
-            * ``v1`` folder with morphologies in H5v1 format
-            * ``ascii`` folder with morphologies in ASC format
-            * ``annotations`` folder with morphology annotations used for placement
-
-        morphologyIndex(ModelReleaseIndex): Morphology index is a compact representation of the
+        distribution (DataDownload): Data download url should point to the ``v1`` folder with
+            morphologies in H5v1 format.
+        morphologyIndex (ModelReleaseIndex): Morphology index is a compact representation of the
             morphology properties (MType, region ids) for the performance purposes. This attribute
             should provide a path to locate this file(such as neurondb.dat).
     '''
@@ -84,12 +79,12 @@ class IonChannelMechanismRelease(ModelRelease):
     '''
 
 
-@attributes({'distribution': AttrOf(List[DataDownload])})
+@attributes({'distribution': AttrOf(DataDownload)})
 class SynapseRelease(ModelRelease):
     '''Synapse release represents a collection of mod files.
 
     Args:
-        distribution(List[DataDownload]): Location of the synapse release/mod files.
+        distribution(DataDownload): Location of the synapse release/mod files.
     '''
 
 
@@ -110,7 +105,7 @@ class MorphologyDiversification(Activity):
 
 
 @attributes({
-    'distribution': AttrOf(List[DataDownload], default=None),
+    'distribution': AttrOf(DataDownload, default=None),
     'emodelIndex': AttrOf(ModelReleaseIndex, default=None),
     'isPartOf': AttrOf(Identifiable, default=None)
 })
@@ -118,7 +113,7 @@ class EModelRelease(ModelRelease):
     '''Electrical model release
 
     Args:
-        distribution (List[DataDownload]): EModel release location provides a path to ``hoc`` files.
+        distribution (DataDownload): EModel release location provides a path to ``hoc`` files.
         emodelIndex (ModelReleaseIndex): EModel release index file.
         isPartOf (Identifiable): Dataset this release is part of.
     '''
@@ -137,7 +132,7 @@ class MEModelRelease(ModelRelease):
     '''
 
 
-@attributes({'distribution': AttrOf(List[DataDownload], default=None),
+@attributes({'distribution': AttrOf(DataDownload, default=None),
              'mType': AttrOf(OntologyTerm, default=None),
              'isPartOf': AttrOf(MorphologyRelease, default=None),
              'view2d': AttrOf(Identifiable, default=None),
@@ -148,12 +143,12 @@ class Morphology(ModelInstance):
     provided in the distribution attribute.
 
     Args:
-        distribution(List[DataDownload]): If morphology is stored at the external location
+        distribution (DataDownload): If morphology is stored at the external location
             distribution should provide the path to it.
-        mType(OntologyTerm): Morphological cell type.
-        isPartOf(MorphologyRelease): Release this morphology is part of.
-        view2d(Identifiable): Morphology view in 2D.
-        view3d(Identifiable): Morphology view in 3D.
+        mType (OntologyTerm): Morphological cell type.
+        isPartOf (MorphologyRelease): Release this morphology is part of.
+        view2d (Identifiable): Morphology view in 2D.
+        view3d (Identifiable): Morphology view in 3D.
     '''
 
 
@@ -162,9 +157,7 @@ class SubCellularModelScript(ModelScript):
     '''Scripts attached to the model: ``mod`` file.
 
     Args:
-        distribution(List[DataDownload]): If model script is provided at the external location then
-            distribution should provide the path to that location. Otherwise model script must
-            be in the attachment of the entity.
+        distribution (DataDownload): Distribution should provide the path to the model script.
     '''
 
 
@@ -173,9 +166,7 @@ class EModelScript(ModelScript):
     '''Scripts attached to the model: ``hoc``, ``neuroml`` file.
 
     Args:
-        distribution(List[DataDownload]): If model script is provided at the external location then
-            distribution should provide the path to that location. Otherwise model script must
-            be in the attachment of the entity.
+        distribution (DataDownload): Provides path to get the relevant scripts.
     '''
 
 
@@ -243,7 +234,6 @@ class TraceCollection(_Entity):
     Args:
         hadMember(List[Trace]): List of traces.
     '''
-    _type_name = 'Collection'
 
 
 @attributes({'hadMember': AttrOf(List[Trace], default=None)})
@@ -253,9 +243,6 @@ class CoreTraceCollection(_Entity):
     Args:
         hadMember(List[Trace]): List of traces.
     '''
-    _url_domain = 'core'
-    _url_name = 'tracecollection'
-    _type_name = 'TraceCollection'
 
 
 @attributes({
@@ -295,7 +282,6 @@ class BluePyEfeFeatures(_Entity):
 })
 class BluePyEfeConfiguration(_Entity):
     '''BluePyEfe configuration entity'''
-    _type_name = 'Configuration'
 
 
 @attributes({'eModel': AttrOf(EModel),
@@ -400,7 +386,6 @@ class Threshold(_Entity):
 @attributes({'activity': AttrOf(Activity)})
 class EModelGenerationShape(_Entity):
     '''EModel generation.'''
-    _type_name = 'TraceGeneration'
 
 
 @attributes({
