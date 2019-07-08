@@ -464,7 +464,9 @@ class Identifiable(Frozen):
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
                 if isinstance(attr_value, (tuple, list, set)):
-                    json_ld[attr_name] = [_serialize_obj(i) for i in attr_value]
+                    json_ld[attr_name] = {
+                        '@container': '@list',
+                        '@value': [_serialize_obj(i) for i in attr_value]}
                 elif isinstance(attr_value, dict):
                     json_ld[attr_name] = dict((kk, _serialize_obj(vv))
                                               for kk, vv in six.iteritems(attr_value))
