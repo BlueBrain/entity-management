@@ -220,8 +220,9 @@ class ProvenanceMixin(object):
 @attributes({
     'name': AttrOf(str),
     'description': AttrOf(str, default=None),
+    'distribution': AttrOf(DataDownload, default=None),
 })
-class Entity(ProvenanceMixin, DistributionMixin, Identifiable):
+class Entity(ProvenanceMixin, Identifiable):
     '''Generic class for core Entities.'''
 
 
