@@ -301,12 +301,12 @@ class MEModel(ModelInstance):
     '''
 
 
-@attributes({'distribution': AttrOf(List[DataDownload])})
+@attributes({'distribution': AttrOf(DataDownload)})
 class CircuitCellProperties(_Entity):
     '''Cell properties provides locationd of the MVD3 file with cell properties.
 
     Args:
-        distribution(List[DataDownload]): Location of the cell placement file.
+        distribution (DataDownload): Location of the cell placement file.
     '''
 
 
@@ -334,12 +334,12 @@ class EdgeCollection(_Entity):
     '''
 
 
-@attributes({'distribution': AttrOf(List[DataDownload])})
+@attributes({'distribution': AttrOf(DataDownload)})
 class Target(_Entity):
     '''Location of the text file defining cell targets (i.e. named collections of cell GIDs)
 
     Args:
-        distribution(List[DataDownload]): Location of the target file.
+        distribution (DataDownload): Location of the target file.
     '''
 
 
