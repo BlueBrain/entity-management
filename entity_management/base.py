@@ -22,7 +22,7 @@ from entity_management.state import get_org, get_proj
 from entity_management.settings import (BASE_RESOURCES, JSLD_DEPRECATED, JSLD_ID, JSLD_REV,
                                         JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH)
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
-                                    _get_list_params, _merge, quote)
+                                    make_context_for_lists, _get_list_params, _merge, quote)
 
 
 L = logging.getLogger(__name__)
@@ -209,7 +209,7 @@ class Metadata(object):
 #                                                                                 token=use_auth))
 
 
-def _serialize_obj(value):
+def _serialize_obj(value, jsld_ctx):
     '''Serialize object'''
     if isinstance(value, OntologyTerm):
         return {JSLD_ID: value.url, 'label': value.label}
@@ -227,15 +227,18 @@ def _serialize_obj(value):
             attr_value = getattr(value, attr_name)
             if attr_value is not None:  # ignore empty values
                 if isinstance(attr_value, (tuple, list, set)):
-                    rv[attr_name] = [_serialize_obj(i) for i in attr_value]
+                    jsld_ctx[attr_name] = {'@container': '@list'}
+                    rv[attr_name] = [_serialize_obj(i, jsld_ctx) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    rv[attr_name] = dict((kk, _serialize_obj(vv))
+                    rv[attr_name] = dict((kk, _serialize_obj(vv, jsld_ctx))
                                          for kk, vv in six.iteritems(attr_value))
                 else:
-                    rv[attr_name] = _serialize_obj(attr_value)
+                    rv[attr_name] = _serialize_obj(attr_value, jsld_ctx)
         if hasattr(value, '_type'):  # BlankNode have types
             rv[JSLD_TYPE] = value._type
         return rv
+    else:
+        make_context_for_lists(value, jsld_ctx)
 
     return value
 
@@ -459,23 +462,26 @@ class Identifiable(Frozen):
             return self.json  # pylint: disable=no-member
 
         json_ld = {}
+        jsld_ctx = {}
         for attribute in attr.fields(type(self)):
             attr_value = getattr(self, attribute.name)
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
                 if isinstance(attr_value, (tuple, list, set)):
-                    json_ld[attr_name] = {
-                        '@container': '@list',
-                        '@value': [_serialize_obj(i) for i in attr_value]}
+                    jsld_ctx[attr_name] = {'@container': '@list'}
+                    json_ld[attr_name] = [_serialize_obj(i, jsld_ctx) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    json_ld[attr_name] = dict((kk, _serialize_obj(vv))
+                    json_ld[attr_name] = dict((kk, _serialize_obj(vv, jsld_ctx))
                                               for kk, vv in six.iteritems(attr_value))
                 else:
-                    json_ld[attr_name] = _serialize_obj(attr_value)
+                    json_ld[attr_name] = _serialize_obj(attr_value, jsld_ctx)
         if hasattr(self, '_context') and self._context is not NotInstantiated:
-            json_ld[JSLD_CTX] = self._context
+            if isinstance(self._context, list):
+                json_ld[JSLD_CTX] = self._context + [json_ld]
+            else:
+                json_ld[JSLD_CTX] = [self._context, json_ld]
         else:
-            json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org']
+            json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org', jsld_ctx]
             # json_ld[JSLD_CTX] = ['https://bluebrainnexus.io/contexts/shacl-20170720.json',
             #                      'https://bluebrainnexus.io/contexts/resource.json',
             #                      'https://incf.github.io/neuroshapes/contexts/data.json']

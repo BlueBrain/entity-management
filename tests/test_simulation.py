@@ -1,15 +1,16 @@
 # pylint: disable=missing-docstring,no-member
 import responses
 
-from nose.tools import eq_
+from nose.tools import eq_, ok_
 
 import entity_management.core as core
-from entity_management.settings import NSG
+from entity_management.settings import NSG, JSLD_CTX
 from entity_management.core import DataDownload
 from entity_management.util import quote
 from entity_management.simulation import (ModelReleaseIndex, EModelRelease, MorphologyRelease,
                                           Morphology, MEModel, IonChannelMechanismRelease,
-                                          MorphologyDiversification, Configuration)
+                                          MorphologyDiversification, Configuration,
+                                          SimWriterConfiguration)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -302,6 +303,30 @@ def test_get_configuration():
 def test_configuration_serialization():
     cfg = Configuration(distribution=DataDownload(url='test_url'))
     eq_(cfg.as_json_ld()['distribution']['url'], 'test_url')
+
+
+def test_simwriter_config_serialization():
+    cfg = SimWriterConfiguration(
+        name='test',
+        configuration={
+            'config_filename': 'BlueConfig',
+            'postprocessors': [
+                {'parameter': 'depolarization', 'type': 'default_depolarization'},
+                {'parameter': 'Ca', 'type': 'default_ca_treatment'}],
+            'project_parameters': [
+                {'name': 'duration', 'value': 66},
+                {'args': [1, 999999, 1],
+                 'func_name': 'randint',
+                 'name': 'seed',
+                 'type': 'function'},
+                {'name': 'depolarization', 'type': 'list', 'value': (170.0, 200.0)},
+                {'name': 'Ca', 'type': 'list', 'value': (2.25,)},
+                {'name': 'Mg', 'value': 1.0},
+                {'name': 'circuit', 'value': ''},
+                {'name': 'target', 'type': 'list', 'value': ['All']}]},
+        template=DataDownload(url='test'))
+    json_ld = cfg.as_json_ld()
+    ok_(json_ld[JSLD_CTX][1])
 
 
 # @responses.activate

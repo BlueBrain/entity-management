@@ -17,6 +17,7 @@ from entity_management.base import (Identifiable, OntologyTerm,
 from entity_management.core import DataDownload, DistributionMixin
 from entity_management.state import get_org, get_proj
 from entity_management.settings import BASE_RESOURCES
+from entity_management.util import make_context_for_lists
 
 
 DISTRIBUTION_RESPONSE = {
@@ -134,6 +135,13 @@ def test_project_change():
     eq_(obj.get_base_url(), '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj()))
     set_proj('test')
     eq_(obj.get_base_url(), '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), 'test'))
+
+
+def test_unconstraint_serialization():
+    obj = Unconstrained(json=dict(key1=['value1', 'value2'], key2='value3'))
+    context = make_context_for_lists(obj.json)
+    ok_('key1' in context)
+    ok_('key2' not in context)
 
 
 # @responses.activate

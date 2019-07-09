@@ -2,6 +2,7 @@
 
 import re
 import typing
+from collections import Mapping
 from inspect import getmro
 from six.moves.urllib.parse import quote as parse_quote
 
@@ -197,6 +198,25 @@ def _merge(pos_inherited, pos_new, kw_new, kw_inherited):
 def _clean_up_dict(d):
     '''Produce new dictionary without json-ld attrs which start with @'''
     return {k: v for k, v in six.iteritems(d) if not k.startswith('@')}
+
+
+def make_context_for_lists(value, context=None):
+    '''Create context for lists.
+
+        Returns:
+            context
+    '''
+    if context is None:
+        context = {}
+    if isinstance(value, Mapping):
+        for k, v in six.iteritems(value):
+            if isinstance(v, (list, tuple)):
+                context[k] = {'@container': '@list'}
+            make_context_for_lists(v, context)
+    elif isinstance(value, (list, tuple)):
+        for v in value:
+            make_context_for_lists(v, context)
+    return context
 
 
 def resolve_path(key):
