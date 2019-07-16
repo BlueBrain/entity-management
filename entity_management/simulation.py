@@ -402,14 +402,14 @@ class TraceFeatureExtraction(Activity):
 
 
 @attributes({
-    'configuration': AttrOf(dict),
+    'configuration': AttrOf(DataDownload),
     'template': AttrOf(DataDownload),
 })
 class SimWriterConfiguration(_Entity):
     '''SimWriter configuration entity.
 
     Args:
-        configuration (dict): Dictionary of the parameters for the simwriter.
+        configuration (DataDownload): Dictionary of the parameters for the simwriter.
         template (DataDownload): Template file.
     '''
 

@@ -7,6 +7,7 @@ import os
 import sys
 from functools import wraps
 from pprint import pprint
+import json
 
 from six import PY2, iteritems, text_type
 
@@ -377,3 +378,31 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=N
         response.close()
 
     return os.path.join(os.path.realpath(path), file_name)
+
+
+@_nexus_wrapper
+def file_as_dict(resource_id, tag=None, rev=None, token=None):
+    '''Stream file.
+
+    Args:
+        resource_id (str): Nexus ID of the file.
+        tag (str): Provide tag to fetch specific file.
+        rev (int): Provide revision number to fetch specific file.
+        token (str): Optional OAuth token.
+
+    Returns:
+        Raw response.
+    '''
+    url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
+
+    response = requests.get(url,
+                            headers=_get_headers(token, accept=None),
+                            params={'tag': tag if tag else None,
+                                    'rev': rev if rev else None},
+                            stream=True)
+    try:
+        response.raise_for_status()
+        response.raw.decode_content = True
+        return json.load(response.raw)
+    finally:
+        response.close()

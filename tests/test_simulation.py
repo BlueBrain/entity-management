@@ -308,25 +308,10 @@ def test_configuration_serialization():
 def test_simwriter_config_serialization():
     cfg = SimWriterConfiguration(
         name='test',
-        configuration={
-            'config_filename': 'BlueConfig',
-            'postprocessors': [
-                {'parameter': 'depolarization', 'type': 'default_depolarization'},
-                {'parameter': 'Ca', 'type': 'default_ca_treatment'}],
-            'project_parameters': [
-                {'name': 'duration', 'value': 66},
-                {'args': [1, 999999, 1],
-                 'func_name': 'randint',
-                 'name': 'seed',
-                 'type': 'function'},
-                {'name': 'depolarization', 'type': 'list', 'value': (170.0, 200.0)},
-                {'name': 'Ca', 'type': 'list', 'value': (2.25,)},
-                {'name': 'Mg', 'value': 1.0},
-                {'name': 'circuit', 'value': ''},
-                {'name': 'target', 'type': 'list', 'value': ['All']}]},
+        configuration=DataDownload(url='json'),
         template=DataDownload(url='test'))
     json_ld = cfg.as_json_ld()
-    ok_(json_ld[JSLD_CTX][1])
+    ok_(json_ld[JSLD_CTX][0])
 
 
 # @responses.activate
