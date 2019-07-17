@@ -14,9 +14,9 @@ from six import PY2, iteritems, text_type
 import requests
 
 from entity_management.util import quote
-from entity_management.state import get_org, get_proj, get_token, refresh_token, has_offline_token
-from entity_management.settings import (BASE_RESOURCES, USERINFO, BASE_FILES, DASH, NSG,
-                                        JSLD_TYPE)
+from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
+                                     get_token, refresh_token, has_offline_token)
+from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
 
 L = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ def _nexus_wrapper(func):
 @_nexus_wrapper
 def get_type_from_id(resource_id, token=None):
     '''Get type which corresponds to the id_url'''
-    url = '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/_/%s' % (get_base_resources(), get_org(), get_proj(), quote(resource_id))
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
     response_json = response.json(object_hook=_byteify)
@@ -272,7 +272,7 @@ def _get_files_endpoint():
 @_nexus_wrapper
 def _get_file_metadata(resource_id, tag=None, token=None):
     '''Helper function'''
-    url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
     response = requests.get(url,
                             headers=_get_headers(token),
                             params={'tag': tag if tag else None})
@@ -328,13 +328,13 @@ def upload_file(name, data, content_type, resource_id=None, rev=None, token=None
         Identifier of the uploaded file.
     '''
     if resource_id:
-        url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
+        url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
         response = requests.put(url,
                                 headers=_get_headers(token),
                                 params={'rev': rev if rev else None},
                                 files={'file': (name, data, content_type)})
     else:
-        url = '%s/%s/%s' % (BASE_FILES, get_org(), get_proj())
+        url = '%s/%s/%s' % (get_base_files(), get_org(), get_proj())
         response = requests.post(url,
                                  headers=_get_headers(token),
                                  files={'file': (name, data, content_type)})
@@ -358,7 +358,7 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=N
     Returns:
         Raw response.
     '''
-    url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
 
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),
@@ -393,7 +393,7 @@ def file_as_dict(resource_id, tag=None, rev=None, token=None):
     Returns:
         Raw response.
     '''
-    url = '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
 
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),

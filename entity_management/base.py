@@ -18,8 +18,8 @@ import attr
 from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
-from entity_management.state import get_org, get_proj
-from entity_management.settings import (BASE_RESOURCES, JSLD_DEPRECATED, JSLD_ID, JSLD_REV,
+from entity_management.state import get_org, get_proj, get_base_resources
+from entity_management.settings import (JSLD_DEPRECATED, JSLD_ID, JSLD_REV,
                                         JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH)
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
                                     make_context_for_lists, _get_list_params, _merge, quote)
@@ -409,13 +409,13 @@ class Identifiable(Frozen):
     @classmethod
     def get_base_url(cls):
         '''Get base url.'''
-        return '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj())
+        return '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
 
     @classmethod
     def get_constrained_url(cls):
         '''Get schema constrained url.'''
         constrained_by = str(DASH[cls.__name__.lower()])
-        return '%s/%s/%s/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(constrained_by))
+        return '%s/%s/%s/%s' % (get_base_resources(), get_org(), get_proj(), quote(constrained_by))
 
     @classmethod
     def from_id(cls, resource_id, on_no_result=None, use_auth=None):

@@ -11,12 +11,11 @@ import responses
 from mock import patch, MagicMock
 from nose.tools import assert_raises, ok_, eq_
 
-from entity_management.state import set_proj
+from entity_management.state import set_proj, get_base_resources, set_dev
 from entity_management.base import (Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj, Unconstrained)
 from entity_management.core import DataDownload, DistributionMixin
 from entity_management.state import get_org, get_proj
-from entity_management.settings import BASE_RESOURCES
 from entity_management.util import make_context_for_lists
 
 
@@ -122,19 +121,19 @@ def test_deserialize_list():
 def test_unconstraint():
     responses.add(
         responses.POST,
-        '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj()),
+        '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()),
         json=UNCONSTRAINED_RESPONSE)
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    eq_(obj.get_base_url(), '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj()))
+    eq_(obj.get_base_url(), '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()))
     obj = obj.publish()
     eq_(obj._constrainedBy, 'https://bluebrain.github.io/nexus/schemas/unconstrained.json')
 
 
 def test_project_change():
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    eq_(obj.get_base_url(), '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj()))
+    eq_(obj.get_base_url(), '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()))
     set_proj('test')
-    eq_(obj.get_base_url(), '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), 'test'))
+    eq_(obj.get_base_url(), '%s/%s/%s/_' % (get_base_resources(), get_org(), 'test'))
 
 
 def test_unconstraint_serialization():
@@ -142,6 +141,12 @@ def test_unconstraint_serialization():
     context = make_context_for_lists(obj.json)
     ok_('key1' in context)
     ok_('key2' not in context)
+
+
+def test_env_change():
+    eq_(get_base_resources(), 'https://bbp.epfl.ch/nexus/v1/resources')
+    set_dev()
+    eq_(get_base_resources(), 'http://dev.nexus.ocp.bbp.epfl.ch/v1/resources')
 
 
 # @responses.activate

@@ -6,9 +6,10 @@ from nose.tools import assert_equal, eq_, ok_
 import responses
 
 import entity_management.nexus as nexus
-from entity_management.state import get_org, get_proj, set_token, get_token, has_offline_token
+from entity_management.state import (get_base_files, get_org, get_proj, set_token, get_token,
+                                     has_offline_token)
 from entity_management.util import quote
-from entity_management.settings import BASE_FILES, NSG
+from entity_management.settings import NSG
 
 FILE_NAME = 'myfile'
 FILE_NAME_EXT = '%s.jpg' % FILE_NAME
@@ -42,7 +43,7 @@ FILE_RESPONSE = {
 def test_download_file(_):
     responses.add(
         responses.GET,
-        '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(FILE_ID)),
+        '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
         headers={'Content-Disposition': "attachment; filename*=UTF-8''myfile.jpg"},
         json=FILE_RESPONSE)
 
@@ -55,7 +56,7 @@ def test_download_file(_):
 def test_download_file_with_name():
     responses.add(
         responses.GET,
-        '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(FILE_ID)),
+        '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
         headers={'Content-Disposition': "attachment; filename*=UTF-8''myfile.jpg"},
         json=FILE_RESPONSE)
 

@@ -9,6 +9,8 @@ import jwt
 
 from keycloak import KeycloakOpenID
 
+BASE = os.getenv('NEXUS_BASE', 'https://bbp.epfl.ch/nexus/v1')
+
 KEYCLOAK_SECRET = os.getenv('KC_SCR', None)
 
 TOKEN = os.getenv('NEXUS_TOKEN', None)  # can be access token or offline if running in bbp-workflow
@@ -81,3 +83,31 @@ def set_proj(proj):
     '''Set current project.'''
     global PROJ  # pylint: disable=global-statement
     PROJ = proj
+
+
+def set_dev():
+    '''Set nexus development.'''
+    global BASE  # pylint: disable=global-statement
+    BASE = 'http://dev.nexus.ocp.bbp.epfl.ch/v1'
+
+
+def set_staging():
+    '''Set nexus staging.'''
+    global BASE  # pylint: disable=global-statement
+    BASE = 'https://bbp-nexus.epfl.ch/staging/v1'
+
+
+def set_prod():
+    '''Set nexus production.'''
+    global BASE  # pylint: disable=global-statement
+    BASE = 'https://bbp.epfl.ch/nexus/v1'
+
+
+def get_base_resources():
+    '''Get url to nexus environment base for the resources.'''
+    return '%s/resources' % BASE
+
+
+def get_base_files():
+    '''Get url to nexus environment base for the files.'''
+    return '%s/files' % BASE

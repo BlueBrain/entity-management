@@ -5,8 +5,8 @@ from mock import patch
 from nose.tools import eq_
 import responses
 
-from entity_management.state import get_org, get_proj
-from entity_management.settings import BASE_FILES, BASE_RESOURCES, NSG, DASH
+from entity_management.state import get_org, get_proj, get_base_files, get_base_resources
+from entity_management.settings import NSG, DASH
 from entity_management.core import Entity
 from entity_management.morphology import ReconstructedPatchedCell
 from entity_management.util import quote
@@ -131,7 +131,7 @@ CELL_LIST_RESPONSE = {
 def test_reconstructed_patched_cell():
     responses.add(  # mock file resource response
         responses.GET,
-        '%s/%s/%s/%s' % (BASE_FILES, get_org(), get_proj(), quote(FILE_ID)),
+        '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
         headers={'Content-Disposition': "attachment; filename*=UTF-8''%s" % FILE_NAME_EXT},
         json=FILE_RESPONSE)
 
@@ -147,7 +147,7 @@ def test_reconstructed_patched_cell():
 
     responses.add(  # mock image response
         responses.GET,
-        '%s/%s/%s/_/%s' % (BASE_RESOURCES, get_org(), get_proj(), quote(IMAGE_ID)),
+        '%s/%s/%s/_/%s' % (get_base_resources(), get_org(), get_proj(), quote(IMAGE_ID)),
         json=IMAGE_RESPOSE)
 
     cells = ReconstructedPatchedCell.list_by_schema()

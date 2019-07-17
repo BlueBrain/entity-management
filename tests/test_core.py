@@ -5,8 +5,7 @@ import responses
 from nose.tools import assert_raises, eq_
 
 from entity_management.core import DataDownload, WorkflowExecution
-from entity_management.state import get_org, get_proj
-from entity_management.settings import BASE_FILES, BASE_RESOURCES
+from entity_management.state import get_org, get_proj, get_base_files, get_base_resources
 
 
 FILE_RESPONSE = {
@@ -53,12 +52,12 @@ WORKFLOW_RESPONSE = {
 def test_workflow_execution():
     responses.add(
         responses.POST,
-        '%s/%s/%s' % (BASE_FILES, get_org(), get_proj()),
+        '%s/%s/%s' % (get_base_files(), get_org(), get_proj()),
         json=FILE_RESPONSE)
 
     responses.add(
         responses.POST,
-        '%s/%s/%s/_' % (BASE_RESOURCES, get_org(), get_proj()),
+        '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()),
         json=WORKFLOW_RESPONSE)
 
     with tempfile.NamedTemporaryFile(suffix='.zip') as temp:

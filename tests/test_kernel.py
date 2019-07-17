@@ -14,7 +14,7 @@ import entity_management.core as core
 import entity_management.nexus as nx
 from entity_management import util
 from entity_management.state import get_org, set_org, get_proj, set_proj
-from entity_management.settings import BASE, USERINFO
+from entity_management.settings import USERINFO
 from util import assert_substring, captured_output, strip_color_codes
 
 

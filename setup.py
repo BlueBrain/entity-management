@@ -42,7 +42,7 @@ setup(
     install_requires=[
         'typing;python_version<"3"',
         'requests>=2.18,<3.0',
-        'attrs>=18.1.0',
+        'attrs',
         'six',
         'python-dateutil',
         'sparqlwrapper',
