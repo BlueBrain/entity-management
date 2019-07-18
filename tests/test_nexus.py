@@ -41,10 +41,11 @@ FILE_RESPONSE = {
 @responses.activate
 @patch('%s.open' % builtins.__name__)
 def test_download_file(_):
+    # base64 encode 'myfile.jpg' in content disposition header
     responses.add(
         responses.GET,
         '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
-        headers={'Content-Disposition': "attachment; filename*=UTF-8''myfile.jpg"},
+        headers={'Content-Disposition': 'attachment; filename="=?UTF-8?B?bXlmaWxlLmpwZw==?="'},
         json=FILE_RESPONSE)
 
     file_path = nexus.download_file(FILE_ID, path='/tmp')
@@ -57,7 +58,6 @@ def test_download_file_with_name():
     responses.add(
         responses.GET,
         '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
-        headers={'Content-Disposition': "attachment; filename*=UTF-8''myfile.jpg"},
         json=FILE_RESPONSE)
 
     new_name = 'abc.jpg'

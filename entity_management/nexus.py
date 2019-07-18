@@ -5,6 +5,7 @@ import re
 import logging
 import os
 import sys
+from email.header import decode_header
 from functools import wraps
 from pprint import pprint
 import json
@@ -368,8 +369,10 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=N
     try:
         response.raise_for_status()
         if file_name is None:
-            file_name = response.headers.get('content-disposition')
-            file_name = re.findall("filename\\*=UTF-8''(.+)", file_name)[0]
+            content_disposition = response.headers.get('content-disposition')
+            match = re.findall('filename="(.+)"', content_disposition)[0]
+            encoded_file_name, encoding = decode_header(match)[0]
+            file_name = encoded_file_name.decode(encoding)
         file_ = os.path.join(path, file_name)
         with open(file_, 'wb') as f:
             for chunk in response.iter_content(chunk_size=1024):

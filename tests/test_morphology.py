@@ -132,7 +132,7 @@ def test_reconstructed_patched_cell():
     responses.add(  # mock file resource response
         responses.GET,
         '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
-        headers={'Content-Disposition': "attachment; filename*=UTF-8''%s" % FILE_NAME_EXT},
+        headers={'Content-Disposition': 'attachment; filename="=?UTF-8?B?bXlmaWxlLmpwZw==?="'},
         json=FILE_RESPONSE)
 
     responses.add(  # mock patched cell listing response

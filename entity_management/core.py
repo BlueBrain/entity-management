@@ -112,6 +112,7 @@ class DataDownload(BlankNode):
         '''
         # pylint: disable=no-member
         assert self.contentUrl is not None, 'No contentUrl!'
+
         if path is None:
             path = os.getcwd()
         return nexus.download_file(self.contentUrl, path, file_name, token=use_auth)
@@ -124,6 +125,9 @@ class DataDownload(BlankNode):
         '''
         # pylint: disable=no-member
         assert self.contentUrl is not None, 'No contentUrl!'
+        assert self.encodingFormat == 'application/json', ('Wrong encodingFormat, '
+                                                           'expecting application/json!')
+
         return nexus.file_as_dict(self.contentUrl, token=use_auth)
 
 
