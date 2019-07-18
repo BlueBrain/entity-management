@@ -418,7 +418,7 @@ class Identifiable(Frozen):
         return '%s/%s/%s/%s' % (get_base_resources(), get_org(), get_proj(), quote(constrained_by))
 
     @classmethod
-    def from_id(cls, resource_id, on_no_result=None, use_auth=None):
+    def from_id(cls, resource_id, on_no_result=None, use_auth=None, **kwargs):
         '''
         Load entity from resource id.
 
@@ -434,7 +434,7 @@ class Identifiable(Frozen):
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls, use_auth)
         elif on_no_result is not None:
-            return on_no_result(resource_id)
+            return on_no_result(resource_id, use_auth=use_auth, **kwargs)
         else:
             return None
 
