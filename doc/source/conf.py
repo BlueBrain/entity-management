@@ -244,5 +244,7 @@ texinfo_documents = [
 #texinfo_show_urls = 'footnote'
 
 autodoc_default_flags = ['members', 'show-inheritance']
+autodoc_typehints = 'none'
+
 autosummary_generate = True
 # autoclass_content = 'both'
