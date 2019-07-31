@@ -439,8 +439,8 @@ class Simulation(Activity):
     '''Simulation activity.
 
     Args:
-        used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
-        generated (BluePyEfeFeatures): Extracted features.
+        used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
+        generated (VariableReport): Generated report.
     '''
 
 
