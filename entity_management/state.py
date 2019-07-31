@@ -85,22 +85,10 @@ def set_proj(proj):
     PROJ = proj
 
 
-def set_dev():
-    '''Set nexus development.'''
+def set_base(base):
+    '''Set nexus base url.'''
     global BASE  # pylint: disable=global-statement
-    BASE = 'http://dev.nexus.ocp.bbp.epfl.ch/v1'
-
-
-def set_staging():
-    '''Set nexus staging.'''
-    global BASE  # pylint: disable=global-statement
-    BASE = 'https://bbp-nexus.epfl.ch/staging/v1'
-
-
-def set_prod():
-    '''Set nexus production.'''
-    global BASE  # pylint: disable=global-statement
-    BASE = 'https://bbp.epfl.ch/nexus/v1'
+    BASE = base
 
 
 def get_base_resources():

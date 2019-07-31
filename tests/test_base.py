@@ -11,7 +11,7 @@ import responses
 from mock import patch, MagicMock
 from nose.tools import assert_raises, ok_, eq_
 
-from entity_management.state import set_proj, get_base_resources, set_dev
+from entity_management.state import set_proj, get_base_resources, set_base
 from entity_management.base import (Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj, Unconstrained)
 from entity_management.core import DataDownload, DistributionMixin
@@ -145,8 +145,8 @@ def test_unconstraint_serialization():
 
 def test_env_change():
     eq_(get_base_resources(), 'https://bbp.epfl.ch/nexus/v1/resources')
-    set_dev()
-    eq_(get_base_resources(), 'http://dev.nexus.ocp.bbp.epfl.ch/v1/resources')
+    set_base('https://dev.nexus.ocp.bbp.epfl.ch/v1')
+    eq_(get_base_resources(), 'https://dev.nexus.ocp.bbp.epfl.ch/v1/resources')
 
 
 # @responses.activate
