@@ -55,18 +55,10 @@ class is available under `Bases` section.
    :parts: 1
 
 
-**Contents**:
-
 .. toctree::
+   :hidden:
    :maxdepth: 2
 
+   Home <self>
    examples
    api
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
