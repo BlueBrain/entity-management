@@ -409,7 +409,7 @@ class SimWriterConfiguration(_Entity):
     '''SimWriter configuration entity.
 
     Args:
-        configuration (DataDownload): Dictionary of the parameters for the simwriter.
+        configuration (DataDownload): Dictionary of the parameters for the simwriter stored as file.
         template (DataDownload): Template file.
     '''
 
@@ -432,15 +432,36 @@ class VariableReport(_Entity):
 
 
 @attributes({
-    'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]]),
+    'status': AttrOf(str, validators=in_(['Pending', 'Done', 'Failed'])),
+})
+class ActivityStatus(object):
+    '''Activity status.
+
+    Args:
+        status (str): Status can be `Pending`, `Done` or `Failed`.
+    '''
+
+
+@attributes({
     'generated': AttrOf(VariableReport, default=None),
 })
-class Simulation(Activity):
+class Simulation(ActivityStatus, Activity):
     '''Simulation activity.
 
     Args:
-        used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
         generated (VariableReport): Generated report.
+    '''
+
+
+@attributes({
+    'simulations': AttrOf(List[Simulation], default=None),
+})
+class SimulationCampaign(ActivityStatus, Activity):
+    '''Simulation activity.
+
+    Args:
+        simulations (List[Simulation]): List of simulations which are part of the campaign.
+        used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
     '''
 
 
