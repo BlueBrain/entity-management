@@ -439,6 +439,22 @@ class Identifiable(Frozen):
             return None
 
     @classmethod
+    def from_url(cls, url, use_auth=None):
+        '''
+        Load entity from url.
+
+        Args:
+            url (str): Full url to the entity in nexus. ``_self`` content is a valid full URL.
+            use_auth (str): OAuth token in case access is restricted.
+                Token should be in the format for the authorization header: Bearer VALUE.
+        '''
+        json_ld = nexus.load_by_url(url, token=use_auth)
+        if json_ld is not None:
+            return _deserialize_resource(json_ld, cls, use_auth)
+        else:
+            return None
+
+    @classmethod
     def list_by_schema(cls):
         '''List all instances belonging to the schema this type defines.
 
