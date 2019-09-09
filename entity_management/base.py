@@ -470,6 +470,14 @@ class Identifiable(Frozen):
         '''Retrieve _id property.'''
         return self._id
 
+    def get_url(self):
+        '''Retrieve URL of the nexus entity.
+
+        Returns:
+            Content of the ``_self`` property.
+        '''
+        return self._self
+
     def as_json_ld(self):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
