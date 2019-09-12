@@ -432,36 +432,30 @@ class VariableReport(_Entity):
 
 
 @attributes({
-    'status': AttrOf(str, validators=in_(['Pending', 'Done', 'Failed'])),
-})
-class ActivityStatus(object):
-    '''Activity status.
-
-    Args:
-        status (str): Status can be `Pending`, `Done` or `Failed`.
-    '''
-
-
-@attributes({
     'generated': AttrOf(VariableReport, default=None),
+    'job_id': AttrOf(str, default=None),
+    'path': AttrOf(str, default=None),
 })
-class Simulation(ActivityStatus, Activity):
+class Simulation(Activity):
     '''Simulation activity.
 
     Args:
         generated (VariableReport): Generated report.
+        job_id (str): SLURM job id.
+        path (str): Location of the simulation BlueConfig and the SLURM log.
     '''
 
 
 @attributes({
+    'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
     'simulations': AttrOf(List[Simulation], default=None),
 })
-class SimulationCampaign(ActivityStatus, Activity):
+class SimulationCampaign(Activity):
     '''Simulation activity.
 
     Args:
-        simulations (List[Simulation]): List of simulations which are part of the campaign.
         used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
+        simulations (List[Simulation]): List of simulations which are part of the campaign.
     '''
 
 

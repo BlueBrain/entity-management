@@ -186,12 +186,10 @@ def _merge(pos_inherited, pos_new, kw_new, kw_inherited):
     # remove keys, so they can be overridden
     for key in pos_new.keys():
         kw_inherited.pop(key, None)
-    for key in kw_new.keys():
-        pos_inherited.pop(key, None)
     result.update(pos_inherited)
     result.update(pos_new)
-    result.update(kw_new)
     result.update(kw_inherited)
+    result.update(kw_new)
     return result
 
 

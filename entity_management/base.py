@@ -51,11 +51,14 @@ def _copy_sys_meta(src, dest):
 
 
 def _type_class(type_):
-    '''Get type class.'''
+    '''Get type class. First try if it's `typing` type class then fallback to regular type.'''
     try:
-        return type_.__extra__  # 3.6
+        try:
+            return type_.__extra__  # 3.6
+        except AttributeError:
+            return type_.__origin__  # 3.7
     except AttributeError:
-        return type_.__origin__  # 3.7
+        return type_
 
 
 def _is_typing_generic(type_):
@@ -285,14 +288,14 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
             return _deserialize_list(data_type, data_raw, token)
 
         if (  # in case we have bunch of the Identifiable types as a Union
-                (type(data_type) is type(typing.Union)  # noqa
+                (_type_class(data_type) is typing.Union  # noqa
                     and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
                 # or we have just Identifiable, make sure it is not typing.Generic
                 or (not _is_typing_generic(data_type) and issubclass(data_type, Identifiable))):
             resource_id = data_raw[JSLD_ID]
             type_ = data_raw[JSLD_TYPE]
             # root type was used or union of types, try to recover it from resource_id
-            if data_type is Identifiable or type(data_type) is type(typing.Union):  # noqa
+            if data_type is Identifiable or _type_class(data_type) is typing.Union:
                 data_type = nexus.get_type_from_id(resource_id)
             return data_type._lazy_init(resource_id, type_)
 
@@ -500,12 +503,14 @@ class Identifiable(Frozen):
                 else:
                     json_ld[attr_name] = _serialize_obj(attr_value, jsld_ctx)
         if hasattr(self, '_context') and self._context is not NotInstantiated:
-            if isinstance(self._context, list):
-                json_ld[JSLD_CTX] = self._context + [json_ld]
-            else:
-                json_ld[JSLD_CTX] = [self._context, json_ld]
+            json_ld[JSLD_CTX] = self._context
+            # if isinstance(self._context, list):
+            #     json_ld[JSLD_CTX] = self._context + [jsld_ctx]
+            # else:
+            #     json_ld[JSLD_CTX] = [self._context, jsld_ctx]
         else:
-            json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org', jsld_ctx]
+            json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org']
+            # json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org', jsld_ctx]
             # json_ld[JSLD_CTX] = ['https://bluebrainnexus.io/contexts/shacl-20170720.json',
             #                      'https://bluebrainnexus.io/contexts/resource.json',
             #                      'https://incf.github.io/neuroshapes/contexts/data.json']
