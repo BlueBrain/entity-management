@@ -404,6 +404,7 @@ class TraceFeatureExtraction(Activity):
 @attributes({
     'configuration': AttrOf(DataDownload),
     'template': AttrOf(DataDownload),
+    'target': AttrOf(DataDownload, default=None),
 })
 class SimWriterConfiguration(_Entity):
     '''SimWriter configuration entity.
@@ -411,6 +412,7 @@ class SimWriterConfiguration(_Entity):
     Args:
         configuration (DataDownload): Dictionary of the parameters for the simwriter stored as file.
         template (DataDownload): Template file.
+        target (DataDownload): Optional user target file.
     '''
 
 
