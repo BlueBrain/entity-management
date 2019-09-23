@@ -435,7 +435,7 @@ class VariableReport(_Entity):
 
 @attributes({
     'generated': AttrOf(VariableReport, default=None),
-    'job_id': AttrOf(str, default=None),
+    'jobId': AttrOf(str, default=None),
     'path': AttrOf(str, default=None),
 })
 class Simulation(Activity):
@@ -443,7 +443,7 @@ class Simulation(Activity):
 
     Args:
         generated (VariableReport): Generated report.
-        job_id (str): SLURM job id.
+        jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
     '''
 
