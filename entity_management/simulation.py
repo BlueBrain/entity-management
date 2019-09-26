@@ -6,7 +6,7 @@ from attr.validators import in_
 
 import entity_management.morphology as morphology
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
-                                    QuantitativeValue)
+                                    QuantitativeValue, BrainLocation)
 from entity_management.core import (Entity, Activity, Agent, ProvenanceMixin,
                                     SoftwareAgent, DataDownload)
 from entity_management.electrophysiology import Trace
@@ -30,19 +30,19 @@ class _Entity(ProvenanceMixin, Identifiable):
 
 
 @attributes({'modelOf': AttrOf(str, default=None),
-             'brainRegion': AttrOf(OntologyTerm, default=None),
+             'brainLocation': AttrOf(BrainLocation, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
 class ModelInstance(_Entity):
     '''Abstract model instance.
 
     Args:
-        modelOf(str): Specifies the model.
-        brainRegion(OntologyTerm): Brain region ontology term.
-        species(OntologyTerm): Species ontology term.
+        modelOf (str): Specifies the model.
+        brainLocation (BrainLocation): Brain location.
+        species (OntologyTerm): Species ontology term.
     '''
 
 
-@attributes({'brainRegion': AttrOf(OntologyTerm, default=None),
+@attributes({'brainLocation': AttrOf(BrainLocation, default=None),
              'species': AttrOf(OntologyTerm, default=None)})
 class ModelRelease(_Entity):
     '''Release base entity'''
@@ -272,7 +272,7 @@ class BluePyEfeFeatures(_Entity):
 
 
 @attributes({
-    'brainRegion': AttrOf(OntologyTerm),
+    'brainLocation': AttrOf(BrainLocation),
     'species': AttrOf(OntologyTerm),
     'mType': AttrOf(OntologyTerm),
     'eType': AttrOf(OntologyTerm),

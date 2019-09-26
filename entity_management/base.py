@@ -615,4 +615,8 @@ class OntologyTerm(Frozen):
 
 @attributes({'brainRegion': AttrOf(OntologyTerm)})
 class BrainLocation(Frozen):
-    '''Brain location'''
+    '''Brain location.
+
+    Args:
+        brainRegion (OntologyTerm): Brain region ontology term.
+    '''
