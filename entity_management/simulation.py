@@ -461,6 +461,30 @@ class SimulationCampaign(Activity):
     '''
 
 
+@attributes({
+    'distribution': AttrOf(DataDownload),
+})
+class AnalysisReport(_Entity):
+    '''Analysis report.
+
+    Args:
+        distribution (DataDownload): Generated report.
+    '''
+
+
+@attributes({
+    'used': AttrOf(VariableReport, default=None),
+    'generated': AttrOf(AnalysisReport, default=None),
+})
+class Analysis(Activity):
+    '''Analysis activity.
+
+    Args:
+        used (VariableReport): Used variable report.
+        generated (AnalysisReport): Generated analysis report.
+    '''
+
+
 # @attributes({
 #     'name': AttrOf(str),
 #     'description': AttrOf(str),
