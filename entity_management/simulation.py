@@ -445,19 +445,20 @@ class Simulation(Activity):
         generated (VariableReport): Generated report.
         jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
+        wasStartedBy (Identifiable): Agent/Activity which started/triggered the activity.
+            In case simulation was triggered by the campaign it will point to the
+            :class:`SimulationCampaign`.
     '''
 
 
 @attributes({
     'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
-    'simulations': AttrOf(List[Simulation], default=None),
 })
 class SimulationCampaign(Activity):
     '''Simulation activity.
 
     Args:
         used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
-        simulations (List[Simulation]): List of simulations which are part of the campaign.
     '''
 
 
@@ -477,10 +478,23 @@ class AnalysisReport(_Entity):
     'generated': AttrOf(AnalysisReport, default=None),
 })
 class Analysis(Activity):
-    '''Analysis activity.
+    '''Simulation analysis activity.
 
     Args:
         used (VariableReport): Used variable report.
+        generated (AnalysisReport): Generated analysis report.
+    '''
+
+
+@attributes({
+    'used': AttrOf(List[VariableReport], default=None),
+    'generated': AttrOf(AnalysisReport, default=None),
+})
+class CampaignAnalysis(Activity):
+    '''Simulation campaign analysis activity.
+
+    Args:
+        used (List[VariableReport]): Used simulation campaign variable reports.
         generated (AnalysisReport): Generated analysis report.
     '''
 
