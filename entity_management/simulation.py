@@ -343,16 +343,24 @@ class Target(_Entity):
     '''
 
 
-@attributes({'nodeCollection': AttrOf(NodeCollection),
-             'edgeCollection': AttrOf(EdgeCollection),
+@attributes({'circuitBase': AttrOf(DataDownload),
+             'circuitType': AttrOf(str, default=None),
+             'nodeCollection': AttrOf(NodeCollection, default=None),
+             'edgeCollection': AttrOf(EdgeCollection, default=None),
              'target': AttrOf(Target, default=None)})
 class DetailedCircuit(ModelInstance):
-    '''Detailed circuit
+    '''Detailed circuit.
 
     Args:
-        nodeCollection(NodeCollection): Node collection.
-        edgeCollection(EdgeCollection): Edge collection.
-        target(Target): Target.
+        circuitBase (DataDownload): Path to the CircuitConfig.
+        circuitType (str): Circuit type. For example:
+
+            * ``O1 circuit`` (e.g. circuit with central column + 6 surrounding columns)
+            * ``Atlas-based``
+
+        nodeCollection (NodeCollection): Node collection.
+        edgeCollection (EdgeCollection): Edge collection.
+        target (Target): Target.
     '''
 
 
