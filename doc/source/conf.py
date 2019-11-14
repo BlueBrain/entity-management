@@ -248,3 +248,5 @@ autodoc_typehints = 'none'
 
 autosummary_generate = True
 # autoclass_content = 'both'
+
+graphviz_output_format = 'svg'

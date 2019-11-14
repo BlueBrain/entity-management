@@ -60,5 +60,6 @@ class is available under `Bases` section.
    :maxdepth: 2
 
    Home <self>
+   prov_patterns
    examples
    api
