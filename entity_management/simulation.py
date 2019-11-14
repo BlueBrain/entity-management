@@ -1,4 +1,4 @@
-'''Simulation domain entities'''
+'''Simulation domain entities.'''
 
 from typing import List, Union
 
@@ -31,7 +31,8 @@ class _Entity(ProvenanceMixin, Identifiable):
 
 @attributes({'modelOf': AttrOf(str, default=None),
              'brainLocation': AttrOf(BrainLocation, default=None),
-             'species': AttrOf(OntologyTerm, default=None)})
+             'species': AttrOf(OntologyTerm, default=None),
+             'strain': AttrOf(OntologyTerm, default=None)})
 class ModelInstance(_Entity):
     '''Abstract model instance.
 
@@ -39,6 +40,7 @@ class ModelInstance(_Entity):
         modelOf (str): Specifies the model.
         brainLocation (BrainLocation): Brain location.
         species (OntologyTerm): Species ontology term.
+        strain (OntologyTerm): Strain ontology term.
     '''
 
 
@@ -62,6 +64,21 @@ class ModelReleaseIndex(_Entity):
              'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
 class MorphologyRelease(ModelRelease):
     '''Morphology release can be located at the external location or constituted from individual
+    :class:`Morphology` entities.
+
+    Args:
+        distribution (DataDownload): Data download url should point to the ``v1`` folder with
+            morphologies in H5v1 format.
+        morphologyIndex (ModelReleaseIndex): Morphology index is a compact representation of the
+            morphology properties (MType, region ids) for the performance purposes. This attribute
+            should provide a path to locate this file(such as neurondb.dat).
+    '''
+
+
+@attributes({'distribution': AttrOf(DataDownload),
+             'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
+class ModelCellCollection(ModelRelease):
+    '''Model cell collection can be located at the external location or constituted from individual
     :class:`Morphology` entities.
 
     Args:
@@ -442,31 +459,57 @@ class VariableReport(_Entity):
 
 
 @attributes({
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'species': AttrOf(OntologyTerm, default=None),
+    'strain': AttrOf(OntologyTerm, default=None),
     'generated': AttrOf(VariableReport, default=None),
     'jobId': AttrOf(str, default=None),
     'path': AttrOf(str, default=None),
+    'mg': AttrOf(int, default=None),
+    'depolarization': AttrOf(int, default=None),
+    'ca': AttrOf(int, default=None),
+    'seed': AttrOf(int, default=None),
+    'duration': AttrOf(int, default=None),
+    'target': AttrOf(str, default=None),
 })
 class Simulation(Activity):
     '''Simulation activity.
 
     Args:
+        brainLocation (BrainLocation): Brain location.
+        species (OntologyTerm): Species ontology term.
+        strain (OntologyTerm): Strain ontology term.
         generated (VariableReport): Generated report.
         jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
         wasStartedBy (Identifiable): Agent/Activity which started/triggered the activity.
             In case simulation was triggered by the campaign it will point to the
             :class:`SimulationCampaign`.
+        mg (int): Magnesium level used in the simulated circuit.
+        depolarization (int): Depolarization level used in the simulation.
+        ca (int): Calcium level used in the simulation.
+        seed (int): Seed value used in the simulation.
+        duration (int): Simulation duration.
+        target (str): Specific circuit target used in the simulation.
     '''
 
 
 @attributes({
     'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'species': AttrOf(OntologyTerm, default=None),
+    'strain': AttrOf(OntologyTerm, default=None),
 })
 class SimulationCampaign(Activity):
-    '''Simulation activity.
+    '''Simulation campaign activity.
+
+    Groups multiple simulations when same circuit is tested under different conditions.
 
     Args:
         used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
+        brainLocation (BrainLocation): Brain location.
+        species (OntologyTerm): Species ontology term.
+        strain (OntologyTerm): Strain ontology term.
     '''
 
 
@@ -497,6 +540,7 @@ class Analysis(Activity):
 @attributes({
     'used': AttrOf(List[VariableReport], default=None),
     'generated': AttrOf(AnalysisReport, default=None),
+    'wasInformedBy': AttrOf(SimulationCampaign, default=None),
 })
 class CampaignAnalysis(Activity):
     '''Simulation campaign analysis activity.
@@ -504,6 +548,8 @@ class CampaignAnalysis(Activity):
     Args:
         used (List[VariableReport]): Used simulation campaign variable reports.
         generated (AnalysisReport): Generated analysis report.
+        wasInformedBy (SimulationCampaign): Links to the simulation campaign which generated
+            simulations used for the analysis.
     '''
 
 
