@@ -459,6 +459,7 @@ class VariableReport(_Entity):
 
 
 @attributes({
+    'description': AttrOf(str, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
     'species': AttrOf(OntologyTerm, default=None),
     'strain': AttrOf(OntologyTerm, default=None),
@@ -476,6 +477,7 @@ class Simulation(Activity):
     '''Simulation activity.
 
     Args:
+        description (str): Description for the simulation.
         brainLocation (BrainLocation): Brain location.
         species (OntologyTerm): Species ontology term.
         strain (OntologyTerm): Strain ontology term.
@@ -495,6 +497,7 @@ class Simulation(Activity):
 
 
 @attributes({
+    'description': AttrOf(str, default=None),
     'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
     'species': AttrOf(OntologyTerm, default=None),
@@ -506,6 +509,7 @@ class SimulationCampaign(Activity):
     Groups multiple simulations when same circuit is tested under different conditions.
 
     Args:
+        description (str): Description for the simulation campaign.
         used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
         brainLocation (BrainLocation): Brain location.
         species (OntologyTerm): Species ontology term.
