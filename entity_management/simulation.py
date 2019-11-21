@@ -465,9 +465,9 @@ class VariableReport(_Entity):
     'generated': AttrOf(VariableReport, default=None),
     'jobId': AttrOf(str, default=None),
     'path': AttrOf(str, default=None),
-    'mg': AttrOf(int, default=None),
-    'depolarization': AttrOf(int, default=None),
-    'ca': AttrOf(int, default=None),
+    'mg': AttrOf(float, default=None),
+    'depolarization': AttrOf(float, default=None),
+    'ca': AttrOf(float, default=None),
     'seed': AttrOf(int, default=None),
     'duration': AttrOf(int, default=None),
     'target': AttrOf(str, default=None),
@@ -485,9 +485,9 @@ class Simulation(Activity):
         wasStartedBy (Identifiable): Agent/Activity which started/triggered the activity.
             In case simulation was triggered by the campaign it will point to the
             :class:`SimulationCampaign`.
-        mg (int): Magnesium level used in the simulated circuit.
-        depolarization (int): Depolarization level used in the simulation.
-        ca (int): Calcium level used in the simulation.
+        mg (float): Magnesium level used in the simulated circuit.
+        depolarization (float): Depolarization level used in the simulation.
+        ca (float): Calcium level used in the simulation.
         seed (int): Seed value used in the simulation.
         duration (int): Simulation duration.
         target (str): Specific circuit target used in the simulation.
