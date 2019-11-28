@@ -133,9 +133,12 @@ def _nexus_wrapper(func):
 
 
 @_nexus_wrapper
-def get_type_from_id(resource_id, token=None):
+def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
     '''Get type which corresponds to the id_url'''
-    url = '%s/%s/%s/_/%s' % (get_base_resources(), get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/_/%s' % (get_base_resources(base),
+                             get_org(org),
+                             get_proj(proj),
+                             quote(resource_id))
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
     response_json = response.json(object_hook=_byteify)
@@ -203,31 +206,6 @@ def deprecate(id_url, rev, token=None):
     return response.json(object_hook=_byteify)
 
 
-# @_nexus_wrapper
-# def find_by(collection_address=None, query=None, token=None):
-#     '''Find entities using NEXUS queries endpoint'''
-#     if query is not None:
-#         json = {'@context': NSG_CTX,
-#                 'resource': 'instances',
-#                 'deprecated': False,
-#                 'filter': query}
-#     else:
-#         json = {'@context': NSG_CTX,
-#                 'resource': 'instances', 'deprecated': False}
-#
-#     response = requests.post('%s/queries%s' % (BASE, collection_address or ''),
-#                              headers=_get_headers(token),
-#                              json=json,
-#                              allow_redirects=False)
-#
-#     # query successful follow redirect
-#     if response.status_code == 303:
-#         return response.headers.get('location')
-#
-#     response.raise_for_status()
-#     return None
-
-
 @_nexus_wrapper
 def load_by_url(url, params=None, stream=False, token=None):
     '''Load json-ld from url
@@ -271,9 +249,10 @@ def _get_files_endpoint():
 
 
 @_nexus_wrapper
-def _get_file_metadata(resource_id, tag=None, token=None):
+def _get_file_metadata(resource_id, tag=None,
+                       base=None, org=None, proj=None, token=None):
     '''Helper function'''
-    url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
     response = requests.get(url,
                             headers=_get_headers(token),
                             params={'tag': tag if tag else None})
@@ -285,36 +264,45 @@ def _get_file_metadata(resource_id, tag=None, token=None):
     return response.json(object_hook=_byteify)
 
 
-def get_file_rev(resource_id, tag=None, token=None):
+def get_file_rev(resource_id, tag=None,
+                 base=None, org=None, proj=None, token=None):
     '''Get file rev.
 
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         File revision.
     '''
-    return _get_file_metadata(resource_id, tag, token)['_rev']
+    return _get_file_metadata(resource_id, tag, base, org, proj, token)['_rev']
 
 
-def get_file_name(resource_id, tag=None, token=None):
+def get_file_name(resource_id, tag=None,
+                  base=None, org=None, proj=None, token=None):
     '''Get file rev.
 
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         File name.
     '''
-    return _get_file_metadata(resource_id, tag, token)['_filename']
+    return _get_file_metadata(resource_id, tag, base, org, proj, token)['_filename']
 
 
 @_nexus_wrapper
-def upload_file(name, data, content_type, resource_id=None, rev=None, token=None):
+def upload_file(name, data, content_type, resource_id=None, rev=None,
+                base=None, org=None, proj=None, token=None):
     '''Upload file.
 
     Args:
@@ -323,19 +311,25 @@ def upload_file(name, data, content_type, resource_id=None, rev=None, token=None
         content_type (str): Content type of the data stream.
         resource_id (str): Nexus ID of the file.
         rev (int): If you are reuploading file this needs to match current revision of the file.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
         token (str): OAuth token.
 
     Returns:
         Identifier of the uploaded file.
     '''
     if resource_id:
-        url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
+        url = '%s/%s/%s/%s' % (get_base_files(base),
+                               get_org(org),
+                               get_proj(proj),
+                               quote(resource_id))
         response = requests.put(url,
                                 headers=_get_headers(token),
                                 params={'rev': rev if rev else None},
                                 files={'file': (name, data, content_type)})
     else:
-        url = '%s/%s/%s' % (get_base_files(), get_org(), get_proj())
+        url = '%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj))
         response = requests.post(url,
                                  headers=_get_headers(token),
                                  files={'file': (name, data, content_type)})
@@ -345,7 +339,8 @@ def upload_file(name, data, content_type, resource_id=None, rev=None, token=None
 
 
 @_nexus_wrapper
-def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=None):
+def download_file(resource_id, path, file_name=None, tag=None, rev=None,
+                  base=None, org=None, proj=None, token=None):
     '''Download file.
 
     Args:
@@ -354,12 +349,15 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=N
         file_name (str): Provide file name to use instead of original name.
         tag (str): Provide tag to fetch specific file.
         rev (int): Provide revision number to fetch specific file.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         Raw response.
     '''
-    url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
 
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),
@@ -384,19 +382,23 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None, token=N
 
 
 @_nexus_wrapper
-def file_as_dict(resource_id, tag=None, rev=None, token=None):
+def file_as_dict(resource_id, tag=None, rev=None,
+                 base=None, org=None, proj=None, token=None):
     '''Stream file.
 
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
         rev (int): Provide revision number to fetch specific file.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         Raw response.
     '''
-    url = '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(resource_id))
+    url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
 
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),

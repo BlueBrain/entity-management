@@ -243,7 +243,7 @@ def _serialize_obj(value):
     return value
 
 
-def _deserialize_list(data_type, data_raw, token):
+def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token=None):
     '''Deserialize list of json elements'''
     result_list = []
     is_explicit_list = False
@@ -258,7 +258,8 @@ def _deserialize_list(data_type, data_raw, token):
         # element type is the type specified in attr.ib
         list_element_type = data_type
     for data_element in data_raw:
-        data = _deserialize_json_to_datatype(list_element_type, data_element, token)
+        data = _deserialize_json_to_datatype(list_element_type, data_element,
+                                             base, org, proj, token)
         if data is not None:
             result_list.append(data)
     # if only one then probably nexus is just responding with the collection for single element
@@ -272,7 +273,7 @@ def _deserialize_list(data_type, data_raw, token):
         return result_list
 
 
-def _deserialize_json_to_datatype(data_type, data_raw, token=None):
+def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj=None, token=None):
     '''Deserialize raw data json to data_type'''
     # pylint: disable=too-many-return-statements,too-many-branches
     if data_raw is None:
@@ -282,7 +283,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         if (not isinstance(data_raw, dict)
                 and not isinstance(data_raw, six.string_types)
                 and isinstance(data_raw, Iterable)):
-            return _deserialize_list(data_type, data_raw, token)
+            return _deserialize_list(data_type, data_raw, base, org, proj, token)
 
         if (  # in case we have bunch of the Identifiable types as a Union
                 (_type_class(data_type) is typing.Union  # noqa
@@ -293,7 +294,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
             type_ = data_raw[JSLD_TYPE]
             # root type was used or union of types, try to recover it from resource_id
             if data_type is Identifiable or _type_class(data_type) is typing.Union:
-                data_type = nexus.get_type_from_id(resource_id)
+                data_type = nexus.get_type_from_id(resource_id, base, org, proj, token=token)
             return data_type._lazy_init(resource_id, type_)
 
         if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
@@ -305,7 +306,8 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         if not _is_typing_generic(data_type) and issubclass(data_type, Frozen):
             # nested obj literals should be deserialized before passed to composite obj constructor
             data = data_type(
-                **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v, token)
+                **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v,
+                                                    base, org, proj, token)
                    for k, v in six.iteritems(data_raw)
                    if k in attr.fields_dict(data_type)})
             if issubclass(data_type, BlankNode):
@@ -314,7 +316,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
 
         if isinstance(data_raw, Mapping):  # we have dict although in class it is specified as List
             if _is_typing_generic(data_type) and issubclass(_type_class(data_type), typing.List):
-                return _deserialize_list(data_type, [data_raw], token)
+                return _deserialize_list(data_type, [data_raw], base, org, proj, token)
             else:
                 return data_type(**_clean_up_dict(data_raw))
 
@@ -325,7 +327,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, token=None):
         raise
 
 
-def _deserialize_resource(json_ld, cls, use_auth=None):
+def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=None):
     '''Build class instance from json.'''
     if cls == Unconstrained:
         instance = Unconstrained(json=json_ld)
@@ -336,7 +338,8 @@ def _deserialize_resource(json_ld, cls, use_auth=None):
             raw = json_ld.get(field.name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
+                init_args[field.name] = _deserialize_json_to_datatype(type_, raw,
+                                                                      base, org, proj, token)
         instance = cls(**init_args)
 
     # augment instance with extra params present in the response
@@ -407,18 +410,22 @@ class Identifiable(Frozen):
         return obj
 
     @classmethod
-    def get_base_url(cls):
+    def get_base_url(cls, base=None, org=None, proj=None):
         '''Get base url.'''
-        return '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
+        return '%s/%s/%s/_' % (get_base_resources(base), get_org(org), get_proj(proj))
 
     @classmethod
-    def get_constrained_url(cls):
+    def get_constrained_url(cls, base=None, org=None, proj=None):
         '''Get schema constrained url.'''
         constrained_by = str(DASH[cls.__name__.lower()])
-        return '%s/%s/%s/%s' % (get_base_resources(), get_org(), get_proj(), quote(constrained_by))
+        return '%s/%s/%s/%s' % (get_base_resources(base),
+                                get_org(org),
+                                get_proj(proj),
+                                quote(constrained_by))
 
     @classmethod
-    def from_id(cls, resource_id, on_no_result=None, use_auth=None, **kwargs):
+    def from_id(cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None,
+                **kwargs):
         '''
         Load entity from resource id.
 
@@ -429,7 +436,7 @@ class Identifiable(Frozen):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        url = '%s/%s' % (cls.get_base_url(), quote(resource_id))
+        url = '%s/%s' % (cls.get_base_url(base, org, proj), quote(resource_id))
         json_ld = nexus.load_by_url(url, token=use_auth)
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls, use_auth)
@@ -513,7 +520,7 @@ class Identifiable(Frozen):
             json_ld[JSLD_TYPE] = type(self).__name__
         return json_ld
 
-    def publish(self, resource_id=None, use_auth=None):
+    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None):
         '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
         entity attributes.
 
@@ -527,7 +534,7 @@ class Identifiable(Frozen):
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            json_ld = nexus.create(self.get_base_url(),
+            json_ld = nexus.create(self.get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
                                    token=use_auth)

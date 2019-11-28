@@ -63,39 +63,79 @@ def set_token(token):
 set_token(os.getenv('NEXUS_TOKEN', None))
 
 
-def get_org():
-    '''Get current organization.'''
+def get_org(org=None):
+    '''Get current organization.
+
+    Args:
+        org (str): optional Organization.
+
+    Returns:
+        ``org`` argument. If it was not provided then returns the value of global ``Organization``
+        variable which is initialized from NEXUS_ORG environment variable.
+    '''
+    if org:
+        return org
     return ORG
 
 
 def set_org(org):
-    '''Set current organization.'''
+    '''Set global ``Organization`` variable.'''
     global ORG  # pylint: disable=global-statement
     ORG = org
 
 
-def get_proj():
-    '''Get current project.'''
+def get_proj(proj=None):
+    '''Get current project.
+
+    Args:
+        proj (str): optional Project.
+
+    Returns:
+        ``proj`` argument. If it was not provided then returns the value of global ``Project``
+        variable which is initialized from NEXUS_PROJ environment variable.
+    '''
+    if proj:
+        return proj
     return PROJ
 
 
 def set_proj(proj):
-    '''Set current project.'''
+    '''Set global ``Project`` variable.'''
     global PROJ  # pylint: disable=global-statement
     PROJ = proj
 
 
 def set_base(base):
-    '''Set nexus base url.'''
+    '''Set global ``Base`` url variable.'''
     global BASE  # pylint: disable=global-statement
     BASE = base
 
 
-def get_base_resources():
-    '''Get url to nexus environment base for the resources.'''
+def get_base_resources(base=None):
+    '''Get url to nexus environment base for the resources.
+
+    Args:
+        base (str): optional ``Base`` url of nexus instance to be used.
+
+    Returns:
+        Nexus resources endpoint url either based on ``base`` argument provided or based on the
+        global ``Base`` variable value which is initialized from NEXUS_BASE environment variable.
+    '''
+    if base:
+        return '%s/resources' % base
     return '%s/resources' % BASE
 
 
-def get_base_files():
-    '''Get url to nexus environment base for the files.'''
+def get_base_files(base=None):
+    '''Get url to nexus environment base for the files.
+
+    Args:
+        base (str): optional ``Base`` url of nexus instance to be used.
+
+    Returns:
+        Nexus files endpoint url either based on ``base`` argument provided or based on the
+        global ``Base`` variable value which is initialized from NEXUS_BASE environment variable.
+    '''
+    if base:
+        return '%s/files' % base
     return '%s/files' % BASE

@@ -210,13 +210,15 @@ class Activity(Identifiable):
 
 @attributes({
     'wasAttributedTo': AttrOf(List[Agent], default=None),
+    'wasGeneratedBy': AttrOf(Identifiable, default=None),
     'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
     'dateCreated': AttrOf(datetime, default=None)
 })
 class ProvenanceMixin(object):
     '''Enables provenance metadata when publishing/deprecating entities'''
 
-    def publish(self, resource_id=None, activity=None, person=None, use_auth=None):
+    def publish(self, resource_id=None, activity=None, person=None,
+                base=None, org=None, proj=None, use_auth=None):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -226,11 +228,10 @@ class ProvenanceMixin(object):
             activity (Activity): Provide custom activity to link with
                 generated resource new revision otherwise default activity will be created.
             person (Person): Provide person argument in order to set explicitly entity attribution
-                parameter ``wasAttributedTo``. If runnning in the context of a workflow(when
-                NEXUS_AGENT env variable is provided) resource will be attributted to the
-                Workflow agent.
+                parameter ``wasAttributedTo``.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+
         Returns:
             New instance of the same class with revision updated.
         '''
@@ -248,7 +249,7 @@ class ProvenanceMixin(object):
         else:
             if agent:
                 self = self.evolve(wasAttributedTo=[agent])
-            json_ld = nexus.create(self.get_base_url(),
+            json_ld = nexus.create(self.get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
                                    token=use_auth)
@@ -282,6 +283,7 @@ class Entity(ProvenanceMixin, Identifiable):
     'task': AttrOf(str),
     'version': AttrOf(str),
     'parameters': AttrOf(str, default=None),
+    'output': AttrOf(str, default=None),
     'distribution': AttrOf(DataDownload, default=None),
 })
 class WorkflowExecution(Activity):
@@ -295,6 +297,8 @@ class WorkflowExecution(Activity):
         version (str): Version of the workflow engine used to execute the workflow.
         parameters (str): Concatenated list of parameters provided on the command line
             when the workflow was launched.
+        output (str): Any string that workflow tasks want to deliver as output to the external
+            agents.
         distribution (DataDownload): Zip file of the additional python modules and the configuration
             file used to launch the workflow.
     '''
