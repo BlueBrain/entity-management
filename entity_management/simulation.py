@@ -8,9 +8,8 @@ import entity_management.morphology as morphology
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
                                     QuantitativeValue, BrainLocation)
 from entity_management.core import (Entity, Activity, Agent, ProvenanceMixin,
-                                    SoftwareAgent, DataDownload)
+                                    SoftwareAgent, DataDownload, Subject)
 from entity_management.electrophysiology import Trace
-# from entity_management.atlas import CellAtlas
 from entity_management.util import AttrOf
 
 
@@ -29,23 +28,25 @@ class _Entity(ProvenanceMixin, Identifiable):
     '''
 
 
-@attributes({'modelOf': AttrOf(str, default=None),
-             'brainLocation': AttrOf(BrainLocation, default=None),
-             'species': AttrOf(OntologyTerm, default=None),
-             'strain': AttrOf(OntologyTerm, default=None)})
+@attributes({
+    'modelOf': AttrOf(str, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'subject': AttrOf(Subject, default=None),
+})
 class ModelInstance(_Entity):
     '''Abstract model instance.
 
     Args:
         modelOf (str): Specifies the model.
         brainLocation (BrainLocation): Brain location.
-        species (OntologyTerm): Species ontology term.
-        strain (OntologyTerm): Strain ontology term.
+        subject (Subject): Species ontology term.
     '''
 
 
-@attributes({'brainLocation': AttrOf(BrainLocation, default=None),
-             'species': AttrOf(OntologyTerm, default=None)})
+@attributes({
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'subject': AttrOf(Subject, default=None),
+})
 class ModelRelease(_Entity):
     '''Release base entity'''
 
@@ -290,7 +291,7 @@ class BluePyEfeFeatures(_Entity):
 
 @attributes({
     'brainLocation': AttrOf(BrainLocation),
-    'species': AttrOf(OntologyTerm),
+    'subject': AttrOf(Subject, default=None),
     'mType': AttrOf(OntologyTerm),
     'eType': AttrOf(OntologyTerm),
     'experimentalCell': AttrOf(List[ExperimentalCell]),
@@ -461,8 +462,7 @@ class VariableReport(_Entity):
 @attributes({
     'description': AttrOf(str, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'species': AttrOf(OntologyTerm, default=None),
-    'strain': AttrOf(OntologyTerm, default=None),
+    'subject': AttrOf(Subject, default=None),
     'generated': AttrOf(VariableReport, default=None),
     'jobId': AttrOf(str, default=None),
     'path': AttrOf(str, default=None),
@@ -479,8 +479,7 @@ class Simulation(Activity):
     Args:
         description (str): Description for the simulation.
         brainLocation (BrainLocation): Brain location.
-        species (OntologyTerm): Species ontology term.
-        strain (OntologyTerm): Strain ontology term.
+        subject (Subject): Subject.
         generated (VariableReport): Generated report.
         jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
@@ -500,8 +499,7 @@ class Simulation(Activity):
     'description': AttrOf(str, default=None),
     'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'species': AttrOf(OntologyTerm, default=None),
-    'strain': AttrOf(OntologyTerm, default=None),
+    'subject': AttrOf(Subject, default=None),
 })
 class SimulationCampaign(Activity):
     '''Simulation campaign activity.
@@ -512,8 +510,7 @@ class SimulationCampaign(Activity):
         description (str): Description for the simulation campaign.
         used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
         brainLocation (BrainLocation): Brain location.
-        species (OntologyTerm): Species ontology term.
-        strain (OntologyTerm): Strain ontology term.
+        subject (Subject): Subject.
     '''
 
 
@@ -555,63 +552,3 @@ class CampaignAnalysis(Activity):
         wasInformedBy (SimulationCampaign): Links to the simulation campaign which generated
             simulations used for the analysis.
     '''
-
-
-# @attributes({
-#     'name': AttrOf(str),
-#     'description': AttrOf(str),
-# })
-# class PointNeuronModel(_Entity):
-#     '''Point neuron model.
-#
-#     Args:
-#         name (str): Name.
-#         description (str): Reference to literature, params, doi.
-#     '''
-
-
-# @attributes({
-#     'name': AttrOf(str),
-#     'description': AttrOf(str),
-# })
-# class PointNeuronSynapseModel(_Entity):
-#     '''Synapse model of the point neurons.
-#
-#     Args:
-#         name (str): Name.
-#         description (str): Reference to literature, params, doi.
-#     '''
-
-
-@attributes({
-    'version': AttrOf(str),
-    'neuronCount': AttrOf(int),
-    'synapseCount': AttrOf(int),
-    # 'neuronModels': AttrOf(List[PointNeuronModel]),
-    # 'synapseModels': AttrOf(List[PointNeuronSynapseModel]),
-})
-class PointNeuronNetwork(ModelInstance):
-    '''Point neuron network.
-
-    Args:
-        version (str): Point neuron network version.
-        neuronCount (int): Neuron count in the point neuron network.
-        synapseCount (int): Synapse count in the point neuron network.
-    '''
-
-
-# @attributes({
-#     'name': AttrOf(str),
-#     'description': AttrOf(str),
-#     'used': AttrOf(CellAtlas),
-#     'generated': AttrOf(PointNeuronNetwork),
-# })
-# class GenBrainActivity(Activity):
-#     '''Generates point neuron network of the scarfold whole brain model.
-#
-#     Args:
-#         name (str): Name.
-#         description (str): Metadata, parameters, version of the algorithm.
-#         used (CellAtlas): Used cell atlas.
-#         generated (PointNeuronNetwork): Generated point neuron network.
-#     '''
