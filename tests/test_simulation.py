@@ -1,8 +1,6 @@
 # pylint: disable=missing-docstring,no-member
 import responses
 
-from nose.tools import eq_, ok_
-
 import entity_management.core as core
 from entity_management.settings import NSG, JSLD_CTX
 from entity_management.core import DataDownload
@@ -297,12 +295,12 @@ def test_get_configuration():
         json=CFG_JSLD)
 
     cfg = Configuration.from_id(CFG_ID)
-    eq_(cfg._id, str(CFG_ID))
+    assert cfg._id == str(CFG_ID)
 
 
 def test_configuration_serialization():
     cfg = Configuration(distribution=DataDownload(url='test_url'))
-    eq_(cfg.as_json_ld()['distribution']['url'], 'test_url')
+    assert cfg.as_json_ld()['distribution']['url'] == 'test_url'
 
 
 def test_simwriter_config_serialization():
@@ -311,12 +309,12 @@ def test_simwriter_config_serialization():
         configuration=DataDownload(url='json'),
         template=DataDownload(url='test'))
     json_ld = cfg.as_json_ld()
-    ok_(json_ld[JSLD_CTX][0])
+    assert json_ld[JSLD_CTX][0]
 
 
 def test_sim_campaign_used_override():
     SimulationCampaign(name='test', used=[])
-    ok_(True)  # doesn't raise
+    assert True  # doesn't raise
 
 
 # @responses.activate

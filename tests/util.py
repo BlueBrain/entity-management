@@ -3,7 +3,6 @@ import re
 import sys
 
 from contextlib import contextmanager
-from nose.tools import ok_
 
 from entity_management.compat import StringIO
 
@@ -39,4 +38,4 @@ def strip_all(string):
 
 def assert_substring(substring, string):
     sep = ['\n' + 80 * '>' + '\n', '\n' + 80 * '<' + '\n']
-    ok_(substring in string, "{}\n NOT IN \n{}".format(substring.join(sep), string.join(sep)))
+    assert substring in string == "{}\n NOT IN \n{}".format(substring.join(sep), string.join(sep))

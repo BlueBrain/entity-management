@@ -9,7 +9,6 @@ from typing import List
 import attr
 import responses
 from mock import patch, MagicMock
-from nose.tools import assert_raises, ok_, eq_
 
 from entity_management.state import set_proj, get_base_resources, set_base
 from entity_management.base import (Identifiable, OntologyTerm,
@@ -107,13 +106,13 @@ UNCONSTRAINED_RESPONSE = {
 
 
 def test_deserialize_list():
-    eq_(_deserialize_list(dict, [{'a': 'b'}], token=None), {'a': 'b'})
+    assert _deserialize_list(dict, [{'a': 'b'}], token=None) == {'a': 'b'}
 
     @attr.s
     class Dummy(object):
         a = attr.ib(default=42)
         b = attr.ib(default=None)
-    eq_(_deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None), [Dummy(a=1, b=2)])
+    assert _deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None) == [Dummy(a=1, b=2)]
 
 
 @responses.activate
@@ -123,22 +122,22 @@ def test_unconstraint():
         '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()),
         json=UNCONSTRAINED_RESPONSE)
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    eq_(obj.get_base_url(), '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()))
+    assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
     obj = obj.publish()
-    eq_(obj._constrainedBy, 'https://bluebrain.github.io/nexus/schemas/unconstrained.json')
+    assert obj._constrainedBy == 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
 
 
 def test_project_change():
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    eq_(obj.get_base_url(), '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()))
+    assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
     set_proj('test')
-    eq_(obj.get_base_url(), '%s/%s/%s/_' % (get_base_resources(), get_org(), 'test'))
+    assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), 'test')
 
 
 def test_env_change():
-    eq_(get_base_resources(), 'https://bbp.epfl.ch/nexus/v1/resources')
+    assert get_base_resources() == 'https://bbp.epfl.ch/nexus/v1/resources'
     set_base('https://dev.nexus.ocp.bbp.epfl.ch/v1')
-    eq_(get_base_resources(), 'https://dev.nexus.ocp.bbp.epfl.ch/v1/resources')
+    assert get_base_resources() == 'https://dev.nexus.ocp.bbp.epfl.ch/v1/resources'
 
 
 # @responses.activate

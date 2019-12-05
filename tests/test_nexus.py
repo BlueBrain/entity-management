@@ -1,7 +1,6 @@
 # pylint: disable=missing-docstring,no-member
 from six.moves import builtins
 from mock import patch
-from nose.tools import assert_equal, eq_, ok_
 
 import responses
 
@@ -50,7 +49,7 @@ def test_download_file(_):
 
     file_path = nexus.download_file(FILE_ID, path='/tmp')
 
-    assert_equal(file_path, '/tmp/%s' % FILE_NAME_EXT)
+    assert file_path == '/tmp/%s' % FILE_NAME_EXT
 
 
 @responses.activate
@@ -63,7 +62,7 @@ def test_download_file_with_name():
     new_name = 'abc.jpg'
     with patch('%s.open' % builtins.__name__):
         file_path = nexus.download_file(FILE_ID, path='/tmp', file_name=new_name)
-        assert_equal(file_path, '/tmp/%s' % new_name)
+        assert file_path == '/tmp/%s' % new_name
 
 
 def test_token():
@@ -71,9 +70,9 @@ def test_token():
              'IiwidHlwIjoiQmVhcmVyIiwiaWF0IjoxNTE2MjM5MDIyfQ.8xXouRWxnH6gHxUZSAAxplzmUb5OEWy61K6SF0'
              '5Hgi0')
     set_token(token)
-    eq_(token, get_token())
+    assert token == get_token()
     from entity_management.state import ACCESS_TOKEN
-    eq_(token, ACCESS_TOKEN)
+    assert token == ACCESS_TOKEN
 
 
 @responses.activate
@@ -90,8 +89,8 @@ def test_offline_token():
                '9lIiwidHlwIjoiT2ZmbGluZSIsImlhdCI6MTUxNjIzOTAyMn0.ulLat2ZoDCKcpKtvrTWb1hCRvvHfShU9s'
                '5eZIALS2xo')
     set_token(offline)
-    ok_(has_offline_token())
-    eq_(token, get_token())
+    assert has_offline_token()
+    assert token == get_token()
     from entity_management.state import ACCESS_TOKEN, OFFLINE_TOKEN
-    eq_(token, ACCESS_TOKEN)
-    eq_(offline, OFFLINE_TOKEN)
+    assert token == ACCESS_TOKEN
+    assert offline == OFFLINE_TOKEN

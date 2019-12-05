@@ -2,7 +2,7 @@
 import tempfile
 
 import responses
-from nose.tools import assert_raises, eq_
+from pytest import raises
 
 from entity_management.core import DataDownload, WorkflowExecution
 from entity_management.state import get_org, get_proj, get_base_files, get_base_resources
@@ -70,10 +70,11 @@ def test_workflow_execution():
                                      version='0.0.15',
                                      distribution=distribution)
 
-    eq_(workflow.as_json_ld()['distribution']['@type'], 'DataDownload')
-    eq_(workflow.distribution.contentSize['value'], 9)
-    eq_(workflow.distribution.encodingFormat, 'application/zip')
+    assert workflow.as_json_ld()['distribution']['@type'] == 'DataDownload'
+    assert workflow.distribution.contentSize['value'] == 9
+    assert workflow.distribution.encodingFormat == 'application/zip'
 
 
 def test_data_download_no_url_and_content_url_provided():
-    assert_raises(Exception, lambda: DataDownload())  # pylint: disable=unnecessary-lambda
+    with raises(Exception):
+        DataDownload()

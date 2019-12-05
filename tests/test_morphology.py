@@ -2,7 +2,6 @@
 from six.moves import builtins
 
 from mock import patch
-from nose.tools import eq_
 import responses
 
 from entity_management.state import get_org, get_proj, get_base_files, get_base_resources
@@ -152,7 +151,7 @@ def test_reconstructed_patched_cell():
 
     cells = ReconstructedPatchedCell.list_by_schema()
     cell = next(cells)
-    eq_(cell.name, 'cell_name')
-    eq_(type(cell.wasDerivedFrom[0]), Entity)
+    assert cell.name == 'cell_name'
+    assert type(cell.wasDerivedFrom[0]) == Entity
     with patch('%s.open' % builtins.__name__):
-        eq_(cell.distribution[0].download(path='/tmp'), '/tmp/%s' % FILE_NAME_EXT)
+        assert cell.distribution[0].download(path='/tmp') == '/tmp/%s' % FILE_NAME_EXT

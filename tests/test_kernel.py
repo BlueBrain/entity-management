@@ -8,7 +8,6 @@ import operator
 import attr
 import responses
 from mock import patch
-from nose.tools import assert_equal, ok_, eq_
 
 import entity_management.core as core
 import entity_management.nexus as nx
@@ -79,12 +78,12 @@ def test_resolve_path():
 
 def test_state_proj():
     set_proj('tmp')
-    eq_(get_proj(), 'tmp')
+    assert get_proj() == 'tmp'
 
 
 def test_state_org():
     set_org('tmp')
-    eq_(get_org(), 'tmp')
+    assert get_org() == 'tmp'
 
 
 # def test_url_to_type():
