@@ -1,0 +1,20 @@
+{
+    "@context": "https://bluebrain.github.io/nexus/contexts/resource.json",
+    "@id": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/_/b00896ef-db8c-4fae-90e4-ae157a306746",
+    "@type": "File",
+    "_bytes": 9,
+    "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/file.json",
+    "_createdAt": "2019-06-27T12:58:12.717Z",
+    "_createdBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous",
+    "_deprecated": false,
+    "_digest": {
+        "_algorithm": "SHA-256",
+        "_value": "1fe638b478f8f0b2c2aab3dbfd3f05d6dfe2191cd7b4482241fe58567e37aef6"},
+    "_filename": "tmp1u6tq_ac.zip",
+    "_mediaType": "application/zip",
+    "_project": "https://bbp-nexus.epfl.ch/staging/v1/projects/org/proj",
+    "_rev": 1,
+    "_self": "https://bbp.epfl.ch/nexus/v1/files/org/proj/b00896ef-db8c-4fae-90e4-ae157a306746",
+    "_updatedAt": "2019-06-27T12:58:12.717Z",
+    "_updatedBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous"
+}

@@ -15,7 +15,7 @@ DEFAULT_TAG = 'v0.1.0'
 # if provided, nexus entities will have wasAttributedTo set to this AGENT
 # this is helpful when entity management library is used in some context which
 # already established some provenance regarding currently running agent
-AGENT = os.getenv('NEXUS_AGENT', None)
+WORKFLOW = os.getenv('NEXUS_WORKFLOW', None)
 
 RDF = Namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#')
 PROV = Namespace('http://www.w3.org/ns/prov#')

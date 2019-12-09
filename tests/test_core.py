@@ -1,73 +1,37 @@
 # pylint: disable=missing-docstring,no-member
+import json
 import tempfile
 
-import responses
-from pytest import raises
+import pytest
 
-from entity_management.core import DataDownload, WorkflowExecution
-from entity_management.state import get_org, get_proj, get_base_files, get_base_resources
-
-
-FILE_RESPONSE = {
-    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
-    '@id': 'https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/_/'
-           'b00896ef-db8c-4fae-90e4-ae157a306746',
-    '@type': 'File',
-    '_bytes': 9,
-    '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/file.json',
-    '_createdAt': '2019-06-27T12:58:12.717Z',
-    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
-    '_deprecated': False,
-    '_digest': {
-        '_algorithm': 'SHA-256',
-        '_value': '1fe638b478f8f0b2c2aab3dbfd3f05d6dfe2191cd7b4482241fe58567e37aef6'},
-    '_filename': 'tmp1u6tq_ac.zip',
-    '_mediaType': 'application/zip',
-    '_project': 'https://bbp-nexus.epfl.ch/staging/v1/projects/myorg/myproj',
-    '_rev': 1,
-    '_self': 'https://bbp.epfl.ch/nexus/v1/files/myorg/test/b00896ef-db8c-4fae-90e4-ae157a306746',
-    '_updatedAt': '2019-06-27T12:58:12.717Z',
-    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
-}
-
-WORKFLOW_RESPONSE = {
-    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
-    '@id': 'https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/_/'
-           '487862bf-c682-49da-aed5-151b5a85f4cb',
-    '@type': 'https://neuroshapes.org/WorkflowExecution',
-    '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/unconstrained.json',
-    '_createdAt': '2019-06-28T09:16:10.487Z',
-    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
-    '_deprecated': False,
-    '_project': 'https://bbp.epfl.ch/nexus/v1/projects/myorg/myproj',
-    '_rev': 1,
-    '_self': 'https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/_/'
-             '487862bf-c682-49da-aed5-151b5a85f4cb',
-    '_updatedAt': '2019-06-28T09:16:10.487Z',
-    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
-}
+import entity_management.nexus as nexus
+from entity_management.core import DataDownload, WorkflowExecution, Entity, Activity, Person
 
 
-@responses.activate
-def test_workflow_execution():
-    responses.add(
-        responses.POST,
-        '%s/%s/%s' % (get_base_files(), get_org(), get_proj()),
-        json=FILE_RESPONSE)
+@pytest.fixture(name='workflow_resp', scope='session')
+def fixture_workflow_resp():
+    with open('tests/data/workflow_resp.json') as f:
+        return json.load(f, object_hook=nexus._byteify)
 
-    responses.add(
-        responses.POST,
-        '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()),
-        json=WORKFLOW_RESPONSE)
+
+@pytest.fixture(name='file_resp', scope='session')
+def fixture_file_resp():
+    with open('tests/data/file_resp.json') as f:
+        return json.load(f, object_hook=nexus._byteify)
+
+
+def test_workflow_execution(monkeypatch, workflow_resp, file_resp):
+    monkeypatch.setattr(nexus, 'upload_file', lambda *a, **b: file_resp)
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: workflow_resp)
 
     with tempfile.NamedTemporaryFile(suffix='.zip') as temp:
         temp.write(b'Some data')  # 9 bytes of data
         temp.flush()
         distribution = DataDownload.from_file(file_path=temp.name, content_type='application/zip')
         workflow = WorkflowExecution(name='module_name.TaskName',
-                                     module='module_name',
-                                     task='TaskName',
-                                     version='0.0.15',
+                                     module='module',
+                                     task='task',
+                                     version='1',
                                      distribution=distribution)
 
     assert workflow.as_json_ld()['distribution']['@type'] == 'DataDownload'
@@ -76,5 +40,87 @@ def test_workflow_execution():
 
 
 def test_data_download_no_url_and_content_url_provided():
-    with raises(Exception):
+    with pytest.raises(Exception):
         DataDownload()
+
+
+def test_publish_with_attribution(monkeypatch):
+    entity = Entity(name='test')
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    entity = entity.publish(was_attributed_to=Person(email='email'))
+    assert entity.wasAttributedTo[0].email == 'email'
+
+
+def test_publish_with_existing_attribution(monkeypatch):
+    entity = Entity(name='test', wasAttributedTo=[Person(email='email1')])
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    entity = entity.publish(was_attributed_to=Person(email='email2'))
+    emails = [person.email for person in entity.wasAttributedTo]
+    assert 'email1' in emails
+    assert 'email2' in emails
+
+
+def test_publish_without_workflow(monkeypatch):
+    entity = Entity(name='test')
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    entity.publish()
+
+
+def test_publish_with_activity(monkeypatch):
+    entity = Entity(name='test')
+    activity = Activity(name='activity')
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    entity = entity.publish(was_generated_by=activity)
+    assert entity.wasGeneratedBy.name == activity.name
+
+
+def test_publish_with_activity_no_override(monkeypatch):
+    entity = Entity(name='test', wasGeneratedBy=Activity(name='activity1'))
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    entity = entity.publish(was_generated_by=Activity(name='activity2'))
+    assert entity.wasGeneratedBy.name == 'activity1', (
+        'Original entity wasGeneratedBy activity should not be overriden by the one '
+        'provided in publish method')
+
+
+def test_publish_entity_with_workflow(monkeypatch):
+    monkeypatch.setattr('entity_management.core.WORKFLOW', 'workflow_id')
+    monkeypatch.setattr(WorkflowExecution,
+                        'from_id',
+                        classmethod(lambda *a, **b: WorkflowExecution(name='workflow',
+                                                                      module='module',
+                                                                      task='task',
+                                                                      version='1')))
+    entity = Entity(name='name')
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    entity = entity.publish()
+    assert entity.wasGeneratedBy.name == 'workflow'
+
+
+def test_publish_activity(monkeypatch):
+    activity = Activity()
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    activity.publish()
+
+
+def test_publish_activity_with_activity_no_override(monkeypatch):
+    activity = Activity(name='test', wasStartedBy=Activity(name='activity1'))
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    activity = activity.publish(was_started_by=Activity(name='activity2'))
+    assert activity.wasStartedBy.name == 'activity1', (
+        'Original activity wasStartedBy activity should not be overriden by the one '
+        'provided in publish method')
+
+
+def test_publish_activity_with_workflow(monkeypatch):
+    monkeypatch.setattr('entity_management.core.WORKFLOW', 'workflow_id')
+    monkeypatch.setattr(WorkflowExecution,
+                        'from_id',
+                        classmethod(lambda *a, **b: WorkflowExecution(name='workflow',
+                                                                      module='module',
+                                                                      task='task',
+                                                                      version='1')))
+    activity = Activity()
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    activity = activity.publish()
+    assert activity.wasStartedBy.name == 'workflow'

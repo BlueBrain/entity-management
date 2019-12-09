@@ -1,108 +1,51 @@
 # pylint: disable=missing-docstring,no-member
 import json
-import os
-import tempfile
 from datetime import datetime
-from itertools import repeat
 from typing import List
 
-import attr
-import responses
-from mock import patch, MagicMock
+import pytest
 
+import attr
+import requests
+
+from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE
 from entity_management.state import set_proj, get_base_resources, set_base
 from entity_management.base import (Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj, Unconstrained)
-from entity_management.core import DataDownload, DistributionMixin
 from entity_management.state import get_org, get_proj
+from entity_management.morphology import ReconstructedPatchedCell
+import entity_management.nexus as nexus
 
 
-DISTRIBUTION_RESPONSE = {
-    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
-    '@id': 'nxv:myfile',
-    '@type': 'File',
-    '_bytes': 2670,
-    '_digest': {
-        '_algorithm': 'SHA-256',
-        '_value': '25fc54fba0beec17a598b5a68420ded1595b2f76f0a0b7c6077792ece828bc2e'
-    },
-    '_filename': 'myfile2.png',
-    '_mediaType': 'image/png',
-    '_self': 'https://bbp-nexus.epfl.ch/staging/v1/files/myorg/myproj/nxv:myfile',
-    '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/file.json',
-    '_project': 'https://bbp-nexus.epfl.ch/staging/v1/projects/myorg/myproj',
-    '_rev': 1,
-    '_deprecated': False,
-    '_createdAt': '2019-01-28T12:15:33.238Z',
-    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
-    '_updatedAt': '2019-12-28T12:15:33.238Z',
-    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
-}
-
-UUID = '03a8d151-0a1a-4735-8b81-2696422e04b8'
-
-UNCONSTRAINED_RESPONSE = {
-    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
-    '@id': 'https://bbp-nexus.epfl.ch/staging/v1/resources/myorg/myproj/_/%s' % UUID,
-    '_self': 'https://bbp-nexus.epfl.ch/staging/v1/resources/myorg/myproj/_/%s' % UUID,
-    '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/unconstrained.json',
-    '_project': 'https://bbp-nexus.epfl.ch/staging/v1/projects/myorg/myproj',
-    '_rev': 1,
-    '_deprecated': False,
-    '_createdAt': '2019-01-28T12:15:33.238Z',
-    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
-    '_updatedAt': '2019-12-28T12:15:33.238Z',
-    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
-}
+def test_id_type(monkeypatch):
+    class Dummy(Identifiable):
+        '''A dummy class'''
+    dummy = Dummy()
+    monkeypatch.setattr(nexus, 'create', lambda *args, **kwargs: {JSLD_ID: 'id',
+                                                                  JSLD_REV: 1,
+                                                                  JSLD_TYPE: 'Dummy'})
+    dummy = dummy.publish()
+    assert dummy._id == 'id'
+    assert dummy._type == 'Dummy'
 
 
-# def test_types():
-#     class Dummy(Identifiable):
-#         '''A dummy class'''
-#     dummy = Dummy()
-#     with patch('entity_management.base.nexus.create', return_value={JSLD_ID: 'id', JSLD_REV: 1}):
-#         dummy = dummy.publish()
-#         assert_equal(dummy.types, ['prov:Entity', 'nsg:Dummy'])
-#
-#     dummy.meta.types = 'value changed'
-#     assert_equal(dummy.evolve().types, 'value changed')
-#
-# def test_from_url():
-#     assert_raises(Exception, from_url, 'https://no-python-class-at-this-url')
-#
-# def test_serialize():
-#     obj = Identifiable()
-#     obj.meta.types = ['changed types']
-#     assert_equal(_serialize_obj(obj),
-#                  {'@id': None, '@type': ['changed types']})
-#
-#     id_ = '/entity/v1.0.0'
-#     obj = Identifiable(id=id_)
-#     obj.meta.types = ['nsg:Entity']
-#     obj.meta.rev = 1
-#     assert_equal(_serialize_obj(obj, True),
-#                  {'@id': id_, '@type': []})
-#
-#     assert_equal(_serialize_obj(datetime(2018, 12, 23)),
-#                  '2018-12-23T00:00:00')
-#
-#     assert_equal(_serialize_obj(OntologyTerm(url='A', label='B')),
-#                  {'@id': 'A', 'label': 'B'})
-#
-#     @attr.s
-#     class Dummy(object):
-#         a = attr.ib(default=42)
-#         b = attr.ib(default=None)
-#
-#     dummy = Dummy(a=33, b=Dummy(a=12))
-#     assert_equal(_serialize_obj(dummy),
-#                  {'a': 33, 'b': {'a': 12}})
-#
-#     dummy = Dummy(a={1: 2}, b=[OntologyTerm(url='A', label='B')])
-#     assert_equal(_serialize_obj(dummy),
-#                  {'a': {1: 2}, 'b': [{'@id': 'A', 'label': 'B'}]})
-#
-#     assert_equal(_serialize_obj(42), 42)
+def test_serialize():
+    assert _serialize_obj(datetime(2018, 12, 23)) == '2018-12-23T00:00:00'
+
+    assert _serialize_obj(OntologyTerm(url='A', label='B')) == {'@id': 'A', 'label': 'B'}
+
+    @attr.s
+    class Dummy(object):
+        a = attr.ib(default=42)
+        b = attr.ib(default=None)
+
+    dummy = Dummy(a=33, b=Dummy(a=12))
+    assert _serialize_obj(dummy) == {'a': 33, 'b': {'a': 12}}
+
+    dummy = Dummy(a={1: 2}, b=[OntologyTerm(url='A', label='B')])
+    assert _serialize_obj(dummy) == {'a': {1: 2}, 'b': [{'@id': 'A', 'label': 'B'}]}
+
+    assert _serialize_obj(42) == 42
 
 
 def test_deserialize_list():
@@ -115,16 +58,20 @@ def test_deserialize_list():
     assert _deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None) == [Dummy(a=1, b=2)]
 
 
-@responses.activate
-def test_unconstraint():
-    responses.add(
-        responses.POST,
-        '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj()),
-        json=UNCONSTRAINED_RESPONSE)
+@pytest.fixture(name='unconstrained_resp', scope='session')
+def fixture_unconstrained():
+    with open('tests/data/unconstrained_resp.json') as f:
+        return json.load(f)
+
+
+def test_unconstrained(monkeypatch, unconstrained_resp):
+    monkeypatch.setattr(nexus, 'create', lambda *args, **kwargs: unconstrained_resp)
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
     assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
     obj = obj.publish()
     assert obj._constrainedBy == 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
+    assert obj.json['key1'] == 'value1'
+    assert obj.json['key2'] == 'value2'
 
 
 def test_project_change():
@@ -140,120 +87,44 @@ def test_env_change():
     assert get_base_resources() == 'https://dev.nexus.ocp.bbp.epfl.ch/v1/resources'
 
 
-# @responses.activate
-# def test_Identifiable_find_by():
-#     class Dummy(Identifiable):
-#         # if not set, query url will depend on env var NEXUS_ORG
-#         _url_org = 'dummy_org'
-#         _url_version = 'v0.1.0'
-#
-#     with patch('entity_management.base.nexus.find_by', return_value=None):
-#         assert_equal(Dummy.find_by(), None)
-#
-#
-#     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy/v0.1.0',
-#                   status=303,
-#                   headers={'Location': 'https://query-location-url-1?from=0&size=10'})
-#     assert_equal(Dummy.find_by(dummy=OntologyTerm(url='A', label='B')).url,
-#                  'https://query-location-url-1?from=0&size=10')
-#     assert_equal(Dummy.find_by(dummy=('eq', 'A')).url,
-#                  'https://query-location-url-1?from=0&size=10')
-#     assert_equal(Dummy.find_by(dummy=Identifiable(id='an-awesome-id')).url,
-#                  'https://query-location-url-1?from=0&size=10')
-#
-#     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org/simulation/dummy',
-#                   status=303,
-#                   headers={'Location': 'https://query-location-url-2?from=0&size=10'})
-#     assert_equal(Dummy.find_by(all_versions=True).url,
-#                  'https://query-location-url-2?from=0&size=10')
-#
-#     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries/dummy_org',
-#                   status=303,
-#                   headers={'Location': 'https://query-location-url-3?from=0&size=10'})
-#     assert_equal(Dummy.find_by(all_domains=True).url, 'https://query-location-url-3?from=0&size=10')
-#
-#     responses.add(responses.POST, 'https://bbp-nexus.epfl.ch/staging/v0/queries',
-#                   status=303,
-#                   headers={'Location': 'https://query-location-url-4?from=0&size=10'})
-#     assert_equal(Dummy.find_by(all_organizations=True).url,
-#                  'https://query-location-url-4?from=0&size=10')
-#
-#
-# def test_find_unique():
-#     class MockResult:
-#         id = 12
-#
-#     single_result = MockResult()
-#     with patch.object(Identifiable, 'find_by', return_value=iter([single_result])):
-#         ok_(Identifiable.find_unique(name="whatever") is single_result)
-#
-#     too_many_result = repeat(MockResult(), 4)
-#     with patch.object(Identifiable, 'find_by', return_value=too_many_result):
-#         assert_raises(Exception, Identifiable.find_unique, name="whatever")
-#
-#     no_result = iter(list())
-#     with patch.object(Identifiable, 'find_by', return_value=no_result):
-#         ok_(not Identifiable.find_unique(name="whatever"))
-#
-#         assert_raises(Exception, Identifiable.find_unique, name="whatever", throw=True)
-#         assert_equal(Identifiable.find_unique(name="whatever", on_no_result=lambda: 7), 7)
-#
-#     mock_return_on_first_try = MagicMock(return_value=iter([1]))
-#     with patch.object(Identifiable, 'find_by', mock_return_on_first_try):
-#         assert_equal(Identifiable.find_unique(name="whatever",
-#                                               on_no_result=lambda: 7,
-#                                               poll_until_exists=True),
-#                      1)
-#         assert_equal(mock_return_on_first_try.call_count, 1)
-#
-#
-#     mock_return_on_second_try = MagicMock(side_effect=[iter([]), iter([2])])
-#     with patch.object(Identifiable, 'find_by', mock_return_on_second_try):
-#         assert_equal(Identifiable.find_unique(name="whatever",
-#                                               on_no_result=lambda: 7,
-#                                               poll_until_exists=True),
-#                      7)
-#         assert_equal(mock_return_on_second_try.call_count, 2)
-#
-#     mock_never_finds = MagicMock(return_value=iter([]))
-#     with patch.object(Identifiable, 'find_by', mock_never_finds):
-#         with patch('entity_management.base.sleep'):
-#             assert_raises(Exception,
-#                           Identifiable.find_unique,
-#                           name="whatever",
-#                           on_no_result=lambda: 7,
-#                           poll_until_exists=True)
-#
-#
-#
-#
-#
-#
-# @responses.activate
-# def test_get_attachment():
-#     attachment = DistributionMixin(distribution=[
-#         Distribution(downloadURL='crap')
-#     ]).get_attachment()
-#
-#     assert_equal(attachment,
-#                  None)
-#
-#     dists = [Distribution(downloadURL='crap'),
-#              Distribution(downloadURL='https://bla/attachment',
-#                           originalFileName='original.json'),
-#              Distribution(downloadURL='file:///gpfs/some-stuff',
-#                           storageType='gpfs')]
-#
-#     assert_equal(DistributionMixin(distribution=dists).get_attachment(),
-#                  dists[1])
-#
-#     assert_equal(DistributionMixin(distribution=dists).get_gpfs_path(),
-#                  '/gpfs/some-stuff')
-#
-#     assert_equal(DistributionMixin(distribution=[]).get_gpfs_path(),
-#                  None)
-#
-#     responses.add(responses.GET, 'https://bla/attachment', json={'Bob': 'Marley'})
-#     DistributionMixin(distribution=dists).download(tempfile.gettempdir())
-#     with open(os.path.join(tempfile.gettempdir(), 'original.json')) as f:
-#         assert_equal(json.load(f), {'Bob': 'Marley'})
+@pytest.fixture(name='cells_page1_resp', scope='session')
+def fixture_reconstructed_patched_cells_page1():
+    with open('tests/data/cells_page1_resp.json') as f:
+        return f.read()
+
+
+@pytest.fixture(name='cells_page2_resp', scope='session')
+def fixture_reconstructed_patched_cells_page2():
+    with open('tests/data/cells_page2_resp.json') as f:
+        return f.read()
+
+
+def test_list_by_schema(monkeypatch, cells_page1_resp, cells_page2_resp):
+    class MockResponsePage1():
+        status_code = 200
+        content = cells_page1_resp
+        @staticmethod
+        def raise_for_status():
+            pass
+
+    class MockResponsePage2():
+        status_code = 200
+        content = cells_page2_resp
+        @staticmethod
+        def raise_for_status():
+            pass
+
+    with monkeypatch.context() as m:
+        m.setattr(requests, 'get', lambda *args, **kwargs: MockResponsePage1)
+        cells = ReconstructedPatchedCell.list_by_schema(page_size=2)
+        cell = next(cells)
+        assert cells.total_items == 3
+        ids = ['https://bbp.epfl.ch/neurosciencegraph/data/0d3f11ac-2c85-43d5-becd-4a248a7010da',
+               'https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52']
+        assert cell.get_id() in ids
+        assert next(cells).get_id() in ids
+
+    with monkeypatch.context() as m:
+        m.setattr(requests, 'get', lambda *args, **kwargs: MockResponsePage2)
+        assert (next(cells).get_id() ==
+                'https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed')

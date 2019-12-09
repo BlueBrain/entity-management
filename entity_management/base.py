@@ -19,8 +19,7 @@ from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
 from entity_management.state import get_org, get_proj, get_base_resources
-from entity_management.settings import (JSLD_DEPRECATED, JSLD_ID, JSLD_REV,
-                                        JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH)
+from entity_management.settings import JSLD_ID, JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
                                     _get_list_params, _merge, quote)
 
@@ -132,9 +131,8 @@ class _NexusBySchemaIterator(six.Iterator):
         if self._item_index >= self.total_items:
             raise StopIteration()
 
+        id_url = self._page[self._item_index - self.page_from]
         self._item_index += 1
-
-        id_url = self._page[self._item_index - 1 - self.page_from]
         return self.cls._lazy_init(id_url)
 
 
@@ -156,10 +154,7 @@ class Frozen(object):
             New instance of the same class with changes applied.
         '''
 
-        meta = changes.pop('meta', None)
         obj = attr.evolve(self, **changes)
-        if hasattr(obj, 'meta'):
-            obj._force_attr('meta', meta or self.meta)  # pylint: disable=no-member
         return obj
 
 
@@ -168,48 +163,6 @@ class BlankNode(Frozen):
 
     def __attrs_post_init__(self):
         self._force_attr('_type', type(self).__name__)
-
-
-@attr.s
-class Metadata(object):
-    '''A class storing all metadata attributes'''
-    token = attr.ib(default=None)
-    rev = attr.ib(default=None)
-    deprecated = attr.ib(default=False)
-    types = attr.ib(default=None)
-
-    @classmethod
-    def from_json(cls, json, token):
-        '''Build a Metadata from a json payload'''
-        return Metadata(rev=json[JSLD_REV], deprecated=json[JSLD_DEPRECATED],
-                        types=json[JSLD_TYPE], token=token)
-
-
-# def from_url(url, use_auth=None):
-#     '''
-#     Load entity from URL.
-#
-#     Args:
-#         url (str): URL of the entity to load.
-#         use_auth (str): OAuth token in case access is restricted.
-#             Token should be in the format for the authorization header: Bearer VALUE.
-#     '''
-#     # FIXME
-#     cls = nexus.get_type(url)
-#     if cls is None:
-#         raise Exception('Cannot find python class of object at url: {}'.format(url))
-#     json_ld = nexus.load_by_url(url, token=use_auth)
-#
-#     # prepare all entity init args
-#     init_args = {}
-#     for field in attr.fields(cls):  # pylint: disable=not-an-iterable
-#         raw = json_ld.get(field.name)
-#         if field.init and raw is not None:
-#             type_ = field.type
-#             init_args[field.name] = _deserialize_json_to_datatype(type_, raw, use_auth)
-#
-#     return cls(id=json_ld[JSLD_ID], **init_args).evolve(meta=Metadata.from_json(json_ld,
-#                                                                                 token=use_auth))
 
 
 def _serialize_obj(value):
@@ -462,7 +415,7 @@ class Identifiable(Frozen):
             return None
 
     @classmethod
-    def list_by_schema(cls):
+    def list_by_schema(cls, **kwargs):
         '''List all instances belonging to the schema this type defines.
 
         Args:
@@ -471,7 +424,7 @@ class Identifiable(Frozen):
         Returns:
             New instance of the same class with changes applied.
         '''
-        return _NexusBySchemaIterator(cls)
+        return _NexusBySchemaIterator(cls, **kwargs)
 
     def get_id(self):
         '''Retrieve _id property.'''
@@ -543,6 +496,7 @@ class Identifiable(Frozen):
             if sys_attr in json_ld:
                 self._force_attr(sys_attr, json_ld[sys_attr])
         self._force_attr('_id', json_ld.get(JSLD_ID))
+        self._force_attr('_type', json_ld.get(JSLD_TYPE))
         return self
 
     def _instantiate(self, use_auth=None):

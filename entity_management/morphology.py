@@ -7,12 +7,12 @@ Experimental morphologies entities
 '''
 from entity_management.base import Identifiable, BrainLocation, attributes
 from entity_management.util import AttrOf
-from entity_management.core import ProvenanceMixin, DistributionMixin, Entity
+from entity_management.core import EntityMixin, DistributionMixin, Entity
 
 
 @attributes({'name': AttrOf(str),
              'brainLocation': AttrOf(BrainLocation)})
-class ReconstructedCell(DistributionMixin, Identifiable, ProvenanceMixin):
+class ReconstructedCell(DistributionMixin, Identifiable, EntityMixin):
     '''Reconstructed cell.
 
     Args:
@@ -34,5 +34,5 @@ class ReconstructedWholeBrainCell(ReconstructedCell):
 
 
 @attributes({'morphology': AttrOf(Entity)})
-class CutPlane(DistributionMixin, Identifiable, ProvenanceMixin):
+class CutPlane(DistributionMixin, Identifiable, EntityMixin):
     '''Cut plane.'''

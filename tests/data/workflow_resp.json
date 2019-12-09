@@ -1,0 +1,14 @@
+{
+    "@context": "https://bluebrain.github.io/nexus/contexts/resource.json",
+    "@id": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/_/487862bf-c682-49da-aed5-151b5a85f4cb",
+    "@type": "https://neuroshapes.org/WorkflowExecution",
+    "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
+    "_createdAt": "2019-06-28T09:16:10.487Z",
+    "_createdBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous",
+    "_deprecated": false,
+    "_project": "https://bbp.epfl.ch/nexus/v1/projects/org/proj",
+    "_rev": 1,
+    "_self": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/_/487862bf-c682-49da-aed5-151b5a85f4cb",
+    "_updatedAt": "2019-06-28T09:16:10.487Z",
+    "_updatedBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous"
+}

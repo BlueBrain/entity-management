@@ -7,7 +7,7 @@ from attr.validators import in_
 import entity_management.morphology as morphology
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
                                     QuantitativeValue, BrainLocation)
-from entity_management.core import (Entity, Activity, Agent, ProvenanceMixin,
+from entity_management.core import (Entity, Activity, Agent, EntityMixin,
                                     SoftwareAgent, DataDownload, Subject)
 from entity_management.electrophysiology import Trace
 from entity_management.util import AttrOf
@@ -18,7 +18,7 @@ from entity_management.util import AttrOf
     'description': AttrOf(str, default=None),
     'distribution': AttrOf(DataDownload, default=None),
 })
-class _Entity(ProvenanceMixin, Identifiable):
+class _Entity(EntityMixin, Identifiable):
     '''Base abstract class for many things having `name` and `description`
 
     Args:
