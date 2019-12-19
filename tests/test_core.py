@@ -70,14 +70,14 @@ def test_publish_with_activity(monkeypatch):
     entity = Entity(name='test')
     activity = Activity(name='activity')
     monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
-    entity = entity.publish(was_generated_by=activity)
+    entity = entity.publish(activity=activity)
     assert entity.wasGeneratedBy.name == activity.name
 
 
 def test_publish_with_activity_no_override(monkeypatch):
     entity = Entity(name='test', wasGeneratedBy=Activity(name='activity1'))
     monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
-    entity = entity.publish(was_generated_by=Activity(name='activity2'))
+    entity = entity.publish(activity=Activity(name='activity2'))
     assert entity.wasGeneratedBy.name == 'activity1', (
         'Original entity wasGeneratedBy activity should not be overriden by the one '
         'provided in publish method')
@@ -106,7 +106,7 @@ def test_publish_activity(monkeypatch):
 def test_publish_activity_with_activity_no_override(monkeypatch):
     activity = Activity(name='test', wasStartedBy=Activity(name='activity1'))
     monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
-    activity = activity.publish(was_started_by=Activity(name='activity2'))
+    activity = activity.publish(activity=Activity(name='activity2'))
     assert activity.wasStartedBy.name == 'activity1', (
         'Original activity wasStartedBy activity should not be overriden by the one '
         'provided in publish method')

@@ -207,30 +207,30 @@ class Activity(Identifiable):
                 and self._id is None and self.startedAtTime is None):  # pylint: disable=no-member
             self._force_attr('startedAtTime', datetime.utcnow())
 
-    def publish(self, resource_id=None, was_started_by=None,  # pylint: disable=arguments-differ
+    def publish(self, resource_id=None, activity=None,  # pylint: disable=arguments-differ
                 base=None, org=None, proj=None, use_auth=None):
         '''Create or update activity resource in nexus.
 
         Args:
             resource_id (str): Resource identifier.
-            was_started_by (Activity): Optional activity which triggered current activity.
-                If runnning in the context of a workflow(when NEXUS_WORKFLOW env variable is
-                provided) ``wasStartedBy`` attribute, if not initialized, will be set to point to
-                to the workflow execution activity.
+            activity (Activity): Optional activity which triggered current activity.
+                If runnning in the context of a workflow(NEXUS_WORKFLOW env variable is provided)
+                and ``self.wasStartedBy`` was not initialized, ``activity`` default value will be
+                workflow execution activity.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
 
         Returns:
             New instance of the same class with revision updated.
         '''
-        if was_started_by is not None:
-            assert isinstance(was_started_by, Activity)
+        if activity is not None:
+            assert isinstance(activity, Activity)
 
-        if was_started_by is None and WORKFLOW is not None:
+        if activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
-            was_started_by = WorkflowExecution.from_id(WORKFLOW)
+            activity = WorkflowExecution.from_id(WORKFLOW)
         if self.wasStartedBy is None:  # pylint: disable=no-member
-            self = self.evolve(wasStartedBy=was_started_by)
+            self = self.evolve(wasStartedBy=activity)
 
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
@@ -283,7 +283,7 @@ class WorkflowExecution(Activity):
 class EntityMixin(object):
     '''Enables provenance metadata when publishing/deprecating entities'''
 
-    def publish(self, resource_id=None, was_generated_by=None, was_attributed_to=None,
+    def publish(self, resource_id=None, activity=None, was_attributed_to=None,
                 base=None, org=None, proj=None, use_auth=None):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
@@ -291,10 +291,11 @@ class EntityMixin(object):
 
         Args:
             resource_id (str): Resource identifier.
-            was_generated_by (Activity): Provide activity which generated this resource.
+            activity (Activity): Optionally provide activity which generated this resource.
                 If ``self.wasGeneratedBy`` is not set then it be set to point to this activity.
                 If runnning in the context of a workflow(NEXUS_WORKFLOW env variable is provided)
-                ``was_generated_by`` default value will point to the workflow execution activity.
+                and ``self.wasGeneratedBy`` was not initialed, ``activity`` default value will be
+                workflow execution activity.
             was_attributed_to (Person): Provide person argument in order to add the Person to the
                 set of attribution parameter ``self.wasAttributedTo``.
             use_auth (str): OAuth token in case access is restricted.
@@ -303,14 +304,14 @@ class EntityMixin(object):
         Returns:
             New instance of the same class with revision updated.
         '''
-        if was_generated_by is not None:
-            assert isinstance(was_generated_by, Activity)
+        if activity is not None:
+            assert isinstance(activity, Activity)
 
-        if was_generated_by is None and WORKFLOW is not None:
+        if activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
-            was_generated_by = WorkflowExecution.from_id(WORKFLOW)
+            activity = WorkflowExecution.from_id(WORKFLOW)
         if self.wasGeneratedBy is None:
-            self = self.evolve(wasGeneratedBy=was_generated_by)
+            self = self.evolve(wasGeneratedBy=activity)
 
         if was_attributed_to is not None:
             self = self.evolve(wasAttributedTo=self.wasAttributedTo + [was_attributed_to]
