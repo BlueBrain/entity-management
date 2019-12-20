@@ -386,6 +386,7 @@ class Identifiable(Frozen):
             resource_id (str): id of the entity to load.
             on_no_result (Callable): A function to be called when no result found. It will receive
                 `resource_id` as a first argument.
+            kwargs: Keyword arguments which will be forwarded to ``on_no_result`` function.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''

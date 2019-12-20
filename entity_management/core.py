@@ -228,7 +228,8 @@ class Activity(Identifiable):
 
         if activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
-            activity = WorkflowExecution.from_id(WORKFLOW)
+            activity = WorkflowExecution.from_id(WORKFLOW,
+                                                 base=base, org=org, proj=proj, use_auth=use_auth)
         if self.wasStartedBy is None:  # pylint: disable=no-member
             self = self.evolve(wasStartedBy=activity)
 
@@ -309,7 +310,8 @@ class EntityMixin(object):
 
         if activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
-            activity = WorkflowExecution.from_id(WORKFLOW)
+            activity = WorkflowExecution.from_id(WORKFLOW,
+                                                 base=base, org=org, proj=proj, use_auth=use_auth)
         if self.wasGeneratedBy is None:
             self = self.evolve(wasGeneratedBy=activity)
 
