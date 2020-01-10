@@ -57,7 +57,7 @@ setup(
     },
     packages=find_packages(),
     include_package_data=True,
-    author="NSE Team",
+    author="NSE (Neuroscientific Software Engineering)",
     author_email="bbp-ou-nse@groupes.epfl.ch",
     description="Access to production entity management",
     license="BBP-internal-confidential",
