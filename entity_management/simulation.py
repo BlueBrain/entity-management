@@ -67,6 +67,9 @@ class MorphologyRelease(ModelRelease):
     '''Morphology release can be located at the external location or constituted from individual
     :class:`Morphology` entities.
 
+    .. deprecated:: 1.0.19
+        Use :class:`ReconstructedCellCollection` instead.
+
     Args:
         distribution (DataDownload): Data download url should point to the ``v1`` folder with
             morphologies in H5v1 format.
@@ -78,9 +81,8 @@ class MorphologyRelease(ModelRelease):
 
 @attributes({'distribution': AttrOf(DataDownload),
              'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
-class ModelCellCollection(ModelRelease):
-    '''Model cell collection can be located at the external location or constituted from individual
-    :class:`Morphology` entities.
+class ReconstructedCellCollection(ModelRelease):
+    '''Reconstructed cell collection produced by the morphology release.
 
     Args:
         distribution (DataDownload): Data download url should point to the ``v1`` folder with
