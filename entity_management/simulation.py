@@ -79,8 +79,7 @@ class MorphologyRelease(ModelRelease):
     '''
 
 
-@attributes({'distribution': AttrOf(DataDownload),
-             'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
+@attributes({'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
 class ReconstructedCellCollection(ModelRelease):
     '''Reconstructed cell collection produced by the morphology release.
 
