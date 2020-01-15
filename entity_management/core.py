@@ -19,7 +19,7 @@ from attr.validators import in_
 from entity_management import nexus
 from entity_management.base import Identifiable, BlankNode, OntologyTerm, attributes
 from entity_management.util import AttrOf, NotInstantiated
-from entity_management.settings import WORKFLOW, JSLD_ID
+from entity_management.settings import WORKFLOW, JSLD_ID, JSLD_TYPE
 
 
 @attributes({
@@ -329,6 +329,7 @@ class EntityMixin(object):
                                    token=use_auth)
 
         self._force_attr('_id', json_ld.get(JSLD_ID))
+        self._force_attr('_type', json_ld.get(JSLD_TYPE))
         self._force_attr('_rev', json_ld.get('_rev'))
         self._force_attr('_self', json_ld.get('_self'))
 

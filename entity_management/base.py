@@ -105,6 +105,10 @@ class _NexusBySchemaIterator(six.Iterator):
     page_from = attr.ib(type=int, default=0)
     page_size = attr.ib(type=int, default=50)
     deprecated = attr.ib(type=bool, default=False)
+    base = attr.ib(default=None)
+    org = attr.ib(default=None)
+    proj = attr.ib(default=None)
+    use_auth = attr.ib(default=None)
     _item_index = attr.ib(type=int, default=0)
     _page = attr.ib(default=None)
 
@@ -117,12 +121,12 @@ class _NexusBySchemaIterator(six.Iterator):
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
             self.page_from = self._item_index
             data = nexus.load_by_url(
-                self.cls.get_constrained_url(),
+                self.cls.get_constrained_url(base=self.base, org=self.org, proj=self.proj),
                 stream=True,
-                params={
-                    'from': self.page_from,
-                    'size': self.page_size,
-                    'deprecated': self.deprecated})
+                params={'from': self.page_from,
+                        'size': self.page_size,
+                        'deprecated': self.deprecated},
+                token=self.use_auth)
             graph = Graph().parse(data=data, format='json-ld')
             self.total_items = [o for s, o in graph.subject_objects(NXV.total)
                                 if isinstance(s, BNode)][0].value
@@ -133,7 +137,7 @@ class _NexusBySchemaIterator(six.Iterator):
 
         id_url = self._page[self._item_index - self.page_from]
         self._item_index += 1
-        return self.cls._lazy_init(id_url)
+        return self.cls._lazy_init(id_url, base=self.base, org=self.org, proj=self.proj)
 
 
 @attr.s(frozen=True)
@@ -248,7 +252,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             # root type was used or union of types, try to recover it from resource_id
             if data_type is Identifiable or _type_class(data_type) is typing.Union:
                 data_type = nexus.get_type_from_id(resource_id, base, org, proj, token=token)
-            return data_type._lazy_init(resource_id, type_)
+            return data_type._lazy_init(resource_id, type_, base, org, proj)
 
         if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
             return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
@@ -351,7 +355,7 @@ class Identifiable(Frozen):
     _updatedBy = NotInstantiated
 
     @classmethod
-    def _lazy_init(cls, resource_id, type_=NotInstantiated):
+    def _lazy_init(cls, resource_id, type_=NotInstantiated, base=None, org=None, proj=None):
         '''Instantiate an object and put all its attributes to NotInstantiated.'''
         # Running the validator has the side effect of instantiating
         # the object, which we do not want
@@ -359,6 +363,7 @@ class Identifiable(Frozen):
         obj = cls(**{arg.name: NotInstantiated for arg in attr.fields(cls)})
         obj._force_attr('_id', resource_id)
         obj._force_attr('_type', type_)
+        obj._force_attr('_lazy_meta_', (base, org, proj))
         attr.set_run_validators(True)
         return obj
 
@@ -393,14 +398,15 @@ class Identifiable(Frozen):
         url = '%s/%s' % (cls.get_base_url(base, org, proj), quote(resource_id))
         json_ld = nexus.load_by_url(url, token=use_auth)
         if json_ld is not None:
-            return _deserialize_resource(json_ld, cls, use_auth)
+            return _deserialize_resource(json_ld, cls,
+                                         base=base, org=org, proj=proj, token=use_auth)
         elif on_no_result is not None:
             return on_no_result(resource_id, use_auth=use_auth, **kwargs)
         else:
             return None
 
     @classmethod
-    def from_url(cls, url, use_auth=None):
+    def from_url(cls, url, base=None, org=None, proj=None, use_auth=None):
         '''
         Load entity from url.
 
@@ -411,7 +417,8 @@ class Identifiable(Frozen):
         '''
         json_ld = nexus.load_by_url(url, token=use_auth)
         if json_ld is not None:
-            return _deserialize_resource(json_ld, cls, use_auth)
+            return _deserialize_resource(json_ld, cls,
+                                         base=base, org=org, proj=proj, token=use_auth)
         else:
             return None
 
@@ -500,9 +507,13 @@ class Identifiable(Frozen):
         self._force_attr('_type', json_ld.get(JSLD_TYPE))
         return self
 
-    def _instantiate(self, use_auth=None):
+    def _instantiate(self):
         '''Fetch nexus object with id=self._id if it was not initialized before.'''
-        fetched_instance = type(self).from_id(self._id, use_auth)
+        if hasattr(self, '_lazy_meta_'):
+            base, org, proj = getattr(self, '_lazy_meta_')
+        else:
+            base, org, proj = (None, None, None)
+        fetched_instance = type(self).from_id(self._id, base=base, org=org, proj=proj)
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)

@@ -24,6 +24,7 @@ class _Entity(EntityMixin, Identifiable):
     Args:
         name (str): Entity name.
         description (str): Short description of the entity.
+        distribution (DataDownload): Data download.
         wasDerivedFrom (List[Identifiable]): List of associated provenance entities.
     '''
 
