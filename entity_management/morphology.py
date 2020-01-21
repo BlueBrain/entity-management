@@ -36,3 +36,8 @@ class ReconstructedWholeBrainCell(ReconstructedCell):
 @attributes({'morphology': AttrOf(Entity)})
 class CutPlane(DistributionMixin, Identifiable, EntityMixin):
     '''Cut plane.'''
+
+
+@attributes()
+class LabeledCell(DistributionMixin, Identifiable, EntityMixin):
+    '''Labeled cell.'''
