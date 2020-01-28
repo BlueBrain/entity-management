@@ -139,12 +139,10 @@ class AttrOf(object):
                 validator = _list_of(list_element_type, default)
         else:
             if optional is Ellipsis:
-                if default is Ellipsis:
-                    validator = instance_of(type_)
-                elif default is None:
+                if default is None:  # default explicitly provided as None
                     validator = optional_of(type_)
-                else:
-                    validator = None  # FIXME, what should be put there ?
+                else:  # default either not provided -> mandatory, or initialized with value
+                    validator = instance_of(type_)
             else:
                 if optional is False:
                     validator = instance_of(type_)
