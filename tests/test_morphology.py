@@ -4,7 +4,8 @@ from six.moves import builtins
 from mock import patch
 import responses
 
-from entity_management.state import get_org, get_proj, get_base_files, get_base_resources
+from entity_management.state import (get_org, get_proj, get_base_files, get_base_resources,
+                                     get_base_url)
 from entity_management.settings import NSG, DASH
 from entity_management.core import Entity
 from entity_management.morphology import ReconstructedPatchedCell
@@ -141,7 +142,7 @@ def test_reconstructed_patched_cell():
 
     responses.add(  # mock patched cell detailed response
         responses.GET,
-        '%s/%s' % (ReconstructedPatchedCell.get_base_url(), quote(CELL_ID)),
+        '%s/%s' % (get_base_url(), quote(CELL_ID)),
         json=CELL_RESPONSE)
 
     responses.add(  # mock image response

@@ -14,9 +14,11 @@ from six import PY2, iteritems, text_type
 
 import requests
 
+from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
+
 from entity_management.util import quote
 from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
-                                     get_token, refresh_token, has_offline_token)
+                                     get_token, refresh_token, has_offline_token, get_sparql_url)
 from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
 
 L = logging.getLogger(__name__)
@@ -411,3 +413,27 @@ def file_as_dict(resource_id, tag=None, rev=None,
         return json.load(response.raw)
     finally:
         response.close()
+
+
+@_nexus_wrapper
+def sparql_query(query, base=None, org=None, proj=None, token=None):
+    '''Execute SPARQL query.
+
+    Args:
+        query (str): SPARQL query.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
+        token (str): Optional OAuth token.
+
+    Returns:
+        Json response.
+    '''
+    endpoint = SPARQLWrapper(get_sparql_url(base, org, proj))
+    endpoint.addCustomHttpHeader('authorization', 'bearer %s' % token)
+    endpoint.setMethod(POST)
+    endpoint.setReturnFormat(JSON)
+    endpoint.setRequestMethod(POSTDIRECTLY)
+    endpoint.setQuery(query)
+    result = endpoint.query()
+    return result._convertJSON()

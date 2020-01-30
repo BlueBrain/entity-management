@@ -1,4 +1,5 @@
 # pylint: disable=missing-docstring,no-member
+import io
 import json
 from datetime import datetime
 from typing import List
@@ -7,12 +8,14 @@ import pytest
 
 import attr
 import requests
+from SPARQLWrapper import Wrapper
 
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE
-from entity_management.state import set_proj, get_base_resources, set_base
+from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
 from entity_management.base import (Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj, Unconstrained)
 from entity_management.state import get_org, get_proj
+from entity_management.core import ModelRuntimeParameters
 from entity_management.morphology import ReconstructedPatchedCell
 import entity_management.nexus as nexus
 
@@ -67,7 +70,7 @@ def fixture_unconstrained():
 def test_unconstrained(monkeypatch, unconstrained_resp):
     monkeypatch.setattr(nexus, 'create', lambda *args, **kwargs: unconstrained_resp)
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
+    assert get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
     obj = obj.publish()
     assert obj._constrainedBy == 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
     assert obj.json['key1'] == 'value1'
@@ -76,9 +79,9 @@ def test_unconstrained(monkeypatch, unconstrained_resp):
 
 def test_project_change():
     obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
+    assert get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
     set_proj('test')
-    assert obj.get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), 'test')
+    assert get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), 'test')
 
 
 def test_env_change():
@@ -128,3 +131,14 @@ def test_list_by_schema(monkeypatch, cells_page1_resp, cells_page2_resp):
         m.setattr(requests, 'get', lambda *args, **kwargs: MockResponsePage2)
         assert (next(cells).get_id() ==
                 'https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed')
+
+
+def test_list_by_sparql(monkeypatch):
+
+    with monkeypatch.context() as m:
+        m.setattr(Wrapper,
+                  'urlopener',
+                  lambda *args, **kwargs: io.FileIO('tests/data/sparql_resp.json'))
+        params = ModelRuntimeParameters.list_by_model('dummy_model_resource_id')
+        param = next(params)
+        assert param.get_id().endswith('org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38')

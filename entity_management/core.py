@@ -17,8 +17,10 @@ import attr
 from attr.validators import in_
 
 from entity_management import nexus
-from entity_management.base import Identifiable, BlankNode, OntologyTerm, attributes
+from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
+                                    _NexusBySparqlIterator)
 from entity_management.util import AttrOf, NotInstantiated
+from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW, JSLD_ID, JSLD_TYPE
 
 
@@ -236,7 +238,7 @@ class Activity(Identifiable):
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            json_ld = nexus.create(self.get_base_url(base, org, proj),
+            json_ld = nexus.create(get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
                                    token=use_auth)
@@ -323,7 +325,7 @@ class EntityMixin(object):
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            json_ld = nexus.create(self.get_base_url(base, org, proj),
+            json_ld = nexus.create(get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
                                    token=use_auth)
@@ -358,3 +360,56 @@ class Subject(EntityMixin, DistributionMixin, Identifiable):
         species (OntologyTerm): Species ontology term.
         strain (OntologyTerm): Strain ontology term.
     '''
+
+
+@attributes({
+    'model': AttrOf(Identifiable),
+    'name': AttrOf(str, default=None),
+    'purpose': AttrOf(str, default=None, validators=in_([None, 'sim', 'viz'])),
+    'modelBuildingSteps': AttrOf(int, default=None),
+    'allocationPartition': AttrOf(str, default='prod'),
+    'numberOfNodes': AttrOf(int, default=None),
+    'nodeConstraint': AttrOf(str, default=None),
+    'exclusiveNodeAllocation': AttrOf(bool, default=False),
+    'allocationDuration': AttrOf(str, default=None),
+    'qualityOfService': AttrOf(str, default='', validators=in_(['',
+                                                                'normal',
+                                                                'longjob',
+                                                                'bigjob',
+                                                                'jenkins'])),
+    'memoryAmount': AttrOf(str, default=None),
+    'numberOfTasksPerNode': AttrOf(int, default=None),
+})
+class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
+    '''Model runtime parameters.
+
+    Args:
+        model (Identifiable): Model reference to which the parameters apply.
+        name (str): Name of the parameter collection.
+        purpose (str): Purpose of the parameter set. For example parameters for simulation
+            or visualization.
+        modelBuildingSteps (int): Core neuron model building steps parameter if applicable.
+    '''
+    # FIXME docs
+
+    @classmethod
+    def list_by_model(cls, model_resource_id, **kwargs):
+        '''List all instances belonging to the schema this type defines.
+
+        Args:
+            changes: Keyword changes in the new copy, should be a subset of class
+                constructor(__init__) keyword arguments.
+        Returns:
+            New instance of the same class with changes applied.
+        '''
+
+        query = '''
+            PREFIX nsg: <https://neuroshapes.org/>
+            SELECT ?params
+            WHERE {
+                ?params a         nsg:ModelRuntimeParameters ;
+                        nsg:model <%s> .
+            }
+        ''' % model_resource_id
+
+        return _NexusBySparqlIterator(cls, query, **kwargs)

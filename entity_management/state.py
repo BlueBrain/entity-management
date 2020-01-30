@@ -118,12 +118,39 @@ def get_base_resources(base=None):
         base (str): optional ``Base`` url of nexus instance to be used.
 
     Returns:
-        Nexus resources endpoint url either based on ``base`` argument provided or based on the
-        global ``Base`` variable value which is initialized from NEXUS_BASE environment variable.
+        Nexus resources endpoint url is either based on ``base`` function argument provided
+        or based on the global ``BASE`` variable value which is initialized from NEXUS_BASE
+        environment variable.
     '''
     if base:
         return '%s/resources' % base
     return '%s/resources' % BASE
+
+
+def get_base_views(base=None):
+    '''Get url to nexus environment base for the views.
+
+    Args:
+        base (str): optional ``Base`` url of nexus instance to be used.
+
+    Returns:
+        Nexus views endpoint url is either based on ``base`` function argument provided
+        or based on the global ``BASE`` variable value which is initialized from NEXUS_BASE
+        environment variable.
+    '''
+    if base:
+        return '%s/views' % base
+    return '%s/views' % BASE
+
+
+def get_base_url(base=None, org=None, proj=None):
+    '''Get base url.'''
+    return '%s/%s/%s/_' % (get_base_resources(base), get_org(org), get_proj(proj))
+
+
+def get_sparql_url(base=None, org=None, proj=None):
+    '''Get base url.'''
+    return '%s/%s/%s/graph/sparql' % (get_base_views(base), get_org(org), get_proj(proj))
 
 
 def get_base_files(base=None):

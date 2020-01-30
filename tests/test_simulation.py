@@ -2,6 +2,7 @@
 import responses
 
 import entity_management.core as core
+from entity_management.state import get_base_url
 from entity_management.settings import NSG, JSLD_CTX
 from entity_management.core import DataDownload
 from entity_management.util import quote
@@ -52,7 +53,7 @@ MORPHOLOGY_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": '%s/%s' % (MorphologyRelease.get_base_url(), UUID),
+    "@id": '%s/%s' % (get_base_url(), UUID),
     "@type": [
         "nsg:Entity",
         "nsg:MorphologyRelease"
@@ -66,13 +67,13 @@ MORPHOLOGY_RELEASE_JSLD = {
     ],
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "incoming": "%s/%s/incoming" % (MorphologyRelease.get_base_url(), UUID),
-        "outgoing": "%s/%s/outgoing" % (MorphologyRelease.get_base_url(), UUID),
+        "incoming": "%s/%s/incoming" % (get_base_url(), UUID),
+        "outgoing": "%s/%s/outgoing" % (get_base_url(), UUID),
         "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.1",
-        "self": "%s/%s" % (MorphologyRelease.get_base_url(), UUID)
+        "self": "%s/%s" % (get_base_url(), UUID)
     },
     "morphologyIndex": {
-        '@id': '%s/%s' % (ModelReleaseIndex.get_base_url(), UUID),
+        '@id': '%s/%s' % (get_base_url(), UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "name": "Morphology Release",
@@ -82,13 +83,13 @@ MORPHOLOGY_RELEASE_JSLD = {
 
 MORPHOLOGY_RELEASE_JSLD_UPDATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyRelease.get_base_url(), UUID),
+    "@id": "%s/%s" % (get_base_url(), UUID),
     "nxv:rev": 2
     }
 
 MORPHOLOGY_RELEASE_JSLD_DELETE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyRelease.get_base_url(), UUID),
+    "@id": "%s/%s" % (get_base_url(), UUID),
     "nxv:rev": 2
     }
 
@@ -118,7 +119,7 @@ MORPHOLOGY_RELEASE_JSLD_FILTER = {
 
 MORPHOLOGY_DIVERSIFICATION_JSLD_CREATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
-    "@id": "%s/%s" % (MorphologyDiversification.get_base_url(), UUID),
+    "@id": "%s/%s" % (get_base_url(), UUID),
     "nxv:rev": 1
     }
 
@@ -140,7 +141,7 @@ EMODEL_RELEASE_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "%s/%s" % (EModelRelease.get_base_url(), UUID),
+    "@id": "%s/%s" % (get_base_url(), UUID),
     "@type": [
         "nsg:Entity",
         "nsg:EModelRelease"
@@ -179,7 +180,7 @@ MEMODEL_RELEASE_JSLD = {
         "nsg:MEModelRelease"
     ],
     "emodelRelease": {
-        "@id": "%s/%s" % (EModelRelease.get_base_url(), UUID),
+        "@id": "%s/%s" % (get_base_url(), UUID),
         "@type": [
             "nsg:Entity",
             "nsg:EModelRelease"
@@ -193,11 +194,11 @@ MEMODEL_RELEASE_JSLD = {
         "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID
     },
     "memodelIndex": {
-        '@id': '%s/%s' % (ModelReleaseIndex.get_base_url(), UUID),
+        '@id': '%s/%s' % (get_base_url(), UUID),
         '@type': ['nsg:ModelReleaseIndex']
     },
     "morphologyRelease": {
-        "@id": "%s/%s" % (MorphologyRelease.get_base_url(), UUID),
+        "@id": "%s/%s" % (get_base_url(), UUID),
         "@type": [
             "nsg:Entity",
             "nsg:MorphologyRelease"
@@ -214,7 +215,7 @@ MORPHOLOGY_JSLD = {
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
     ],
-    "@id": "%s/%s" % (Morphology.get_base_url(), UUID),
+    "@id": "%s/%s" % (get_base_url(), UUID),
     "@type": [
         "nsg:Entity",
         "nsg:Morphology"
@@ -277,11 +278,11 @@ ACTIVITY_JSLD = {
     'name': 'test activity',
     'startedAtTime': '2018-03-27T16:04:35.886105',
     'used': {
-        '@id': '%s/%s' % (MEModel.get_base_url(), UUID),
+        '@id': '%s/%s' % (get_base_url(), UUID),
         '@type': ['nsg:MEModel', 'prov:Entity']
     },
     'wasStartedBy': {
-        '@id': '%s/%s' % (core.Agent.get_base_url(), UUID),
+        '@id': '%s/%s' % (get_base_url(), UUID),
         '@type': ['nsg:Agent', 'prov:Agent']
     }
 }
@@ -291,7 +292,7 @@ ACTIVITY_JSLD = {
 def test_get_configuration():
     responses.add(
         responses.GET,
-        '%s/%s' % (Configuration.get_base_url(), quote(CFG_ID)),
+        '%s/%s' % (get_base_url(), quote(CFG_ID)),
         json=CFG_JSLD)
 
     cfg = Configuration.from_id(CFG_ID)

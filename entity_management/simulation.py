@@ -498,6 +498,17 @@ class Simulation(Activity):
 
 
 @attributes({
+    'circuit': AttrOf(DetailedCircuit, default=None),
+})
+class SimulationConfiguration(_Entity):
+    '''Simulation configuration in terms of BlueConfig.
+
+    Args:
+        circuit (DetailedCircuit): reference to the detailed circuit.
+    '''
+
+
+@attributes({
     'description': AttrOf(str, default=None),
     'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),

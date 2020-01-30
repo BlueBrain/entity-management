@@ -18,7 +18,7 @@ import attr
 from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
-from entity_management.state import get_org, get_proj, get_base_resources
+from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
 from entity_management.settings import JSLD_ID, JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH
 from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
                                     _get_list_params, _merge, quote)
@@ -136,6 +136,40 @@ class _NexusBySchemaIterator(six.Iterator):
             raise StopIteration()
 
         id_url = self._page[self._item_index - self.page_from]
+        self._item_index += 1
+        return self.cls._lazy_init(id_url, base=self.base, org=self.org, proj=self.proj)
+
+
+@attr.s
+class _NexusBySparqlIterator(six.Iterator):
+    '''Nexus paginated list iterator.'''
+    cls = attr.ib()
+    query = attr.ib(type=str)
+    base = attr.ib(type=str, default=None)
+    org = attr.ib(type=str, default=None)
+    proj = attr.ib(type=str, default=None)
+    use_auth = attr.ib(type=str, default=None)
+    _item_index = attr.ib(type=int, default=0)
+    _page = attr.ib(default=None)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        '''Return next entity from the paginated result set, fetch next page if required'''
+        # fetch next page if needed
+        if self._page is None:
+            json = nexus.sparql_query(self.query,
+                                      base=self.base,
+                                      org=self.org,
+                                      proj=self.proj,
+                                      token=self.use_auth)
+            self._page = [i['params']['value'] for i in json['results']['bindings']]
+
+        if self._item_index >= len(self._page):
+            raise StopIteration()
+
+        id_url = self._page[self._item_index]
         self._item_index += 1
         return self.cls._lazy_init(id_url, base=self.base, org=self.org, proj=self.proj)
 
@@ -368,11 +402,6 @@ class Identifiable(Frozen):
         return obj
 
     @classmethod
-    def get_base_url(cls, base=None, org=None, proj=None):
-        '''Get base url.'''
-        return '%s/%s/%s/_' % (get_base_resources(base), get_org(org), get_proj(proj))
-
-    @classmethod
     def get_constrained_url(cls, base=None, org=None, proj=None):
         '''Get schema constrained url.'''
         constrained_by = str(DASH[cls.__name__.lower()])
@@ -395,7 +424,7 @@ class Identifiable(Frozen):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        url = '%s/%s' % (cls.get_base_url(base, org, proj), quote(resource_id))
+        url = '%s/%s' % (get_base_url(base, org, proj), quote(resource_id))
         json_ld = nexus.load_by_url(url, token=use_auth)
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,
@@ -495,7 +524,7 @@ class Identifiable(Frozen):
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
         else:
-            json_ld = nexus.create(self.get_base_url(base, org, proj),
+            json_ld = nexus.create(get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
                                    token=use_auth)
