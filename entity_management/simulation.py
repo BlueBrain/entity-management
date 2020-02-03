@@ -485,7 +485,7 @@ class Simulation(Activity):
         generated (VariableReport): Generated report.
         jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
-        wasStartedBy (Identifiable): Agent/Activity which started/triggered the activity.
+        wasInformedBy (Identifiable): Agent/Activity which started/triggered the activity.
             In case simulation was triggered by the campaign it will point to the
             :class:`SimulationCampaign`.
         mg (float): Magnesium level used in the simulated circuit.
@@ -539,14 +539,25 @@ class AnalysisReport(_Entity):
 
 
 @attributes({
-    'used': AttrOf(VariableReport, default=None),
+    'distribution': AttrOf(DataDownload),
+})
+class AnalysisConfiguration(_Entity):
+    '''Simulation analysis configuration.
+
+    Args:
+        distribution (DataDownload): Json representation of the configuration.
+    '''
+
+
+@attributes({
+    'used': AttrOf(Identifiable, default=None),
     'generated': AttrOf(AnalysisReport, default=None),
 })
 class Analysis(Activity):
     '''Simulation analysis activity.
 
     Args:
-        used (VariableReport): Used variable report.
+        used (Identifiable): Used variable report/analysis configuration.
         generated (AnalysisReport): Generated analysis report.
     '''
 

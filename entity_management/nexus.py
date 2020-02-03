@@ -357,7 +357,7 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None,
         token (str): Optional OAuth token.
 
     Returns:
-        Raw response.
+        str: Path to the downloaded file.
     '''
     url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
 

@@ -103,15 +103,6 @@ def test_publish_activity(monkeypatch):
     activity.publish()
 
 
-def test_publish_activity_with_activity_no_override(monkeypatch):
-    activity = Activity(name='test', wasStartedBy=Activity(name='activity1'))
-    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
-    activity = activity.publish(activity=Activity(name='activity2'))
-    assert activity.wasStartedBy.name == 'activity1', (
-        'Original activity wasStartedBy activity should not be overriden by the one '
-        'provided in publish method')
-
-
 def test_publish_activity_with_workflow(monkeypatch):
     monkeypatch.setattr('entity_management.core.WORKFLOW', 'workflow_id')
     monkeypatch.setattr(WorkflowExecution,
@@ -123,4 +114,4 @@ def test_publish_activity_with_workflow(monkeypatch):
     activity = Activity()
     monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
     activity = activity.publish()
-    assert activity.wasStartedBy.name == 'workflow'
+    assert activity.wasInfluencedBy.name == 'workflow'
