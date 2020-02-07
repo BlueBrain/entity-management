@@ -66,12 +66,20 @@ def test_publish_without_workflow(monkeypatch):
     entity.publish()
 
 
-def test_publish_with_activity(monkeypatch):
+def test_entity_publish_with_activity(monkeypatch):
     entity = Entity(name='test')
     activity = Activity(name='activity')
     monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
     entity = entity.publish(activity=activity)
     assert entity.wasGeneratedBy.name == activity.name
+
+
+def test_activity_publish_with_activity(monkeypatch):
+    activity1 = Activity(name='activity1')
+    activity2 = Activity(name='activity2')
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    activity1 = activity1.publish(activity=activity2)
+    assert activity1.wasInformedBy.name == activity2.name
 
 
 def test_publish_with_activity_no_override(monkeypatch):
@@ -80,6 +88,15 @@ def test_publish_with_activity_no_override(monkeypatch):
     entity = entity.publish(activity=Activity(name='activity2'))
     assert entity.wasGeneratedBy.name == 'activity1', (
         'Original entity wasGeneratedBy activity should not be overriden by the one '
+        'provided in publish method')
+
+
+def test_publish_activity_with_activity_no_override(monkeypatch):
+    activity = Activity(name='test', wasInformedBy=Activity(name='activity1'))
+    monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
+    activity = activity.publish(activity=Activity(name='activity2'))
+    assert activity.wasInformedBy.name == 'activity1', (
+        'Original activity wasStartedBy activity should not be overriden by the one '
         'provided in publish method')
 
 

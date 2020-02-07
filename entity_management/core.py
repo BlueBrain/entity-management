@@ -213,15 +213,22 @@ class Activity(Identifiable):
                 and self._id is None and self.startedAtTime is None):  # pylint: disable=no-member
             self._force_attr('startedAtTime', datetime.utcnow())
 
-    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None):
+    def publish(self, resource_id=None, activity=None,  # pylint: disable=arguments-differ
+                base=None, org=None, proj=None, use_auth=None):
         '''Create or update activity resource in nexus.
 
         Args:
             resource_id (str): Resource identifier.
+            activity (Activity): Optional activity which provided information to the current
+                activity.
 
         Returns:
             New instance of the same class with revision updated.
         '''
+        if activity is not None and self.wasInformedBy is None:  # pylint: disable=no-member
+            assert isinstance(activity, Activity)
+            self = self.evolve(wasInformedBy=activity)
+
         if self.wasInfluencedBy is None and WORKFLOW is not None:  # pylint: disable=no-member
             # in case running in the context of workflow execution activity
             workflow = WorkflowExecution.from_id(WORKFLOW,
@@ -300,14 +307,13 @@ class EntityMixin(object):
         Returns:
             New instance of the same class with revision updated.
         '''
-        if activity is not None:
-            assert isinstance(activity, Activity)
-
         if activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
             activity = WorkflowExecution.from_id(WORKFLOW,
                                                  base=base, org=org, proj=proj, use_auth=use_auth)
-        if self.wasGeneratedBy is None:
+
+        if activity is not None and self.wasGeneratedBy is None:
+            assert isinstance(activity, Activity)
             self = self.evolve(wasGeneratedBy=activity)
 
         if was_attributed_to is not None:

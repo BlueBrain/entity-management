@@ -485,9 +485,6 @@ class Simulation(Activity):
         generated (VariableReport): Generated report.
         jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
-        wasInformedBy (Identifiable): Agent/Activity which started/triggered the activity.
-            In case simulation was triggered by the campaign it will point to the
-            :class:`SimulationCampaign`.
         mg (float): Magnesium level used in the simulated circuit.
         depolarization (float): Depolarization level used in the simulation.
         ca (float): Calcium level used in the simulation.
