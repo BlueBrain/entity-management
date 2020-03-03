@@ -8,7 +8,7 @@ import sys
 from email.header import decode_header
 from functools import wraps
 from pprint import pprint
-import json
+import json as js
 
 from six import PY2, iteritems, text_type
 
@@ -242,8 +242,7 @@ def get_current_agent(token=None):
     response = requests.get(USERINFO, headers={'accept': 'application/json',
                                                'authorization': 'Bearer ' + token})
     response.raise_for_status()
-    js = response.json(object_hook=_byteify)
-    return js
+    return response.json(object_hook=_byteify)
 
 
 def _get_files_endpoint():
@@ -258,9 +257,6 @@ def _get_file_metadata(resource_id, tag=None,
     response = requests.get(url,
                             headers=_get_headers(token),
                             params={'tag': tag if tag else None})
-
-    if response.status_code == 404:
-        return None
 
     response.raise_for_status()
     return response.json(object_hook=_byteify)
@@ -282,6 +278,24 @@ def get_file_rev(resource_id, tag=None,
         File revision.
     '''
     return _get_file_metadata(resource_id, tag, base, org, proj, token)['_rev']
+
+
+def get_file_location(resource_id, tag=None,
+                      base=None, org=None, proj=None, token=None):
+    '''Get file location.
+
+    Args:
+        resource_id (str): Nexus ID of the file.
+        tag (str): Provide tag to fetch specific file.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
+        token (str): Optional OAuth token.
+
+    Returns:
+        File revision.
+    '''
+    return _get_file_metadata(resource_id, tag, base, org, proj, token).get('_location')
 
 
 def get_file_name(resource_id, tag=None,
@@ -311,7 +325,7 @@ def upload_file(name, data, content_type, resource_id=None, rev=None,
         name (str): File name.
         data (file): File like data stream.
         content_type (str): Content type of the data stream.
-        resource_id (str): Nexus ID of the file.
+        resource_id (str): Optional nexus id of the file.
         rev (int): If you are reuploading file this needs to match current revision of the file.
         base (str): Nexus instance base url.
         org (str): Nexus organization.
@@ -341,12 +355,48 @@ def upload_file(name, data, content_type, resource_id=None, rev=None,
 
 
 @_nexus_wrapper
+def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
+              base=None, org=None, proj=None, token=None):
+    '''Link file.
+
+    Args:
+        name (str): File name.
+        file_path (str): File path.
+        content_type (str): Content type of the data stream.
+        resource_id (str): Optional nexus id of the file.
+        storage_id (str): Optional identifier of the storage backend where the file will be stored.
+            If not provided, the project's default storage is used.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
+        token (str): OAuth token.
+
+    Returns:
+        Identifier of the uploaded file.
+    '''
+    params = {'storage': storage_id if storage_id else None}
+    json = {'filename': name, 'path': file_path, 'mediaType': content_type}
+    if resource_id:
+        url = '%s/%s/%s/%s' % (get_base_files(base),
+                               get_org(org),
+                               get_proj(proj),
+                               quote(resource_id))
+        response = requests.put(url, headers=_get_headers(token), params=params, json=json)
+    else:
+        url = '%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj))
+        response = requests.post(url, headers=_get_headers(token), params=params, json=json)
+
+    response.raise_for_status()
+    return response.json(object_hook=_byteify)
+
+
+@_nexus_wrapper
 def download_file(resource_id, path, file_name=None, tag=None, rev=None,
                   base=None, org=None, proj=None, token=None):
     '''Download file.
 
     Args:
-        resource_id (str): Nexus ID of the file.
+        resource_id (str): Nexus id of the file.
         path (str): Path where to save the file.
         file_name (str): Provide file name to use instead of original name.
         tag (str): Provide tag to fetch specific file.
@@ -410,7 +460,7 @@ def file_as_dict(resource_id, tag=None, rev=None,
     try:
         response.raise_for_status()
         response.raw.decode_content = True
-        return json.load(response.raw)
+        return js.load(response.raw)
     finally:
         response.close()
 

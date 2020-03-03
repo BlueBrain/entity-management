@@ -526,12 +526,14 @@ class SimulationCampaign(Activity):
 
 @attributes({
     'distribution': AttrOf(DataDownload),
+    'image': AttrOf(DataDownload),
 })
 class AnalysisReport(_Entity):
     '''Analysis report.
 
     Args:
         distribution (DataDownload): Generated report.
+        image (DataDownload): Generated report image preview when applicable.
     '''
 
 
@@ -547,15 +549,13 @@ class AnalysisConfiguration(_Entity):
 
 
 @attributes({
-    'used': AttrOf(Identifiable, default=None),
-    'generated': AttrOf(AnalysisReport, default=None),
+    'used': AttrOf(List[Identifiable], default=None),
 })
 class Analysis(Activity):
     '''Simulation analysis activity.
 
     Args:
         used (Identifiable): Used variable report/analysis configuration.
-        generated (AnalysisReport): Generated analysis report.
     '''
 
 
