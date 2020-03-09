@@ -317,7 +317,7 @@ def get_file_name(resource_id, tag=None,
 
 
 @_nexus_wrapper
-def upload_file(name, data, content_type, resource_id=None, rev=None,
+def upload_file(name, data, content_type, resource_id=None, storage_id=None, rev=None,
                 base=None, org=None, proj=None, token=None):
     '''Upload file.
 
@@ -326,6 +326,8 @@ def upload_file(name, data, content_type, resource_id=None, rev=None,
         data (file): File like data stream.
         content_type (str): Content type of the data stream.
         resource_id (str): Optional nexus id of the file.
+        storage_id (str): Optional identifier of the storage backend where the file will be stored.
+            If not provided, the project's default storage is used.
         rev (int): If you are reuploading file this needs to match current revision of the file.
         base (str): Nexus instance base url.
         org (str): Nexus organization.
@@ -342,12 +344,14 @@ def upload_file(name, data, content_type, resource_id=None, rev=None,
                                quote(resource_id))
         response = requests.put(url,
                                 headers=_get_headers(token),
-                                params={'rev': rev if rev else None},
+                                params={'rev': rev if rev else None,
+                                        'storage': storage_id if storage_id else None},
                                 files={'file': (name, data, content_type)})
     else:
         url = '%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj))
         response = requests.post(url,
                                  headers=_get_headers(token),
+                                 params={'storage': storage_id if storage_id else None},
                                  files={'file': (name, data, content_type)})
 
     response.raise_for_status()

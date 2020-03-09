@@ -430,7 +430,8 @@ class Identifiable(Frozen):
             return _deserialize_resource(json_ld, cls,
                                          base=base, org=org, proj=proj, token=use_auth)
         elif on_no_result is not None:
-            return on_no_result(resource_id, use_auth=use_auth, **kwargs)
+            return on_no_result(resource_id,
+                                base=base, org=org, proj=proj, use_auth=use_auth, **kwargs)
         else:
             return None
 
