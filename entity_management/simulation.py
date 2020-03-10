@@ -526,7 +526,7 @@ class SimulationCampaign(Activity):
 
 @attributes({
     'distribution': AttrOf(DataDownload),
-    'image': AttrOf(DataDownload),
+    'image': AttrOf(DataDownload, default=None),
 })
 class AnalysisReport(_Entity):
     '''Analysis report.
