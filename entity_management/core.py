@@ -54,7 +54,8 @@ class DataDownload(BlankNode):
 
     @classmethod
     def from_file(cls, file_path, name=None, resource_id=None, storage_id=None,
-                  content_type='application/octet-stream', use_auth=None):
+                  content_type='application/octet-stream',
+                  base=None, org=None, proj=None, use_auth=None):
         '''Create DataDownload object form file_path.
 
         Args:
@@ -72,7 +73,8 @@ class DataDownload(BlankNode):
         file_name = name if name else os.path.basename(file_path)
         with open(file_path, 'rb') as f:
             resp = nexus.upload_file(file_name, f, content_type, resource_id=resource_id,
-                                     storage_id=storage_id, token=use_auth)
+                                     storage_id=storage_id,
+                                     base=base, org=org, proj=proj, token=use_auth)
         return DataDownload(name=name if name else file_name,
                             contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
                             digest={'algorithm': resp['_digest']['_algorithm'],
@@ -83,7 +85,8 @@ class DataDownload(BlankNode):
 
     @classmethod
     def from_path(cls, file_path, name=None, resource_id=None, storage_id=None,
-                  content_type='application/octet-stream', use_auth=None):
+                  content_type='application/octet-stream',
+                  base=None, org=None, proj=None, use_auth=None):
         '''Link DataDownload object form file_path.
 
         Should be used to link files located on the gpfs with nexus.
@@ -102,7 +105,8 @@ class DataDownload(BlankNode):
         '''
         file_name = name if name else os.path.basename(file_path)
         resp = nexus.link_file(file_name, file_path, content_type, resource_id=resource_id,
-                               storage_id=storage_id, token=use_auth)
+                               storage_id=storage_id,
+                               base=base, org=org, proj=proj, token=use_auth)
         return DataDownload(name=resp['_filename'],
                             contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
                             digest={'algorithm': resp['_digest']['_algorithm'],
@@ -112,7 +116,8 @@ class DataDownload(BlankNode):
                             url=resp['_self'])
 
     @classmethod
-    def from_json_str(cls, json_str, resource_id=None, use_auth=None):
+    def from_json_str(cls, json_str, resource_id=None,
+                      base=None, org=None, proj=None, use_auth=None):
         '''Create DataDownload object representing json form serialized dict in string.
 
         Args:
@@ -124,7 +129,7 @@ class DataDownload(BlankNode):
         buff = StringIO(json_str)
         file_name = str(uuid.uuid4())
         resp = nexus.upload_file(file_name, buff, 'application/json', resource_id=resource_id,
-                                 token=use_auth)
+                                 base=base, org=org, proj=proj, token=use_auth)
         return DataDownload(contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
                             digest={'algorithm': resp['_digest']['_algorithm'],
                                     'value': resp['_digest']['_value']},
