@@ -1,13 +1,13 @@
 {
     "head": {
         "vars": [
-            "params"
+            "entity"
         ]
     },
     "results": {
         "bindings": [
             {
-                "params": {
+                "entity": {
                     "type": "uri",
                     "value": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38"
                 }

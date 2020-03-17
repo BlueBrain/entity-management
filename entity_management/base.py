@@ -164,7 +164,7 @@ class _NexusBySparqlIterator(six.Iterator):
                                       org=self.org,
                                       proj=self.proj,
                                       token=self.use_auth)
-            self._page = [i['params']['value'] for i in json['results']['bindings']]
+            self._page = [i['entity']['value'] for i in json['results']['bindings']]
 
         if self._item_index >= len(self._page):
             raise StopIteration()
