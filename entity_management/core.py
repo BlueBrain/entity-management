@@ -112,7 +112,7 @@ class DataDownload(BlankNode):
                             digest={'algorithm': resp['_digest']['_algorithm'],
                                     'value': resp['_digest']['_value']},
                             encodingFormat=resp['_mediaType'],
-                            contentUrl=resp['_location'],
+                            contentUrl=resp[JSLD_ID],
                             url=resp['_self'])
 
     @classmethod
@@ -163,9 +163,9 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         '''
         # pylint: disable=no-member
-        assert self.url is not None, 'No url!'
+        assert self.contentUrl is not None, 'No contentUrl!'
 
-        return nexus.get_file_location(self.url, token=use_auth)
+        return nexus.get_file_location(self.contentUrl, token=use_auth)
 
     def as_dict(self, use_auth=None):
         '''Get ``contentUrl`` as dict.

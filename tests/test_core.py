@@ -147,7 +147,7 @@ def test_data_download_link_file(monkeypatch, file_link_resp):
         file_path = temp.name
         distribution = DataDownload.from_path(file_path=file_path, content_type='application/zip')
 
-    assert 'relative/path/to/file.zip' in distribution.contentUrl
+    assert 'b00896ef-db8c-4fae-90e4-ae157a306746' in distribution.contentUrl
 
 
 @pytest.fixture(name='entity_data_download_resp', scope='session')
