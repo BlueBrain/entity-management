@@ -277,7 +277,8 @@ def get_file_rev(resource_id, tag=None,
     Returns:
         File revision.
     '''
-    return _get_file_metadata(resource_id, tag, base, org, proj, token)['_rev']
+    return _get_file_metadata(resource_id, tag=tag,
+                              base=base, org=org, proj=proj, token=token)['_rev']
 
 
 def get_file_location(resource_id, tag=None,
@@ -295,7 +296,8 @@ def get_file_location(resource_id, tag=None,
     Returns:
         File revision.
     '''
-    return _get_file_metadata(resource_id, tag, base, org, proj, token).get('_location')
+    return _get_file_metadata(resource_id, tag=tag,
+                              base=base, org=org, proj=proj, token=token).get('_location')
 
 
 def get_file_name(resource_id, tag=None,
@@ -313,7 +315,8 @@ def get_file_name(resource_id, tag=None,
     Returns:
         File name.
     '''
-    return _get_file_metadata(resource_id, tag, base, org, proj, token)['_filename']
+    return _get_file_metadata(resource_id, tag=tag,
+                              base=base, org=org, proj=proj, token=token)['_filename']
 
 
 @_nexus_wrapper
