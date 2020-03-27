@@ -5,7 +5,7 @@
     "name": "name",
     "distribution": {
         "@type": "DataDownload",
-        "contentUrl": "0c7d5e80-c275-4187-897e-946da433b642"
+        "url": "0c7d5e80-c275-4187-897e-946da433b642"
     },
     "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
     "_createdAt": "2019-06-28T09:16:10.487Z",

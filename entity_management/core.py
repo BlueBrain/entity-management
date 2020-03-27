@@ -163,9 +163,9 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         '''
         # pylint: disable=no-member
-        assert self.contentUrl is not None, 'No contentUrl!'
+        assert self.url is not None, 'No url!'
 
-        return nexus.get_file_location(self.contentUrl, token=use_auth)
+        return nexus.get_file_location(self.url, token=use_auth)
 
     def as_dict(self, use_auth=None):
         '''Get ``contentUrl`` as dict.
