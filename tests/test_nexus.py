@@ -82,7 +82,7 @@ def test_offline_token():
              '5Hgi0')
     responses.add(
         responses.POST,
-        'https://bbpteam.epfl.ch/auth/realms/BBP/protocol/openid-connect/token',
+        'https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token',
         json={'access_token': token})
 
     offline = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG'

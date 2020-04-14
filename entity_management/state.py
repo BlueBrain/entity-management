@@ -20,7 +20,7 @@ PROJ = os.getenv('NEXUS_PROJ', 'myproj')
 ACCESS_TOKEN = None
 OFFLINE_TOKEN = None
 
-KEYCLOAK = KeycloakOpenID(server_url='https://bbpteam.epfl.ch/auth/',
+KEYCLOAK = KeycloakOpenID(server_url='https://bbpauth.epfl.ch/auth/',
                           client_id='bbp-workflow',
                           client_secret_key=KEYCLOAK_SECRET,
                           realm_name='BBP')
