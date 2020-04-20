@@ -8,6 +8,8 @@ import attr
 from attr.validators import instance_of as instance_of_validator, optional as optional_validator
 import six
 
+from devtools import pformat
+
 # copied from attrs, their standard way to make validators
 
 
@@ -197,3 +199,13 @@ def _clean_up_dict(d):
 def quote(url):
     '''Helper function for urllib.parse.quote with safe="".'''
     return parse_quote(url, safe='')
+
+
+class PP(object):
+    '''Lazy pretty printer with pformat from devtools.'''
+    def __init__(self, value, highlight=True):
+        self.value = value
+        self.highlight = highlight
+
+    def __str__(self):
+        return pformat(self.value, highlight=self.highlight)

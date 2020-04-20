@@ -7,16 +7,13 @@ import os
 import sys
 from email.header import decode_header
 from functools import wraps
-from pprint import pprint
 import json as js
-
-from six import PY2, iteritems, text_type
 
 import requests
 
 from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
-from entity_management.util import quote
+from entity_management.util import quote, PP
 from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
                                      get_token, refresh_token, has_offline_token, get_sparql_url)
 from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
@@ -56,25 +53,6 @@ def _get_headers(token=None, accept='application/ld+json'):
     return headers
 
 
-def _byteify(data, ignore_dicts=False):
-    '''Use to convert unicode strings to str while loading json'''
-    # if this is a unicode string, return its string representation
-    if isinstance(data, text_type):
-        return data.encode('utf-8') if PY2 else data
-    # if this is a list of values, return list of byteified values
-    if isinstance(data, list):
-        return [_byteify(item, ignore_dicts=True) for item in data]
-    # if this is a dictionary, return dictionary of byteified keys and values
-    # but only if we haven't already byteified it
-    if isinstance(data, dict) and not ignore_dicts:
-        return {
-            _byteify(key, ignore_dicts=True): _byteify(value, ignore_dicts=True)
-            for key, value in iteritems(data)
-        }
-    # if it's anything else, return it in its original form
-    return data
-
-
 def _print_violation_summary(data):
     '''Add colors, remove hashes and other superfluous things from error message'''
     print('\nNEXUS ERROR SUMMARY:\n', file=sys.stderr)
@@ -91,15 +69,28 @@ def _print_violation_summary(data):
 
 
 def _print_nexus_error(http_error):
-    '''Helper function to log in stderr nexus error response.'''
-    print('NEXUS ERROR>>>', file=sys.stderr)
+    '''Helper function to log nexus error response.'''
+    request = http_error.response.request
+    response = http_error.response
     try:
-        response_data = http_error.response.json()
+        request_data = js.loads(request.body) if request.body else None
     except ValueError:
-        response_data = http_error.response.text
-    pprint(response_data, stream=sys.stderr)
-    print('<<<', file=sys.stderr)
-    sys.stderr.flush()
+        request_data = request.body
+    try:
+        response_data = response.json()
+    except ValueError:
+        response_data = response.text
+    L.error('Nexus error!\nmethod = %s\nurl = %s\npayload = %s\nstatus = %s\nresponse = %s',
+            PP(request.method), PP(request.url), PP(request_data),
+            PP(response.status_code), PP(response_data))
+
+
+def _to_json(response, payload=None):
+    '''Convert response to json and log if necessary.'''
+    json = response.json()
+    L.debug('Nexus request\nmethod = %s\nurl = %s\npayload = %s\nresponse = %s',
+            PP(response.request.method), PP(response.request.url), PP(payload), PP(json))
+    return json
 
 
 def _nexus_wrapper(func):
@@ -143,7 +134,7 @@ def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
                              quote(resource_id))
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
-    response_json = response.json(object_hook=_byteify)
+    response_json = response.json()
     constrained_by = response_json['_constrainedBy']
     if constrained_by == _UNCONSTRAINED:
         return _HINT_TO_CLS_MAP[_find_type(response_json[JSLD_TYPE])]
@@ -170,7 +161,7 @@ def create(base_url, payload, resource_id=None, token=None):
     else:
         response = requests.post(base_url, headers=_get_headers(token), json=payload)
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response, payload)
 
 
 @_nexus_wrapper
@@ -193,7 +184,7 @@ def update(id_url, rev, payload, token=None):
                             params={'rev': rev},
                             json=payload)
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response, payload)
 
 
 @_nexus_wrapper
@@ -205,7 +196,7 @@ def deprecate(id_url, rev, token=None):
                                headers=_get_headers(token),
                                params={'rev': rev})
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response)
 
 
 @_nexus_wrapper
@@ -225,12 +216,13 @@ def load_by_url(url, params=None, stream=False, token=None):
     response = requests.get(url, headers=_get_headers(token), params=params)
     # if not found then return None
     if response.status_code == 404:
+        _to_json(response)  # just log the response
         return None
     response.raise_for_status()
     if stream:
         return response.content
     else:
-        return response.json(object_hook=_byteify)
+        return _to_json(response)
 
 
 @_nexus_wrapper
@@ -242,7 +234,7 @@ def get_current_agent(token=None):
     response = requests.get(USERINFO, headers={'accept': 'application/json',
                                                'authorization': 'Bearer ' + token})
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response)
 
 
 def _get_files_endpoint():
@@ -259,7 +251,7 @@ def _get_file_metadata(resource_id, tag=None,
                             params={'tag': tag if tag else None})
 
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response)
 
 
 def get_file_rev(resource_id, tag=None,
@@ -358,7 +350,7 @@ def upload_file(name, data, content_type, resource_id=None, storage_id=None, rev
                                  files={'file': (name, data, content_type)})
 
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response)
 
 
 @_nexus_wrapper
@@ -394,7 +386,7 @@ def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
         response = requests.post(url, headers=_get_headers(token), params=params, json=json)
 
     response.raise_for_status()
-    return response.json(object_hook=_byteify)
+    return _to_json(response)
 
 
 @_nexus_wrapper
@@ -425,6 +417,8 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None,
                             stream=True)
     try:
         response.raise_for_status()
+        L.debug('Nexus request\nmethod = %s\nurl = %s',
+                PP(response.request.method), PP(response.request.url))
         if file_name is None:
             content_disposition = response.headers.get('content-disposition')
             match = re.findall('filename="(.+)"', content_disposition)[0]

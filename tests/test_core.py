@@ -11,13 +11,13 @@ from entity_management.core import DataDownload, WorkflowExecution, Entity, Acti
 @pytest.fixture(name='workflow_resp', scope='session')
 def fixture_workflow_resp():
     with open('tests/data/workflow_resp.json') as f:
-        return json.load(f, object_hook=nexus._byteify)
+        return json.load(f)
 
 
 @pytest.fixture(name='file_resp', scope='session')
 def fixture_file_resp():
     with open('tests/data/file_resp.json') as f:
-        return json.load(f, object_hook=nexus._byteify)
+        return json.load(f)
 
 
 def test_workflow_execution(monkeypatch, workflow_resp, file_resp):
@@ -137,7 +137,7 @@ def test_publish_activity_with_workflow(monkeypatch):
 @pytest.fixture(name='file_link_resp', scope='session')
 def fixture_file_link_resp():
     with open('tests/data/file_link_resp.json') as f:
-        return json.load(f, object_hook=nexus._byteify)
+        return json.load(f)
 
 
 def test_data_download_link_file(monkeypatch, file_link_resp):
@@ -153,7 +153,7 @@ def test_data_download_link_file(monkeypatch, file_link_resp):
 @pytest.fixture(name='entity_data_download_resp', scope='session')
 def fixture_entity_data_download_resp():
     with open('tests/data/entity_data_download_resp.json') as f:
-        return json.load(f, object_hook=nexus._byteify)
+        return json.load(f)
 
 
 def test_data_download_get_location(monkeypatch, entity_data_download_resp, file_link_resp):

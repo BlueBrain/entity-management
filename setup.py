@@ -50,6 +50,7 @@ setup(
         'rdflib-jsonld',
         'pyjwt',
         'python-keycloak',
+        'devtools[pygments]',
     ],
     tests_require=TESTS_REQUIRE,
     extras_require={
