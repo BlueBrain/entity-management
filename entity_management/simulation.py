@@ -573,3 +573,13 @@ class CampaignAnalysis(Activity):
         wasInformedBy (SimulationCampaign): Links to the simulation campaign which generated
             simulations used for the analysis.
     '''
+
+
+@attributes()
+class DetailedCircuitValidation(Activity):
+    '''Detailed circuit validation activity.'''
+
+
+@attributes()
+class DetailedCircuitValidationReport(AnalysisReport):
+    '''Detailed circuit validation report.  '''
