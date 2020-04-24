@@ -243,7 +243,8 @@ texinfo_documents = [
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
 
-autodoc_default_flags = ['members', 'show-inheritance']
+autodoc_default_options = {'members': True,
+                           'show-inheritance': True}
 autodoc_typehints = 'none'
 
 autosummary_generate = True
