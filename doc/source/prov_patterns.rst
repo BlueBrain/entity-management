@@ -17,9 +17,6 @@ through activity ``wasInfluencedBy`` attribute.
 .. graphviz::
 
     digraph EntityActivityInWorkflow {
-        graph [fontname = "Liberation Mono"];
-        node [fontname = "Liberation Mono"];
-        edge [fontname = "Liberation Mono"];
         Entity [
             shape = Mrecord style = filled fillcolor = lemonchiffon
         ]
@@ -48,9 +45,6 @@ Attach metadata to the model entities in order to know what parameters to use wh
 .. graphviz::
 
     digraph ModelRuntimeParameters {
-        graph [fontname = "Liberation Mono"];
-        node [fontname = "Liberation Mono"];
-        edge [fontname = "Liberation Mono"];
         Entity [
             shape = Mrecord style = filled fillcolor = lemonchiffon
         ]
@@ -70,9 +64,6 @@ Simulation campaign analysis
 .. graphviz::
 
     digraph SimulationCampaignAnalysis {
-        graph [fontname = "Liberation Mono"];
-        node [fontname = "Liberation Mono"];
-        edge [fontname = "Liberation Mono"];
         VariableReport [
             shape = Mrecord style = filled fillcolor = lemonchiffon
             label = "{VariableReport|variable=voltage\ltarget=soma\ldistribution=soma.bbp\l}"

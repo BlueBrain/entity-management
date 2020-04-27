@@ -251,3 +251,4 @@ autosummary_generate = True
 # autoclass_content = 'both'
 
 graphviz_output_format = 'svg'
+graphviz_dot_args = ['-Gsize="4,4"', '-Ncolor=white']
