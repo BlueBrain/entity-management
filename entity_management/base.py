@@ -9,7 +9,7 @@ import logging
 import operator
 import typing
 from datetime import datetime
-from collections import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from pprint import pformat
 from dateutil.parser import parse
 

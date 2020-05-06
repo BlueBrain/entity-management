@@ -14,8 +14,8 @@ BASE = os.getenv('NEXUS_BASE', 'https://bbp.epfl.ch/nexus/v1')
 KEYCLOAK_SECRET = os.getenv('KC_SCR', None)
 
 TOKEN = os.getenv('NEXUS_TOKEN', None)  # can be access token or offline if running in bbp-workflow
-ORG = os.getenv('NEXUS_ORG', 'myorg')
-PROJ = os.getenv('NEXUS_PROJ', 'myproj')
+ORG = os.getenv('NEXUS_ORG', 'bbp')
+PROJ = os.getenv('NEXUS_PROJ', 'my_default_proj')
 
 ACCESS_TOKEN = None
 OFFLINE_TOKEN = None
