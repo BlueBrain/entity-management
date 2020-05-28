@@ -58,6 +58,64 @@ Attach metadata to the model entities in order to know what parameters to use wh
     }
 
 
+Detailed circuit registration
+-----------------------------
+
+.. graphviz::
+
+    digraph DetailedCircuitRegistration {
+        DetailedCircuit [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{DetailedCircuit|circuitBase\lcircuitType\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.DetailedCircuit"
+            target = "_top"
+        ]
+        WorkflowExecution [
+            shape = record style = filled fillcolor = lightblue
+            href = "../generated/entity_management.core.html#entity_management.core.WorkflowExecution"
+            target = "_top"
+        ]
+        DetailedCircuit -> WorkflowExecution [label = "wasGeneratedBy"];
+    }
+
+
+Simulation campaign generation
+------------------------------
+
+.. graphviz::
+
+    digraph SimulationCampaignGeneration {
+        DetailedCircuit [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{DetailedCircuit|circuitBase\lcircuitType\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.DetailedCircuit"
+            target = "_top"
+        ]
+        SimulationCampaignConfiguration [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{SimulationCampaignConfiguration|name\ldescription\lconfiguration\ltemplate\ltarget\ldims\lcoords\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaignConfiguration"
+            target = "_top"
+        ]
+        SimulationCampaignGeneration [
+            shape = record style = filled fillcolor = lightblue
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaignGeneration"
+            target = "_top"
+        ]
+        WorkflowExecution [
+            shape = record style = filled fillcolor = lightblue
+            label = "{WorkflowExecution|module\ltask\lversion\lparameters\l}"
+            href = "../generated/entity_management.core.html#entity_management.core.WorkflowExecution"
+            target = "_top"
+        ]
+        { rank=same SimulationCampaignConfiguration DetailedCircuit }
+        SimulationCampaignGeneration -> WorkflowExecution [label = "wasInfluencedBy"];
+        SimulationCampaignGeneration -> DetailedCircuit [label = "used"];
+        SimulationCampaignConfiguration -> SimulationCampaignGeneration [label = "wasGeneratedBy"];
+        SimulationCampaignGeneration -> SimulationCampaignConfiguration [label = "generated"];
+    }
+
+
 Simulation campaign analysis
 ----------------------------
 

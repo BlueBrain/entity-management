@@ -1,6 +1,7 @@
 '''Simulation domain entities.'''
 
-from typing import List, Union
+from typing import List, Union, Mapping
+from numbers import Number
 
 from attr.validators import in_
 
@@ -521,6 +522,41 @@ class SimulationCampaign(Activity):
         used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
         brainLocation (BrainLocation): Brain location.
         subject (Subject): Subject.
+    '''
+
+
+@attributes({
+    'configuration': AttrOf(DataDownload),
+    'template': AttrOf(DataDownload),
+    'dims': AttrOf(List[str]),
+    'coords': AttrOf(Mapping[str, Number]),
+    'target': AttrOf(DataDownload, default=None),
+})
+class SimulationCampaignConfiguration(_Entity):
+    '''Simulation campaign configuration entity.
+
+    Args:
+        configuration (DataDownload): Dictionary of the parameters for the simulation campaign
+            stored in a json file.
+        template (DataDownload): BlueConfig template file.
+        dims (typing.List[str]): Dimension names which are scanned by the simulation campaign.
+        coords (typing.Mapping[str, numbers.Number]): Coordinate values across the scanned
+            dimensions.
+        target (DataDownload): Optional user target file to include with the simulations.
+    '''
+
+
+@attributes({
+    'circuit': AttrOf(DetailedCircuit, default=None),
+    'config': AttrOf(SimulationCampaignConfiguration, default=None),
+})
+class SimulationCampaignGeneration(Activity):
+    '''Simulation campaign generation activity.
+
+    Args:
+        circuit (DetailedCircuit): Detailed circuit used for the simulation campaign.
+        config (SimulationCampaignConfiguration): Configuration of the simulation campaign that is
+            produced as a result of running this activity.
     '''
 
 

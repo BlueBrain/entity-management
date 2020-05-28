@@ -29,7 +29,9 @@ import entity_management
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'sphinx.ext.napoleon',
-              'sphinx.ext.inheritance_diagram']
+              'sphinx.ext.inheritance_diagram',
+              'sphinx.ext.intersphinx',
+              ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -249,6 +251,8 @@ autodoc_typehints = 'none'
 
 autosummary_generate = True
 # autoclass_content = 'both'
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 graphviz_output_format = 'svg'
 graphviz_dot_args = ['-Gsize="4,4"', '-Ncolor=white']

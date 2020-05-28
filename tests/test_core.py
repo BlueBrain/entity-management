@@ -145,7 +145,7 @@ def test_data_download_link_file(monkeypatch, file_link_resp):
 
     with tempfile.NamedTemporaryFile(suffix='.zip') as temp:
         file_path = temp.name
-        distribution = DataDownload.from_path(file_path=file_path, content_type='application/zip')
+        distribution = DataDownload.link_file(file_path=file_path, content_type='application/zip')
 
     assert 'b00896ef-db8c-4fae-90e4-ae157a306746' in distribution.contentUrl
 

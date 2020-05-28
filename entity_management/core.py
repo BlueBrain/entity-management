@@ -84,11 +84,9 @@ class DataDownload(BlankNode):
                             url=resp['_self'])
 
     @classmethod
-    def from_path(cls, file_path, name=None, resource_id=None, storage_id=None, content_type=None,
+    def link_file(cls, file_path, name=None, resource_id=None, storage_id=None, content_type=None,
                   base=None, org=None, proj=None, use_auth=None):
-        '''Link DataDownload object form file_path.
-
-        Should be used to link files located on the gpfs with nexus.
+        '''Move file to nexus managed folder in gpfs project and return created resource identifier.
 
         Args:
             file_path (str): Path to the file.
