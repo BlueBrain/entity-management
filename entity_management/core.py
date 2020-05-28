@@ -312,7 +312,7 @@ class WorkflowExecution(Activity):
 
     Args:
         name (str): The user friendly workflow execution entry point. By convention will contain
-            user name, full name of a luigi task which was executed and a timestamp.
+            full name of a luigi task which was executed.
         module (str): Python module which was used to launch the luigi task from.
         task (str): Luigi task which was launched for execution.
         version (str): Version of the workflow engine used to execute the workflow.
