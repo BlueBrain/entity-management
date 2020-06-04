@@ -446,6 +446,17 @@ class SimWriterConfiguration(_Entity):
 
 
 @attributes({
+    'distribution': AttrOf(DataDownload),
+})
+class SpikeReport(_Entity):
+    '''Spike report.
+
+    Args:
+        distribution (DataDownload): Spike report file ``out.dat``.
+    '''
+
+
+@attributes({
     'variable': AttrOf(str, validators=in_(['voltage', 'curent'])),
     'target': AttrOf(str, validators=in_(['compartment',
                                           'soma',
