@@ -1,7 +1,6 @@
 '''Simulation domain entities.'''
 
-from typing import List, Union, Mapping
-from numbers import Number
+from typing import List, Union
 
 from attr.validators import in_
 
@@ -445,10 +444,15 @@ class SimWriterConfiguration(_Entity):
     '''
 
 
+@attributes()
+class Report(_Entity):
+    '''Generic report.'''
+
+
 @attributes({
     'distribution': AttrOf(DataDownload),
 })
-class SpikeReport(_Entity):
+class SpikeReport(Report):
     '''Spike report.
 
     Args:
@@ -463,7 +467,7 @@ class SpikeReport(_Entity):
                                           'summation',
                                           'extra cellular recording'])),
 })
-class VariableReport(_Entity):
+class VariableReport(Report):
     '''Variable report.
 
     Args:
@@ -474,35 +478,25 @@ class VariableReport(_Entity):
 
 
 @attributes({
-    'description': AttrOf(str, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'subject': AttrOf(Subject, default=None),
-    'generated': AttrOf(VariableReport, default=None),
+    'used': AttrOf(DetailedCircuit, default=None),
+    'spikes': AttrOf(SpikeReport, default=None),
+    'generated': AttrOf(List[Report], default=None),
     'jobId': AttrOf(str, default=None),
     'path': AttrOf(str, default=None),
-    'mg': AttrOf(float, default=None),
-    'depolarization': AttrOf(float, default=None),
-    'ca': AttrOf(float, default=None),
-    'seed': AttrOf(int, default=None),
-    'duration': AttrOf(int, default=None),
-    'target': AttrOf(str, default=None),
+    'params': AttrOf(DataDownload, default=None),
 })
 class Simulation(Activity):
     '''Simulation activity.
 
     Args:
-        description (str): Description for the simulation.
-        brainLocation (BrainLocation): Brain location.
-        subject (Subject): Subject.
-        generated (VariableReport): Generated report.
+        used (DetailedCircuit): Detailed circuit used to run the simulation.
+        spikes (SpikeReport): Generated spike report.
+        generated (List[Report]): Generated reports by the simulation. This will include
+            mandatory SpikeReport and other VariableReport's.
         jobId (str): SLURM job id.
         path (str): Location of the simulation BlueConfig and the SLURM log.
-        mg (float): Magnesium level used in the simulated circuit.
-        depolarization (float): Depolarization level used in the simulation.
-        ca (float): Calcium level used in the simulation.
-        seed (int): Seed value used in the simulation.
-        duration (int): Simulation duration.
-        target (str): Specific circuit target used in the simulation.
+        params (DataDownload): If simulation is part of the campaign, ``params``
+            will contain all the parameters used to instantiate this simulation.
     '''
 
 
@@ -539,8 +533,8 @@ class SimulationCampaign(Activity):
 @attributes({
     'configuration': AttrOf(DataDownload),
     'template': AttrOf(DataDownload),
-    'dims': AttrOf(List[str]),
-    'coords': AttrOf(Mapping[str, Number]),
+    'dims': AttrOf(str),
+    'coords': AttrOf(str),
     'target': AttrOf(DataDownload, default=None),
 })
 class SimulationCampaignConfiguration(_Entity):

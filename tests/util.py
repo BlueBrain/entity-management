@@ -4,7 +4,7 @@ import sys
 
 from contextlib import contextmanager
 
-from entity_management.compat import StringIO
+from io import StringIO
 
 
 @contextmanager
