@@ -512,29 +512,10 @@ class SimulationConfiguration(_Entity):
 
 
 @attributes({
-    'description': AttrOf(str, default=None),
-    'used': AttrOf(List[Union[SimWriterConfiguration, DetailedCircuit]], default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'subject': AttrOf(Subject, default=None),
-})
-class SimulationCampaign(Activity):
-    '''Simulation campaign activity.
-
-    Groups multiple simulations when same circuit is tested under different conditions.
-
-    Args:
-        description (str): Description for the simulation campaign.
-        used (List[Union[SimWriterConfiguration, DetailedCircuit]]): Used resources.
-        brainLocation (BrainLocation): Brain location.
-        subject (Subject): Subject.
-    '''
-
-
-@attributes({
     'configuration': AttrOf(DataDownload),
     'template': AttrOf(DataDownload),
-    'dims': AttrOf(str),
-    'coords': AttrOf(str),
+    'dims': AttrOf(List[str]),
+    'coords': AttrOf(List[tuple]),
     'target': AttrOf(DataDownload, default=None),
 })
 class SimulationCampaignConfiguration(_Entity):
@@ -545,23 +526,50 @@ class SimulationCampaignConfiguration(_Entity):
             stored in a json file.
         template (DataDownload): BlueConfig template file.
         dims (typing.List[str]): Dimension names which are scanned by the simulation campaign.
-        coords (typing.Mapping[str, numbers.Number]): Coordinate values across the scanned
-            dimensions.
+        coords (typing.List[tuple]): Coordinate values across the scanned dimensions.
         target (DataDownload): Optional user target file to include with the simulations.
     '''
 
 
 @attributes({
-    'circuit': AttrOf(DetailedCircuit, default=None),
-    'config': AttrOf(SimulationCampaignConfiguration, default=None),
+    'used': AttrOf(DetailedCircuit, default=None),
+    'generated': AttrOf(SimulationCampaignConfiguration, default=None),
 })
 class SimulationCampaignGeneration(Activity):
     '''Simulation campaign generation activity.
 
     Args:
-        circuit (DetailedCircuit): Detailed circuit used for the simulation campaign.
-        config (SimulationCampaignConfiguration): Configuration of the simulation campaign that is
-            produced as a result of running this activity.
+        used (DetailedCircuit): Detailed circuit used for the simulation campaign.
+        generated (SimulationCampaignConfiguration): Configuration of the simulation campaign that
+            is produced as a result of running this activity.
+    '''
+
+
+@attributes({
+    'hadMember': AttrOf(List[Report], default=None),
+})
+class SimulationCampaignReportCollection(_Entity):
+    '''Simulation campaign.
+
+    Groups multiple simulations when same circuit is tested under different conditions.
+
+    Args:
+        hadMember (List[Report]): Collection of simulation reports(spikes, soma voltage report).
+    '''
+
+
+@attributes({
+    'used': AttrOf(SimulationCampaignConfiguration, default=None),
+    'generated': AttrOf(SimulationCampaignReportCollection, default=None),
+})
+class SimulationCampaign(Activity):
+    '''Simulation campaign activity.
+
+    Groups multiple simulations when same circuit is tested under different conditions.
+
+    Args:
+        used (SimulationCampaignConfiguration): Used simulation campaign configuration.
+        generated (SimulationCampaignReportCollection): Generated simulation reports.
     '''
 
 
@@ -611,8 +619,8 @@ class CampaignAnalysis(Activity):
     Args:
         used (List[VariableReport]): Used simulation campaign variable reports.
         generated (AnalysisReport): Generated analysis report.
-        wasInformedBy (SimulationCampaign): Links to the simulation campaign which generated
-            simulations used for the analysis.
+        wasInformedBy (SimulationCampaign): Links to the simulation campaign which
+            generated simulations used for the analysis.
     '''
 
 

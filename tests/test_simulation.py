@@ -314,7 +314,7 @@ def test_simwriter_config_serialization():
 
 
 def test_sim_campaign_used_override():
-    SimulationCampaign(name='test', used=[])
+    SimulationCampaign(name='test', used=None)
     assert True  # doesn't raise
 
 
