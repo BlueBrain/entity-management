@@ -9,7 +9,7 @@ from entity_management.util import quote
 from entity_management.simulation import (ModelReleaseIndex, EModelRelease, MorphologyRelease,
                                           Morphology, MEModel, IonChannelMechanismRelease,
                                           MorphologyDiversification, Configuration,
-                                          SimWriterConfiguration, SimulationCampaign)
+                                          SimulationCampaignConfiguration, SimulationCampaign)
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -304,8 +304,8 @@ def test_configuration_serialization():
     assert cfg.as_json_ld()['distribution']['url'] == 'test_url'
 
 
-def test_simwriter_config_serialization():
-    cfg = SimWriterConfiguration(
+def test_sim_campaign_config_serialization():
+    cfg = SimulationCampaignConfiguration(
         name='test',
         configuration=DataDownload(url='json'),
         template=DataDownload(url='test'))

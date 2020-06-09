@@ -429,21 +429,6 @@ class TraceFeatureExtraction(Activity):
     '''
 
 
-@attributes({
-    'configuration': AttrOf(DataDownload),
-    'template': AttrOf(DataDownload),
-    'target': AttrOf(DataDownload, default=None),
-})
-class SimWriterConfiguration(_Entity):
-    '''SimWriter configuration entity.
-
-    Args:
-        configuration (DataDownload): Dictionary of the parameters for the simwriter stored as file.
-        template (DataDownload): Template file.
-        target (DataDownload): Optional user target file.
-    '''
-
-
 @attributes()
 class Report(_Entity):
     '''Generic report.'''
@@ -513,7 +498,6 @@ class SimulationConfiguration(_Entity):
 
 @attributes({
     'configuration': AttrOf(DataDownload),
-    'coords_index': AttrOf(DataDownload),
     'template': AttrOf(DataDownload),
     'target': AttrOf(DataDownload, default=None),
 })
@@ -523,7 +507,6 @@ class SimulationCampaignConfiguration(_Entity):
     Args:
         configuration (DataDownload): Dictionary of the parameters for the simulation campaign
             stored in a json file.
-        coords_index (DataDownload): Index of scanned dimensions with coordinates per dimension.
         template (DataDownload): BlueConfig template file.
         target (DataDownload): Optional user target file to include with the simulations.
     '''

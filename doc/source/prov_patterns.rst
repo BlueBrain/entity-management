@@ -93,7 +93,7 @@ Simulation campaign generation
         ]
         SimulationCampaignConfiguration [
             shape = Mrecord style = filled fillcolor = lemonchiffon
-            label = "{SimulationCampaignConfiguration|name\ldescription\lconfiguration\ltemplate\ltarget\ldims\lcoords\l}"
+            label = "{SimulationCampaignConfiguration|name\ldescription\lconfiguration\ltemplate\ltarget\l}"
             href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaignConfiguration"
             target = "_top"
         ]
