@@ -513,9 +513,8 @@ class SimulationConfiguration(_Entity):
 
 @attributes({
     'configuration': AttrOf(DataDownload),
+    'coords_index': AttrOf(DataDownload),
     'template': AttrOf(DataDownload),
-    'dims': AttrOf(List[str]),
-    'coords': AttrOf(List[tuple]),
     'target': AttrOf(DataDownload, default=None),
 })
 class SimulationCampaignConfiguration(_Entity):
@@ -524,9 +523,8 @@ class SimulationCampaignConfiguration(_Entity):
     Args:
         configuration (DataDownload): Dictionary of the parameters for the simulation campaign
             stored in a json file.
+        coords_index (DataDownload): Index of scanned dimensions with coordinates per dimension.
         template (DataDownload): BlueConfig template file.
-        dims (typing.List[str]): Dimension names which are scanned by the simulation campaign.
-        coords (typing.List[tuple]): Coordinate values across the scanned dimensions.
         target (DataDownload): Optional user target file to include with the simulations.
     '''
 
