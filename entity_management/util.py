@@ -14,7 +14,7 @@ from devtools import pformat
 
 
 @attr.s(repr=False, slots=True, hash=True)
-class _ListOfValidator(object):
+class _ListOfValidator():
     '''Validate list of type'''
     type_ = attr.ib()
     default = attr.ib()
@@ -67,7 +67,7 @@ def _list_of(type_, default):
 
 
 @attr.s(repr=False, slots=True, hash=True)
-class _NotInstatiatedValidator(object):
+class _NotInstatiatedValidator():
     '''A validator that allows NotInstantiated values.'''
     validator = attr.ib()
 
@@ -81,7 +81,7 @@ class _NotInstatiatedValidator(object):
         return "<not instantiated validator for {what} or None>".format(what=repr(self.validator))
 
 
-class NotInstantiated(object):  # pylint: disable=no-init
+class NotInstantiated():  # pylint: disable=no-init
     '''A class for not instantiated attributes
     Trying to access an attribute with this value will trigger
     the instantiation. A Nexus query will be performed and the attribute
@@ -106,7 +106,7 @@ def _get_list_params(a_list):
         return a_list.__parameters__
 
 
-class AttrOf(object):
+class AttrOf():
     '''Create an object with self.is_positional(Bool) and self.fn(Callable) that will be used
     to create an attr.ib by invoking Callable. is_positional signifies that attribute will have
     no default value and will appear in class init method as positional argument else it will
@@ -201,7 +201,7 @@ def quote(url):
     return parse_quote(url, safe='')
 
 
-class PP(object):
+class PP():
     '''Lazy pretty printer with pformat from devtools.'''
     def __init__(self, value, highlight=True):
         self.value = value

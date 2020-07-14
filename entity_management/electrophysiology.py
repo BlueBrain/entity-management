@@ -27,7 +27,6 @@ class StimulusType(Frozen):
     Args:
         stimulusType(OntologyTerm): Stimulus type ontology term.
     '''
-    pass
 
 
 @attributes({'stimulus': AttrOf(StimulusType),

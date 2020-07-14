@@ -98,7 +98,7 @@ def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
 
 
 @attr.s
-class _NexusBySchemaIterator(six.Iterator):
+class _NexusBySchemaIterator():
     '''Nexus paginated list iterator.'''
     cls = attr.ib()
     total_items = attr.ib(type=int, default=None)
@@ -141,7 +141,7 @@ class _NexusBySchemaIterator(six.Iterator):
 
 
 @attr.s
-class _NexusBySparqlIterator(six.Iterator):
+class _NexusBySparqlIterator():
     '''Nexus paginated list iterator.'''
     cls = attr.ib()
     query = attr.ib(type=str)
@@ -175,7 +175,7 @@ class _NexusBySparqlIterator(six.Iterator):
 
 
 @attr.s(frozen=True)
-class Frozen(object):
+class Frozen():
     '''Utility class making derived classed immutable. Use `evolve` method to introduce changes.'''
 
     def _force_attr(self, attribute, value):

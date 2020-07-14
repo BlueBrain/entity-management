@@ -179,7 +179,7 @@ class DataDownload(BlankNode):
 
 @attributes({'distribution': AttrOf(List[DataDownload], default=None)})
 @attr.s
-class DistributionMixin(object):
+class DistributionMixin():
     '''Provide `distribution` attribute.
     attach/download corresponding operations on the distribution.
     '''
@@ -273,13 +273,13 @@ class Activity(Identifiable):
         '''
         if activity is not None and self.wasInformedBy is None:  # pylint: disable=no-member
             assert isinstance(activity, Activity)
-            self = self.evolve(wasInformedBy=activity)
+            self = self.evolve(wasInformedBy=activity)  # pylint: disable=self-cls-assignment
 
         if self.wasInfluencedBy is None and WORKFLOW is not None:  # pylint: disable=no-member
             # in case running in the context of workflow execution activity
             workflow = WorkflowExecution.from_id(WORKFLOW,
                                                  base=base, org=org, proj=proj, use_auth=use_auth)
-            self = self.evolve(wasInfluencedBy=workflow)
+            self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
         if self._self:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
@@ -329,7 +329,7 @@ class WorkflowExecution(Activity):
     'wasDerivedFrom': AttrOf(List[Identifiable], default=None),
     'dateCreated': AttrOf(datetime, default=None)
 })
-class EntityMixin(object):
+class EntityMixin():
     '''Enables provenance metadata when publishing/deprecating entities.'''
 
     @classmethod
@@ -383,9 +383,10 @@ class EntityMixin(object):
 
         if activity is not None and self.wasGeneratedBy is None:
             assert isinstance(activity, Activity)
-            self = self.evolve(wasGeneratedBy=activity)
+            self = self.evolve(wasGeneratedBy=activity)  # pylint: disable=self-cls-assignment
 
         if was_attributed_to is not None:
+            # pylint: disable=self-cls-assignment
             self = self.evolve(wasAttributedTo=self.wasAttributedTo + [was_attributed_to]
                                if self.wasAttributedTo
                                else [was_attributed_to])

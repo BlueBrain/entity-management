@@ -31,6 +31,11 @@ def get_token():
     return ACCESS_TOKEN
 
 
+def get_offline_token():
+    '''Get offline token.'''
+    return OFFLINE_TOKEN
+
+
 def has_offline_token():
     '''Checks if offline token is available.'''
     return OFFLINE_TOKEN is not None
