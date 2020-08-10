@@ -302,6 +302,7 @@ class Activity(Identifiable):
     'task': AttrOf(str),
     'version': AttrOf(str),
     'parameters': AttrOf(str, default=None),
+    'configFileName': AttrOf(str, default=None),
     'output': AttrOf(str, default=None),
     'distribution': AttrOf(DataDownload, default=None),
 })
@@ -316,6 +317,7 @@ class WorkflowExecution(Activity):
         version (str): Version of the workflow engine used to execute the workflow.
         parameters (str): Concatenated list of parameters provided on the command line
             when the workflow was launched.
+        configFileName (str): Name of the config file if one was explicitly provided.
         output (str): Any string that workflow tasks want to deliver as output to the external
             agents.
         distribution (DataDownload): Zip file of the additional python modules and the configuration
