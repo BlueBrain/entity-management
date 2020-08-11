@@ -13,6 +13,7 @@ from entity_management.settings import NSG
 FILE_NAME = 'myfile'
 FILE_NAME_EXT = '%s.jpg' % FILE_NAME
 FILE_ID = NSG[FILE_NAME_EXT]
+FILE_URL = 'https://bbp.epfl.ch/nexus/v1/files/myorg/myproj/nxv:myfile'
 
 FILE_RESPONSE = {
     '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
@@ -25,7 +26,7 @@ FILE_RESPONSE = {
     },
     '_filename': 'myfile.jpg',
     '_mediaType': 'image/png',
-    '_self': 'https://bbp.epfl.ch/nexus/v1/files/myorg/myproj/nxv:myfile',
+    '_self': FILE_URL,
     '_constrainedBy': 'https://bluebrain.github.io/nexus/schemas/file.json',
     '_project': 'https://bbp.epfl.ch/nexus/v1/projects/myorg/myproj',
     '_rev': 4,
@@ -43,25 +44,22 @@ def test_download_file(_):
     # base64 encode 'myfile.jpg' in content disposition header
     responses.add(
         responses.GET,
-        '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
+        FILE_URL,
         headers={'Content-Disposition': 'attachment; filename="=?UTF-8?B?bXlmaWxlLmpwZw==?="'},
         json=FILE_RESPONSE)
 
-    file_path = nexus.download_file(FILE_ID, path='/tmp')
+    file_path = nexus.download_file(FILE_URL, path='/tmp')
 
     assert file_path == '/tmp/%s' % FILE_NAME_EXT
 
 
 @responses.activate
 def test_download_file_with_name():
-    responses.add(
-        responses.GET,
-        '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
-        json=FILE_RESPONSE)
+    responses.add(responses.GET, FILE_URL, json=FILE_RESPONSE)
 
     new_name = 'abc.jpg'
     with patch('%s.open' % builtins.__name__):
-        file_path = nexus.download_file(FILE_ID, path='/tmp', file_name=new_name)
+        file_path = nexus.download_file(FILE_URL, path='/tmp', file_name=new_name)
         assert file_path == '/tmp/%s' % new_name
 
 

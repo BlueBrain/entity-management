@@ -11,7 +11,7 @@ from entity_management.core import Entity
 from entity_management.morphology import ReconstructedPatchedCell
 from entity_management.util import quote
 
-from test_nexus import FILE_RESPONSE, FILE_ID, FILE_NAME_EXT
+from test_nexus import FILE_RESPONSE, FILE_ID, FILE_URL, FILE_NAME_EXT
 
 CELL_NAME = 'mycell'
 CELL_ID = NSG[CELL_NAME]
@@ -47,7 +47,7 @@ CELL_RESPONSE = {
             'unitCode': 'bytes',
             'value': 397841
         },
-        'contentUrl': FILE_ID,
+        'contentUrl': FILE_URL,
         'digest': {
             'algorithm': 'SHA-256',
             'value': '1123f4816beea40352612374a1ac5b8bf4fa515a2f98af9793c6f83d2c8080d6'
@@ -131,7 +131,7 @@ CELL_LIST_RESPONSE = {
 def test_reconstructed_patched_cell():
     responses.add(  # mock file resource response
         responses.GET,
-        '%s/%s/%s/%s' % (get_base_files(), get_org(), get_proj(), quote(FILE_ID)),
+        FILE_URL,
         headers={'Content-Disposition': 'attachment; filename="=?UTF-8?B?bXlmaWxlLmpwZw==?="'},
         json=FILE_RESPONSE)
 
@@ -153,6 +153,6 @@ def test_reconstructed_patched_cell():
     cells = ReconstructedPatchedCell.list_by_schema()
     cell = next(cells)
     assert cell.name == 'cell_name'
-    assert type(cell.wasDerivedFrom[0]) == Entity
+    assert isinstance(cell.wasDerivedFrom[0], Entity)
     with patch('%s.open' % builtins.__name__):
         assert cell.distribution[0].download(path='/tmp') == '/tmp/%s' % FILE_NAME_EXT

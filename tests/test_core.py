@@ -27,7 +27,7 @@ def test_workflow_execution(monkeypatch, workflow_resp, file_resp):
     with tempfile.NamedTemporaryFile(suffix='.zip') as temp:
         temp.write(b'Some data')  # 9 bytes of data
         temp.flush()
-        distribution = DataDownload.from_file(file_path=temp.name, content_type='application/zip')
+        distribution = DataDownload.from_file(file_like=temp.name, content_type='application/zip')
         workflow = WorkflowExecution(name='module_name.TaskName',
                                      module='module',
                                      task='task',
@@ -161,5 +161,5 @@ def test_data_download_get_location(monkeypatch, entity_data_download_resp, file
     monkeypatch.setattr(nexus, '_get_file_metadata', lambda *a, **b: file_link_resp)
 
     entity = Entity.from_id('id')
-    assert ('https://s3.us-west-1.amazonaws.com/bucket/relative/path/to/file.zip'
-            == entity.distribution.get_location())
+    assert (entity.distribution.get_location()
+            == 'https://s3.us-west-1.amazonaws.com/bucket/relative/path/to/file.zip')

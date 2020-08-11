@@ -242,10 +242,8 @@ def _get_files_endpoint():
 
 
 @_nexus_wrapper
-def _get_file_metadata(resource_id, tag=None,
-                       base=None, org=None, proj=None, token=None):
+def _get_file_metadata(url, tag=None, token=None):
     '''Helper function'''
-    url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
     response = requests.get(url,
                             headers=_get_headers(token),
                             params={'tag': tag if tag else None})
@@ -254,61 +252,46 @@ def _get_file_metadata(resource_id, tag=None,
     return _to_json(response)
 
 
-def get_file_rev(resource_id, tag=None,
-                 base=None, org=None, proj=None, token=None):
+def get_file_rev(url, tag=None, token=None):
     '''Get file rev.
 
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
-        base (str): Nexus instance base url.
-        org (str): Nexus organization.
-        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         File revision.
     '''
-    return _get_file_metadata(resource_id, tag=tag,
-                              base=base, org=org, proj=proj, token=token)['_rev']
+    return _get_file_metadata(url, tag=tag, token=token)['_rev']
 
 
-def get_file_location(resource_id, tag=None,
-                      base=None, org=None, proj=None, token=None):
+def get_file_location(url, tag=None, token=None):
     '''Get file location.
 
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
-        base (str): Nexus instance base url.
-        org (str): Nexus organization.
-        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         File revision.
     '''
-    return _get_file_metadata(resource_id, tag=tag,
-                              base=base, org=org, proj=proj, token=token).get('_location')
+    return _get_file_metadata(url, tag=tag, token=token).get('_location')
 
 
-def get_file_name(resource_id, tag=None,
-                  base=None, org=None, proj=None, token=None):
+def get_file_name(url, tag=None, token=None):
     '''Get file rev.
 
     Args:
         resource_id (str): Nexus ID of the file.
         tag (str): Provide tag to fetch specific file.
-        base (str): Nexus instance base url.
-        org (str): Nexus organization.
-        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         File name.
     '''
-    return _get_file_metadata(resource_id, tag=tag,
-                              base=base, org=org, proj=proj, token=token)['_filename']
+    return _get_file_metadata(url, tag=tag, token=token)['_filename']
 
 
 @_nexus_wrapper
@@ -390,26 +373,20 @@ def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
 
 
 @_nexus_wrapper
-def download_file(resource_id, path, file_name=None, tag=None, rev=None,
-                  base=None, org=None, proj=None, token=None):
+def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
     '''Download file.
 
     Args:
-        resource_id (str): Nexus id of the file.
+        url (str): Nexus url of the file.
         path (str): Path where to save the file.
         file_name (str): Provide file name to use instead of original name.
         tag (str): Provide tag to fetch specific file.
         rev (int): Provide revision number to fetch specific file.
-        base (str): Nexus instance base url.
-        org (str): Nexus organization.
-        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         str: Path to the downloaded file.
     '''
-    url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
-
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),
                             params={'tag': tag if tag else None,
@@ -435,24 +412,18 @@ def download_file(resource_id, path, file_name=None, tag=None, rev=None,
 
 
 @_nexus_wrapper
-def file_as_dict(resource_id, tag=None, rev=None,
-                 base=None, org=None, proj=None, token=None):
+def file_as_dict(url, tag=None, rev=None, token=None):
     '''Stream file.
 
     Args:
-        resource_id (str): Nexus ID of the file.
+        url (str): Nexus url of the file.
         tag (str): Provide tag to fetch specific file.
         rev (int): Provide revision number to fetch specific file.
-        base (str): Nexus instance base url.
-        org (str): Nexus organization.
-        proj (str): Nexus project.
         token (str): Optional OAuth token.
 
     Returns:
         Raw response.
     '''
-    url = '%s/%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj), quote(resource_id))
-
     response = requests.get(url,
                             headers=_get_headers(token, accept=None),
                             params={'tag': tag if tag else None,
