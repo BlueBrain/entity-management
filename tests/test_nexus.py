@@ -1,13 +1,11 @@
-# pylint: disable=missing-docstring,no-member
+# pylint: disable=missing-docstring,no-member,import-outside-toplevel
 from six.moves import builtins
 from mock import patch
 
 import responses
 
 import entity_management.nexus as nexus
-from entity_management.state import (get_base_files, get_org, get_proj, set_token, get_token,
-                                     has_offline_token)
-from entity_management.util import quote
+from entity_management.state import set_token, get_token, has_offline_token
 from entity_management.settings import NSG
 
 FILE_NAME = 'myfile'

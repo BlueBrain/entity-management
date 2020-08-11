@@ -4,8 +4,7 @@ from six.moves import builtins
 from mock import patch
 import responses
 
-from entity_management.state import (get_org, get_proj, get_base_files, get_base_resources,
-                                     get_base_url)
+from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
 from entity_management.settings import NSG, DASH
 from entity_management.core import Entity
 from entity_management.morphology import ReconstructedPatchedCell
