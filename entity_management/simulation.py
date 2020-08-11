@@ -8,7 +8,7 @@ import entity_management.morphology as morphology
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
                                     QuantitativeValue, BrainLocation)
 from entity_management.core import (Entity, Activity, Agent, EntityMixin,
-                                    SoftwareAgent, DataDownload, Subject)
+                                    SoftwareAgent, DataDownload, Subject, DistributionMixin)
 from entity_management.electrophysiology import Trace
 from entity_management.util import AttrOf
 
@@ -612,4 +612,9 @@ class DetailedCircuitValidation(Activity):
 
 @attributes()
 class DetailedCircuitValidationReport(AnalysisReport):
-    '''Detailed circuit validation report.  '''
+    '''Detailed circuit validation report.'''
+
+
+@attributes()
+class PlotCollection(DistributionMixin, _Entity):
+    '''Collection of plots.'''
