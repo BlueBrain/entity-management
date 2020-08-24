@@ -49,7 +49,7 @@ class DataDownload(BlankNode):
     either `downloadURL` for files or `accessURL` for folders must be provided'''
 
     def __attrs_post_init__(self):
-        super(DataDownload, self).__attrs_post_init__()
+        super().__attrs_post_init__()
         if not self.contentUrl and not self.url:  # pylint: disable=no-member
             raise ValueError('"contentUrl" or "url" must be provided!')
 

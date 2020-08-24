@@ -43,7 +43,7 @@ setup(
         'typing;python_version<"3"',
         'future;python_version<"3"',
         'requests>=2.18,<3.0',
-        'attrs',
+        'attrs<20',
         'six',
         'python-dateutil',
         'sparqlwrapper',
