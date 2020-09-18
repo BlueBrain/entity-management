@@ -606,8 +606,8 @@ class CampaignAnalysis(Activity):
     Args:
         used (List[VariableReport]): Used simulation campaign variable reports.
         generated (AnalysisReport): Generated analysis report.
-        wasInformedBy (SimulationCampaign): Links to the simulation campaign which
-            generated simulations used for the analysis.
+        wasInformedBy (entity_management.simulation.SimulationCampaign): Links to the simulation
+            campaign which generated simulations used for the analysis.
     '''
 
 
