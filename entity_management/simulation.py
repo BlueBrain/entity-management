@@ -363,7 +363,8 @@ class Target(_Entity):
     '''
 
 
-@attributes({'circuitBase': AttrOf(DataDownload),
+@attributes({'circuitBase': AttrOf(DataDownload, default=None),
+             'circuitConfigPath': AttrOf(DataDownload, default=None),
              'circuitType': AttrOf(str, default=None),
              'nodeCollection': AttrOf(NodeCollection, default=None),
              'edgeCollection': AttrOf(EdgeCollection, default=None),
@@ -373,6 +374,11 @@ class DetailedCircuit(ModelInstance):
 
     Args:
         circuitBase (DataDownload): Path to the CircuitConfig.
+
+            .. deprecated:: 1.2.7
+                Use ``circuitConfigPath`` instead.
+
+        circuitConfigPath (DataDownload): Full path to the CircuitConfig including file name.
         circuitType (str): Circuit type. For example:
 
             * ``O1 circuit`` (e.g. circuit with central column + 6 surrounding columns)
