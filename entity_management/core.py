@@ -347,6 +347,7 @@ class EntityMixin():
 
         Args:
             generated_by: Resource activity that generated entities.
+
         Returns:
             Iterator through the generated resources.
         '''
@@ -477,6 +478,7 @@ class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
         Args:
             changes: Keyword changes in the new copy, should be a subset of class
                 constructor(__init__) keyword arguments.
+
         Returns:
             New instance of the same class with changes applied.
         '''

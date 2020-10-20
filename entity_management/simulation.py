@@ -5,8 +5,9 @@ from typing import List, Union
 from attr.validators import in_
 
 import entity_management.morphology as morphology
+from entity_management.state import get_base_url
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
-                                    QuantitativeValue, BrainLocation)
+                                    QuantitativeValue, BrainLocation, _NexusBySparqlIterator)
 from entity_management.core import (Entity, Activity, Agent, EntityMixin,
                                     SoftwareAgent, DataDownload, Subject, DistributionMixin)
 from entity_management.electrophysiology import Trace
@@ -530,6 +531,29 @@ class SimulationCampaignGeneration(Activity):
         generated (SimulationCampaignConfiguration): Configuration of the simulation campaign that
             is produced as a result of running this activity.
     '''
+
+    @classmethod
+    def used(cls, detailed_circuit, **kwargs):
+        '''List all sim campaign generation activities which used the specified detailed circuit.
+
+        Args:
+            detailed_circuit: Detailed circuit that was used in the simulation campaign.
+
+        Returns:
+            Iterator through the found resources.
+        '''
+
+        type_ = f'{get_base_url()}/{cls.__name__}'
+        query = '''
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            SELECT ?entity
+            WHERE {
+                ?entity a <%s> ;
+                prov:used <%s> .
+            }
+        ''' % (type_, detailed_circuit.get_id())
+
+        return _NexusBySparqlIterator(cls, query, **kwargs)
 
 
 @attributes({
