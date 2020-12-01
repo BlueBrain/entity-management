@@ -40,10 +40,8 @@ setup(
     name="entity-management",
     version=VERSION,
     install_requires=[
-        'typing;python_version<"3"',
-        'future;python_version<"3"',
-        'requests>=2.18,<3.0',
-        'attrs<20',
+        'requests',
+        'attrs',
         'six',
         'python-dateutil',
         'sparqlwrapper',

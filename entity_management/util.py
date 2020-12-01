@@ -1,7 +1,6 @@
 '''Utilities'''
 
 import typing
-from inspect import getmro
 from six.moves.urllib.parse import quote as parse_quote
 
 import attr
@@ -107,16 +106,14 @@ def _get_list_params(a_list):
 
 
 class AttrOf():
-    '''Create an object with self.is_positional(Bool) and self.fn(Callable) that will be used
-    to create an attr.ib by invoking Callable. is_positional signifies that attribute will have
-    no default value and will appear in class init method as positional argument else it will
-    be kwarg.
+    '''Create an object with self.fn(Callable) that will be used to create an attr.ib by invoking
+    Callable.
 
-    This is needed so that @attributes decorator can create the attr.ib's in order
-    because they have a counter inside that is used to order them.
+    .. deprecated:: 1.2.9
+        Use regular attrs. This used to do some magic for previous versions of attrs.
     '''
 
-    def __init__(self, type_, optional=Ellipsis, default=Ellipsis, validators=None):
+    def __init__(self, type_, default=attr.NOTHING, validators=None):
         if validators is None:
             validators = []
 
@@ -139,56 +136,20 @@ class AttrOf():
             else:
                 validator = _list_of(list_element_type, default)
         else:
-            if optional is Ellipsis:
-                if default is None:  # default explicitly provided as None
-                    validator = optional_of(type_)
-                else:  # default either not provided -> mandatory, or initialized with value
-                    validator = instance_of(type_)
-            else:
-                if optional is False:
-                    validator = instance_of(type_)
-                else:
-                    validator = optional_of(type_)
-        self.is_positional = default is Ellipsis
+            if default is None:  # default explicitly provided as None
+                validator = optional_of(type_)
+            else:  # default either not provided -> mandatory, or initialized with value
+                validator = instance_of(type_)
 
         validators = [validator] + validators if isinstance(validators, list) else [validators]
-        if default is Ellipsis:  # no default value -> positional arg
-            self.fn = lambda: attr.ib(type=type_, validator=validators, repr=False)
-        else:
-            self.fn = lambda: attr.ib(type=type_, default=default, validator=validators, repr=False)
+        self.fn = lambda: attr.ib(type=type_,
+                                  default=default,
+                                  validator=validators,
+                                  repr=False,
+                                  kw_only=True)
 
     def __call__(self):
         return self.fn()
-
-
-def _attrs_clone(cls, check_default):
-    '''Clone all mandatory/positional(check_default=eq) or optional/keyword(check_default=ne)
-    attr fields of the cls including parents. Return dictionary with name as key and as value
-    new attribute with cloned properties
-    '''
-    fields = {}
-    # reverse mro to override fields correctly
-    for parent_cls in reversed(getmro(cls)):
-        if attr.has(parent_cls):
-            for field in attr.fields(parent_cls):
-                if field.init and check_default(field.default, attr.NOTHING):
-                    # clone field with name as dictionary key => skip it from slots
-                    fields[field.name] = attr.ib(**{slot: getattr(field, slot)
-                                                    for slot in field.__slots__ if slot != 'name'})
-    return fields
-
-
-def _merge(pos_inherited, pos_new, kw_new, kw_inherited):
-    '''Merge dictionaries using update from left to right'''
-    result = {}
-    # remove keys, so they can be overridden
-    for key in pos_new.keys():
-        kw_inherited.pop(key, None)
-    result.update(pos_inherited)
-    result.update(pos_new)
-    result.update(kw_inherited)
-    result.update(kw_new)
-    return result
 
 
 def _clean_up_dict(d):

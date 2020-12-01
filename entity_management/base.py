@@ -6,7 +6,6 @@ Base simulation entities
 '''
 from __future__ import print_function
 import logging
-import operator
 import typing
 from datetime import datetime
 from collections.abc import Iterable, Mapping
@@ -20,8 +19,8 @@ from rdflib.graph import Graph, BNode
 from entity_management import nexus
 from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
 from entity_management.settings import JSLD_ID, JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH
-from entity_management.util import (AttrOf, NotInstantiated, _attrs_clone, _clean_up_dict,
-                                    _get_list_params, _merge, quote)
+from entity_management.util import (AttrOf, NotInstantiated, _clean_up_dict, _get_list_params,
+                                    quote)
 
 
 L = logging.getLogger(__name__)
@@ -84,17 +83,7 @@ def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
     if attr_dict is None:
         attr_dict = {}  # just inherit attributes from parent class
 
-    def wrap(cls):
-        '''wraps'''
-        these = _merge(
-            _attrs_clone(cls, check_default=operator.eq),
-            {k: v() for k, v in attr_dict.items() if v.is_positional},
-            {k: v() for k, v in attr_dict.items() if not v.is_positional},
-            _attrs_clone(cls, check_default=operator.ne))
-
-        return attr.attrs(cls, these=these, repr=repr)
-
-    return wrap
+    return lambda cls: attr.attrs(cls, these={k: v() for k, v in attr_dict.items()}, repr=repr)
 
 
 @attr.s
