@@ -1,11 +1,10 @@
 '''Utilities'''
 
 import typing
-from six.moves.urllib.parse import quote as parse_quote
+from urllib.parse import quote as parse_quote
 
 import attr
 from attr.validators import instance_of as instance_of_validator, optional as optional_validator
-import six
 
 from devtools import pformat
 
@@ -154,7 +153,7 @@ class AttrOf():
 
 def _clean_up_dict(d):
     '''Produce new dictionary without json-ld attrs which start with @'''
-    return {k: v for k, v in six.iteritems(d) if not k.startswith('@')}
+    return {k: v for k, v in d.items() if not k.startswith('@')}
 
 
 def quote(url):

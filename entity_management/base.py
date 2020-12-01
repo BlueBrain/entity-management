@@ -12,7 +12,6 @@ from collections.abc import Iterable, Mapping
 from pprint import pformat
 from dateutil.parser import parse
 
-import six
 import attr
 from rdflib.graph import Graph, BNode
 
@@ -213,7 +212,7 @@ def _serialize_obj(value):
                     rv[attr_name] = [_serialize_obj(i) for i in attr_value]
                 elif isinstance(attr_value, dict):
                     rv[attr_name] = dict((kk, _serialize_obj(vv))
-                                         for kk, vv in six.iteritems(attr_value))
+                                         for kk, vv in attr_value.items())
                 else:
                     rv[attr_name] = _serialize_obj(attr_value)
         if hasattr(value, '_type'):  # BlankNode have types
@@ -261,7 +260,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
 
     try:
         if (not isinstance(data_raw, dict)
-                and not isinstance(data_raw, six.string_types)
+                and not isinstance(data_raw, str)
                 and isinstance(data_raw, Iterable)):
             return _deserialize_list(data_type, data_raw, base, org, proj, token)
 
@@ -288,8 +287,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             data = data_type(
                 **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v,
                                                     base, org, proj, token)
-                   for k, v in six.iteritems(data_raw)
-                   if k in attr.fields_dict(data_type)})
+                   for k, v in data_raw.items() if k in attr.fields_dict(data_type)})
             if issubclass(data_type, BlankNode):
                 data._force_attr('_type', data_raw[JSLD_TYPE])
             return data
@@ -326,7 +324,7 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
     instance._force_attr('_id', json_ld.get(JSLD_ID))
     instance._force_attr('_type', json_ld.get(JSLD_TYPE))
     instance._force_attr('_context', json_ld.get(JSLD_CTX))
-    for key, value in six.iteritems(json_ld):
+    for key, value in json_ld.items():
         if key in SYS_ATTRS:
             instance._force_attr(key, value)
 
@@ -357,9 +355,8 @@ class _IdentifiableMeta(type):
         super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
 
 
-@six.add_metaclass(_IdentifiableMeta)
 @attr.s
-class Identifiable(Frozen):
+class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     '''Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
     requests to that entity.
@@ -481,7 +478,7 @@ class Identifiable(Frozen):
                     json_ld[attr_name] = [_serialize_obj(i) for i in attr_value]
                 elif isinstance(attr_value, dict):
                     json_ld[attr_name] = dict((kk, _serialize_obj(vv))
-                                              for kk, vv in six.iteritems(attr_value))
+                                              for kk, vv in attr_value.items())
                 else:
                     json_ld[attr_name] = _serialize_obj(attr_value)
         if hasattr(self, '_context') and self._context is not NotInstantiated:

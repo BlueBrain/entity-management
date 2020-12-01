@@ -42,7 +42,6 @@ setup(
     install_requires=[
         'requests',
         'attrs',
-        'six',
         'python-dateutil',
         'sparqlwrapper',
         'rdflib-jsonld',
