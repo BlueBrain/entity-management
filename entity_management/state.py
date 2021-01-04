@@ -55,7 +55,7 @@ def set_token(token):
     if token is None:
         return
 
-    token_info = jwt.decode(token, verify=False)
+    token_info = jwt.decode(token, options={'verify_signature': False})
 
     if token_info['typ'] == 'Bearer':
         ACCESS_TOKEN = token
