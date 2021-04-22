@@ -31,8 +31,8 @@ snippet can be used to obtain access token for the BBP Nexus instance using
 .. code-block:: python
 
     from keycloak import KeycloakOpenID
-    openid = KeycloakOpenID(server_url='https://bbpteam.epfl.ch/auth/',
-                            client_id='bbp-nexus-public',
+    openid = KeycloakOpenID(server_url='https://bbpauth.epfl.ch/auth/',
+                            client_id='my-client-id',
                             realm_name='BBP')
     access_token = openid.token(USERNAME, PASSWORD)['access_token']
 
