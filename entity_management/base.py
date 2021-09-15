@@ -311,7 +311,7 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
         instance = Unconstrained(json=json_ld)
     else:
         # prepare all entity init args
-        init_args = dict()
+        init_args = {}
         for field in attr.fields(cls):
             raw = json_ld.get(field.name)
             if field.init and raw is not None:

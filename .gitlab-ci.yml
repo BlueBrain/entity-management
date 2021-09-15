@@ -1,0 +1,3 @@
+include:
+  - project: nse/ci
+    file: /ci/pipelines/nse.entity-management.yml

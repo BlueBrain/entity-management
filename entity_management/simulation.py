@@ -4,7 +4,7 @@ from typing import List, Union
 
 from attr.validators import in_
 
-import entity_management.morphology as morphology
+from entity_management import morphology
 from entity_management.state import get_base_url
 from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
                                     QuantitativeValue, BrainLocation, _NexusBySparqlIterator)
