@@ -1,34 +1,9 @@
 #!/usr/bin/env python
 """ entity_management setup """
-import ast
-import os
-
 from setuptools import setup, find_packages
 
+from entity_management.version import VERSION
 
-# VERSION FINDING
-def get_version(version_filepath):
-    '''extract version information from a version.py file'''
-    VERSION_VAR_NAME = 'VERSION'
-    with open(version_filepath, 'rU') as version_file:
-        tree = compile(
-            version_file.read(), version_filepath, 'exec', ast.PyCF_ONLY_AST)
-
-    version = None
-    for node in tree.body:
-        if isinstance(node, ast.Assign):
-            if (isinstance(node.targets[0], ast.Name) and isinstance(node.value, ast.Str)):
-                if node.targets[0].id == VERSION_VAR_NAME:
-                    version = node.value.s
-
-    if version is None:
-        raise Exception('Missing VERSION string (must be uppercase)')
-
-    return version
-
-
-VERSION = get_version(os.path.join(os.path.dirname(__file__),
-                                   'entity_management/version.py'))
 
 TESTS_REQUIRE = [
     'nose==1.3.0',
@@ -44,7 +19,7 @@ setup(
         'attrs',
         'python-dateutil',
         'sparqlwrapper',
-        'rdflib-jsonld',
+        'rdflib',
         'pyjwt',
         'python-keycloak',
         'devtools[pygments]',

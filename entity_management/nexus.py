@@ -128,10 +128,7 @@ def _nexus_wrapper(func):
 @_nexus_wrapper
 def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
     '''Get type which corresponds to the id_url'''
-    url = '%s/%s/%s/_/%s' % (get_base_resources(base),
-                             get_org(org),
-                             get_proj(proj),
-                             quote(resource_id))
+    url = f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/_/{quote(resource_id)}'
     response = requests.get(url, headers=_get_headers(token))
     response.raise_for_status()
     response_json = response.json()
@@ -156,7 +153,7 @@ def create(base_url, payload, resource_id=None, token=None):
         Json response.
     '''
     if resource_id:
-        url = '%s/%s' % (base_url, resource_id)
+        url = f'{base_url}/{resource_id}'
         response = requests.put(url, headers=_get_headers(token), json=payload)
     else:
         response = requests.post(base_url, headers=_get_headers(token), json=payload)
@@ -316,17 +313,14 @@ def upload_file(name, data, content_type, resource_id=None, storage_id=None, rev
         Identifier of the uploaded file.
     '''
     if resource_id:
-        url = '%s/%s/%s/%s' % (get_base_files(base),
-                               get_org(org),
-                               get_proj(proj),
-                               quote(resource_id))
+        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}'
         response = requests.put(url,
                                 headers=_get_headers(token),
                                 params={'rev': rev if rev else None,
                                         'storage': storage_id if storage_id else None},
                                 files={'file': (name, data, content_type)})
     else:
-        url = '%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj))
+        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}'
         response = requests.post(url,
                                  headers=_get_headers(token),
                                  params={'storage': storage_id if storage_id else None},
@@ -359,13 +353,10 @@ def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
     params = {'storage': storage_id if storage_id else None}
     json = {'filename': name, 'path': file_path, 'mediaType': content_type}
     if resource_id:
-        url = '%s/%s/%s/%s' % (get_base_files(base),
-                               get_org(org),
-                               get_proj(proj),
-                               quote(resource_id))
+        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}'
         response = requests.put(url, headers=_get_headers(token), params=params, json=json)
     else:
-        url = '%s/%s/%s' % (get_base_files(base), get_org(org), get_proj(proj))
+        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}'
         response = requests.post(url, headers=_get_headers(token), params=params, json=json)
 
     response.raise_for_status()
@@ -452,7 +443,7 @@ def sparql_query(query, base=None, org=None, proj=None, token=None):
         Json response.
     '''
     endpoint = SPARQLWrapper(get_sparql_url(base, org, proj))
-    endpoint.addCustomHttpHeader('authorization', 'bearer %s' % token)
+    endpoint.addCustomHttpHeader('authorization', f'bearer {token}')
     endpoint.setMethod(POST)
     endpoint.setReturnFormat(JSON)
     endpoint.setRequestMethod(POSTDIRECTLY)

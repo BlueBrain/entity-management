@@ -391,10 +391,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     def get_constrained_url(cls, base=None, org=None, proj=None):
         '''Get schema constrained url.'''
         constrained_by = str(DASH[cls.__name__.lower()])
-        return '%s/%s/%s/%s' % (get_base_resources(base),
-                                get_org(org),
-                                get_proj(proj),
-                                quote(constrained_by))
+        return f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/{quote(constrained_by)}'
 
     @classmethod
     def from_id(cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None,
@@ -410,7 +407,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        url = '%s/%s' % (get_base_url(base, org, proj), quote(resource_id))
+        url = f'{get_base_url(base, org, proj)}/{quote(resource_id)}'
         json_ld = nexus.load_by_url(url, token=use_auth)
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,

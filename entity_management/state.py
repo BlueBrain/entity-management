@@ -128,8 +128,8 @@ def get_base_resources(base=None):
         environment variable.
     '''
     if base:
-        return '%s/resources' % base
-    return '%s/resources' % BASE
+        return f'{base}/resources'
+    return f'{BASE}/resources'
 
 
 def get_base_views(base=None):
@@ -144,18 +144,18 @@ def get_base_views(base=None):
         environment variable.
     '''
     if base:
-        return '%s/views' % base
-    return '%s/views' % BASE
+        return f'{base}/views'
+    return f'{BASE}/views'
 
 
 def get_base_url(base=None, org=None, proj=None):
     '''Get base url.'''
-    return '%s/%s/%s/_' % (get_base_resources(base), get_org(org), get_proj(proj))
+    return f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/_'
 
 
 def get_sparql_url(base=None, org=None, proj=None):
-    '''Get base url.'''
-    return '%s/%s/%s/graph/sparql' % (get_base_views(base), get_org(org), get_proj(proj))
+    '''Get base sparql url.'''
+    return f'{get_base_views(base)}/{get_org(org)}/{get_proj(proj)}/graph/sparql'
 
 
 def get_base_files(base=None):
@@ -169,5 +169,5 @@ def get_base_files(base=None):
         global ``Base`` variable value which is initialized from NEXUS_BASE environment variable.
     '''
     if base:
-        return '%s/files' % base
-    return '%s/files' % BASE
+        return f'{base}/files'
+    return f'{BASE}/files'

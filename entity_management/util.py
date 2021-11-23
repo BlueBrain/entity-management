@@ -22,30 +22,19 @@ class _ListOfValidator():
         We use a callable class to be able to change the ``__repr__``.
         '''
         if self.default is not None and value is None:
-            raise TypeError(
-                "'{name}' must be provided"
-                .format(name=attribute.name), attribute, self.type_, value,
-            )
+            raise TypeError(f"'{attribute.name}' must be provided", attribute, self.type_, value)
 
         if value is not None:
             if not isinstance(value, list):
-                raise TypeError(
-                    "'{name}' must be a list"
-                    .format(name=attribute.name), attribute, self.type_, value,
-                )
+                raise TypeError(f"'{attribute.name}' must be a list", attribute, self.type_, value)
             if not all(isinstance(v, self.type_) for v in value):
                 raise TypeError(
-                    "'{name}' must be list of {type!r} (got {value!r} that is a "
-                    '{actual!r}).'
-                    .format(name=attribute.name, type=self.type_, actual=type(value), value=value),
-                    attribute, self.type_, value,
+                    f"'{attribute.name}' must be list of {self.type_!r} (got {value!r} that is a "
+                    f'{type(value)!r}).', attribute, self.type_, value,
                 )
 
     def __repr__(self):
-        return (
-            '<instance_of validator for list of type {type!r}>'
-            .format(type=self.type_)
-        )
+        return f'<instance_of validator for list of type {self.type_!r}>'
 
 
 def _list_of(type_, default):
@@ -76,7 +65,7 @@ class _NotInstatiatedValidator():
         self.validator(inst, attribute, value)  # pylint: disable=not-callable
 
     def __repr__(self):
-        return "<not instantiated validator for {what} or None>".format(what=repr(self.validator))
+        return f"<not instantiated validator for {repr(self.validator)} or None>"
 
 
 class NotInstantiated():  # pylint: disable=no-init

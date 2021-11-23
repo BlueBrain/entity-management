@@ -352,6 +352,7 @@ class EntityMixin():
             Iterator through the generated resources.
         '''
 
+        # pylint: disable=consider-using-f-string
         query = '''
             PREFIX nsg: <https://neuroshapes.org/>
             PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -483,6 +484,7 @@ class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
             New instance of the same class with changes applied.
         '''
 
+        # pylint: disable=consider-using-f-string
         query = '''
             PREFIX nsg: <https://neuroshapes.org/>
             SELECT ?entity

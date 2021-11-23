@@ -544,6 +544,7 @@ class SimulationCampaignGeneration(Activity):
         '''
 
         type_ = f'{get_base_url()}/{cls.__name__}'
+        # pylint: disable=consider-using-f-string
         query = '''
             PREFIX prov: <http://www.w3.org/ns/prov#>
             SELECT ?entity
