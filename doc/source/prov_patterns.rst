@@ -122,72 +122,22 @@ Simulation campaign analysis
 .. graphviz::
 
     digraph SimulationCampaignAnalysis {
-        VariableReport [
+        PlotCollection [
             shape = Mrecord style = filled fillcolor = lemonchiffon
-            label = "{VariableReport|variable=voltage\ltarget=soma\ldistribution=soma.bbp\l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.VariableReport"
+            label = "{PlotCollection|distribution=[ca_scan_1.png, ca_scan_2.png, ...]\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.PlotCollection"
             target = "_top"
         ]
-        AnalysisConfiguration [
+        SimulationCampaignConfiguration [
             shape = Mrecord style = filled fillcolor = lemonchiffon
-            label = "{AnalysisConfiguration|distribution=config}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisConfiguration"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaignConfiguration"
             target = "_top"
         ]
-        DetailedCircuit [
-            shape = Mrecord style = filled fillcolor = lemonchiffon
-            label = "{DetailedCircuit|circuitBase\lcircuitType\l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.DetailedCircuit"
-            target = "_top"
-        ]
-        Simulation [
+        WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
-            label = "{Simulation|status\ljobId\lpath\l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.Simulation"
+            href = "../generated/entity_management.core.html#entity_management.core.WorkflowExecution"
             target = "_top"
         ]
-        SimulationCampaign [
-            shape = record style = filled fillcolor = lightblue
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaign"
-            target = "_top"
-        ]
-        SimWriterConfiguration [
-            shape = Mrecord style = filled fillcolor = lemonchiffon
-            label = "{SimWriterConfiguration|configuration\ltemplate\ltarget\l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.SimWriterConfiguration"
-            target = "_top"
-        ]
-        Analysis [
-            shape = record style = filled fillcolor = lightblue
-            label = "{Analysis| \l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.Analysis"
-            target = "_top"
-        ]
-        AnalysisReport [
-            shape = Mrecord style = filled fillcolor = lemonchiffon
-            label = "{AnalysisReport|distribution=image.png\l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisReport"
-            target = "_top"
-        ]
-        CampaignAnalysis [
-            shape = record style = filled fillcolor = lightblue
-            label = "{CampaignAnalysis| \l}"
-            href = "../generated/entity_management.simulation.html#entity_management.simulation.CampaignAnalysis"
-            target = "_top"
-        ]
-        i1 [ shape=point; width=0 ];
-        i2 [ shape=point; width=0 ];
-        AnalysisReport -> i1 [label = "wasGeneratedBy"];
-        i1 -> Analysis;
-        i1 -> CampaignAnalysis;
-        VariableReport -> Simulation [label = "wasGeneratedBy"];
-        Simulation -> SimulationCampaign [label = "wasInformedBy"];
-        SimulationCampaign -> DetailedCircuit [label = "used"];
-        SimulationCampaign -> SimWriterConfiguration [label = "used"];
-        Analysis -> i2 [label = "used"];
-        i2 -> VariableReport;
-        i2 -> AnalysisConfiguration;
-        Analysis -> Analysis [label = "wasInformedBy"];
-        Analysis -> CampaignAnalysis [label = "wasInformedBy"];
-        CampaignAnalysis -> SimulationCampaign [label = "wasInformedBy"];
+        PlotCollection -> WorkflowExecution [label = "wasGeneratedBy"];
+        PlotCollection -> SimulationCampaignConfiguration [label = "wasDerivedFrom"];
     }
