@@ -17,7 +17,6 @@ from entity_management.experiment import PatchedCell
 @attributes()
 class _Entity(Identifiable):
     '''Base class for electrophysiology Enitities'''
-    _url_domain = 'electrophysiology'
 
 
 @attributes({'stimulusType': AttrOf(OntologyTerm)})
@@ -38,8 +37,6 @@ class StimulusExperiment(Activity):
         stimulus(OntologyTerm): doc.
         used(PatchedCell): doc.
     '''
-    _url_version = 'v1.0.0'
-    _url_domain = 'electrophysiology'  # need to override as Activity will set it to 'core'
 
 
 @attributes({'activity': AttrOf(StimulusExperiment),
@@ -59,7 +56,6 @@ class TraceGeneration(_Entity):
         waveNumberRange (str): Python range expression into which sweep number should fall.
         targetHoldingPotential (QuantitativeValue): Target holding potential.
     '''
-    _url_version = 'v1.0.0'
 
 
 @attributes({'channel': AttrOf(int),
@@ -77,4 +73,3 @@ class Trace(DistributionMixin, _Entity):
         qualifiedGeneration(TraceGeneration): Qualified trace generation.
         wasGeneratedBy(StimulusExperiment): Stimulus experiment that generated trace.
     '''
-    _url_version = 'v1.0.0'
