@@ -73,7 +73,7 @@ class DataDownload(BlankNode):
         '''
         if isinstance(file_like, (str, Path)):
             file_path = Path(file_like)
-            assert file_path.exists()
+            assert file_path.exists(), f'"{file_path}" does not exist!'
             file_name = name if name else file_path.name
             with file_path.open(mode='rb') as f:
                 resp = nexus.upload_file(file_name, f, content_type, resource_id=resource_id,

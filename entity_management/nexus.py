@@ -129,7 +129,7 @@ def _nexus_wrapper(func):
 def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
     '''Get type which corresponds to the id_url'''
     url = f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/_/{quote(resource_id)}'
-    response = requests.get(url, headers=_get_headers(token))
+    response = requests.get(url, headers=_get_headers(token), verify='staging.' not in url)
     response.raise_for_status()
     response_json = response.json()
     constrained_by = response_json['_constrainedBy']
@@ -154,9 +154,11 @@ def create(base_url, payload, resource_id=None, token=None):
     '''
     if resource_id:
         url = f'{base_url}/{resource_id}'
-        response = requests.put(url, headers=_get_headers(token), json=payload)
+        response = requests.put(url, headers=_get_headers(token), json=payload,
+                                verify='staging.' not in url)
     else:
-        response = requests.post(base_url, headers=_get_headers(token), json=payload)
+        response = requests.post(base_url, headers=_get_headers(token), json=payload,
+                                 verify='staging.' not in base_url)
     response.raise_for_status()
     return _to_json(response, payload)
 
@@ -179,7 +181,8 @@ def update(id_url, rev, payload, token=None):
     response = requests.put(id_url,
                             headers=_get_headers(token),
                             params={'rev': rev},
-                            json=payload)
+                            json=payload,
+                            verify='staging.' not in id_url)
     response.raise_for_status()
     return _to_json(response, payload)
 
@@ -191,7 +194,8 @@ def deprecate(id_url, rev, token=None):
     assert rev > 0
     response = requests.delete(id_url,
                                headers=_get_headers(token),
-                               params={'rev': rev})
+                               params={'rev': rev},
+                               verify='staging.' not in id_url)
     response.raise_for_status()
     return _to_json(response)
 
@@ -210,7 +214,8 @@ def load_by_url(url, params=None, stream=False, token=None):
         if stream is true then response stream content is returned otherwise
         json response.
     '''
-    response = requests.get(url, headers=_get_headers(token), params=params)
+    response = requests.get(url, headers=_get_headers(token), params=params,
+                            verify='staging.' not in url)
     # if not found then return None
     if response.status_code == 404:
         _to_json(response)  # just log the response
@@ -229,7 +234,8 @@ def get_current_agent(token=None):
         return None
 
     response = requests.get(USERINFO, headers={'accept': 'application/json',
-                                               'authorization': 'Bearer ' + token})
+                                               'authorization': 'Bearer ' + token},
+                            verify='staging.' not in USERINFO)
     response.raise_for_status()
     return _to_json(response)
 
@@ -243,7 +249,8 @@ def _get_file_metadata(url, tag=None, token=None):
     '''Helper function'''
     response = requests.get(url,
                             headers=_get_headers(token),
-                            params={'tag': tag if tag else None})
+                            params={'tag': tag if tag else None},
+                            verify='staging.' not in url)
 
     response.raise_for_status()
     return _to_json(response)
@@ -318,13 +325,15 @@ def upload_file(name, data, content_type, resource_id=None, storage_id=None, rev
                                 headers=_get_headers(token),
                                 params={'rev': rev if rev else None,
                                         'storage': storage_id if storage_id else None},
-                                files={'file': (name, data, content_type)})
+                                files={'file': (name, data, content_type)},
+                                verify='staging.' not in url)
     else:
         url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}'
         response = requests.post(url,
                                  headers=_get_headers(token),
                                  params={'storage': storage_id if storage_id else None},
-                                 files={'file': (name, data, content_type)})
+                                 files={'file': (name, data, content_type)},
+                                 verify='staging.' not in url)
 
     response.raise_for_status()
     return _to_json(response)
@@ -354,10 +363,12 @@ def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
     json = {'filename': name, 'path': file_path, 'mediaType': content_type}
     if resource_id:
         url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}'
-        response = requests.put(url, headers=_get_headers(token), params=params, json=json)
+        response = requests.put(url, headers=_get_headers(token), params=params, json=json,
+                                verify='staging.' not in url)
     else:
         url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}'
-        response = requests.post(url, headers=_get_headers(token), params=params, json=json)
+        response = requests.post(url, headers=_get_headers(token), params=params, json=json,
+                                 verify='staging.' not in url)
 
     response.raise_for_status()
     return _to_json(response)
@@ -382,7 +393,8 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
                             headers=_get_headers(token, accept=None),
                             params={'tag': tag if tag else None,
                                     'rev': rev if rev else None},
-                            stream=True)
+                            stream=True,
+                            verify='staging.' not in url)
     try:
         response.raise_for_status()
         L.debug('Nexus request\nmethod = %s\nurl = %s',
@@ -419,7 +431,8 @@ def file_as_dict(url, tag=None, rev=None, token=None):
                             headers=_get_headers(token, accept=None),
                             params={'tag': tag if tag else None,
                                     'rev': rev if rev else None},
-                            stream=True)
+                            stream=True,
+                            verify='staging.' not in url)
     try:
         response.raise_for_status()
         response.raw.decode_content = True
