@@ -266,8 +266,8 @@ class Activity(Identifiable):
                 and self._id is None and self.startedAtTime is None):  # pylint: disable=no-member
             self._force_attr('startedAtTime', datetime.utcnow())
 
-    def publish(self, resource_id=None, activity=None,  # pylint: disable=arguments-differ
-                base=None, org=None, proj=None, use_auth=None):
+    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None,
+                activity=None):
         '''Create or update activity resource in nexus.
 
         Args:
@@ -366,8 +366,8 @@ class EntityMixin():
 
         return _NexusBySparqlIterator(cls, query, **kwargs)
 
-    def publish(self, resource_id=None, activity=None, was_attributed_to=None,
-                base=None, org=None, proj=None, use_auth=None):
+    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None,
+                activity=None, was_attributed_to=None):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -375,9 +375,8 @@ class EntityMixin():
         Args:
             resource_id (str): Resource identifier.
             activity (Activity): Optionally provide activity which generated this resource.
-                If ``self.wasGeneratedBy`` is not set then it be set to point to this activity.
-                If runnning in the context of a workflow(NEXUS_WORKFLOW env variable is provided)
-                and ``self.wasGeneratedBy`` was not initialed, ``activity`` default value will be
+                Otherwise, when running in the context of a bbp-workflow
+                (NEXUS_WORKFLOW env variable is provided), ``activity`` default value will be
                 workflow execution activity.
             was_attributed_to (Person): Provide person argument in order to add the Person to the
                 set of attribution parameter ``self.wasAttributedTo``.
@@ -392,7 +391,7 @@ class EntityMixin():
             activity = WorkflowExecution.from_id(WORKFLOW,
                                                  base=base, org=org, proj=proj, use_auth=use_auth)
 
-        if activity is not None and self.wasGeneratedBy is None:
+        if activity is not None:
             assert isinstance(activity, Activity)
             self = self.evolve(wasGeneratedBy=activity)  # pylint: disable=self-cls-assignment
 

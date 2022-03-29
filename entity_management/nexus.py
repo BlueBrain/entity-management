@@ -117,8 +117,8 @@ def _nexus_wrapper(func):
                 kwargs['token'] = refresh_token()
                 try:
                     return func(*args, **kwargs)
-                except requests.exceptions.HTTPError as http_error:
-                    _print_nexus_error(http_error)
+                except requests.exceptions.HTTPError as http_error_nested:
+                    _print_nexus_error(http_error_nested)
                     raise
             _print_nexus_error(http_error)
             raise

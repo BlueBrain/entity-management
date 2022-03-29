@@ -82,12 +82,12 @@ def test_activity_publish_with_activity(monkeypatch):
     assert activity1.wasInformedBy.name == activity2.name
 
 
-def test_publish_with_activity_no_override(monkeypatch):
+def test_publish_with_activity_override(monkeypatch):
     entity = Entity(name='test', wasGeneratedBy=Activity(name='activity1'))
     monkeypatch.setattr(nexus, 'create', lambda *a, **b: {})
     entity = entity.publish(activity=Activity(name='activity2'))
-    assert entity.wasGeneratedBy.name == 'activity1', (
-        'Original entity wasGeneratedBy activity should not be overriden by the one '
+    assert entity.wasGeneratedBy.name == 'activity2', (
+        'Original entity wasGeneratedBy activity should be overriden by the one '
         'provided in publish method')
 
 
