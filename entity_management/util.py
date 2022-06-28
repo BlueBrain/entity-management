@@ -68,7 +68,7 @@ class _NotInstatiatedValidator():
         return f"<not instantiated validator for {repr(self.validator)} or None>"
 
 
-class NotInstantiated():  # pylint: disable=no-init
+class NotInstantiated():
     '''A class for not instantiated attributes
     Trying to access an attribute with this value will trigger
     the instantiation. A Nexus query will be performed and the attribute

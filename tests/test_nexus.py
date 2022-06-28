@@ -35,10 +35,20 @@ FILE_RESPONSE = {
     '_updatedBy': 'https://bbp.epfl.ch/nexus/v1/anonymous'
 }
 
+ACES_TOKEN = (
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9l'
+    'IiwidHlwIjoiQmVhcmVyIiwiaWF0IjoxNTE2MjM5MDIyfQ.8xXouRWxnH6gHxUZSAAxplzmUb5OEWy61K6SF0'
+    '5Hgi0')
+
 
 @responses.activate
 @patch('%s.open' % builtins.__name__)
 def test_download_file(_):
+    responses.add(
+        responses.POST,
+        'https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token',
+        json={'access_token': ACES_TOKEN})
+
     # base64 encode 'myfile.jpg' in content disposition header
     responses.add(
         responses.GET,
@@ -53,6 +63,11 @@ def test_download_file(_):
 
 @responses.activate
 def test_download_file_with_name():
+    responses.add(
+        responses.POST,
+        'https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token',
+        json={'access_token': ACES_TOKEN})
+
     responses.add(responses.GET, FILE_URL, json=FILE_RESPONSE)
 
     new_name = 'abc.jpg'
@@ -73,20 +88,17 @@ def test_token():
 
 @responses.activate
 def test_offline_token():
-    token = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9l'
-             'IiwidHlwIjoiQmVhcmVyIiwiaWF0IjoxNTE2MjM5MDIyfQ.8xXouRWxnH6gHxUZSAAxplzmUb5OEWy61K6SF0'
-             '5Hgi0')
     responses.add(
         responses.POST,
         'https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token',
-        json={'access_token': token})
+        json={'access_token': ACES_TOKEN})
 
     offline = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG'
                '9lIiwidHlwIjoiT2ZmbGluZSIsImlhdCI6MTUxNjIzOTAyMn0.ulLat2ZoDCKcpKtvrTWb1hCRvvHfShU9s'
                '5eZIALS2xo')
     set_token(offline)
     assert has_offline_token()
-    assert token == get_token()
+    assert ACES_TOKEN == get_token()
     from entity_management.state import ACCESS_TOKEN, OFFLINE_TOKEN
-    assert token == ACCESS_TOKEN
+    assert ACES_TOKEN == ACCESS_TOKEN
     assert offline == OFFLINE_TOKEN

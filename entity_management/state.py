@@ -28,6 +28,8 @@ KEYCLOAK = KeycloakOpenID(server_url='https://bbpauth.epfl.ch/auth/',
 
 def get_token():
     '''Get access token.'''
+    if ACCESS_TOKEN is None:
+        refresh_token()
     return ACCESS_TOKEN
 
 
@@ -61,7 +63,6 @@ def set_token(token):
         ACCESS_TOKEN = token
     elif token_info['typ'] in ['Offline', 'Refresh']:
         OFFLINE_TOKEN = token
-        refresh_token()
 
 
 # Initialize token from the environment

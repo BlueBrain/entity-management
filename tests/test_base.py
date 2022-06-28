@@ -14,10 +14,13 @@ from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE
 from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
 from entity_management.base import (Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj, Unconstrained)
+from entity_management import state
 from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
 from entity_management.morphology import ReconstructedPatchedCell
 import entity_management.nexus as nexus
+
+state.ACCESS_TOKEN = 'foo'
 
 
 def test_id_type(monkeypatch):

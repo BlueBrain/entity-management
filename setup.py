@@ -33,6 +33,7 @@ setup(
     author="NSE (Neuroscientific Software Engineering)",
     author_email="bbp-ou-nse@groupes.epfl.ch",
     description="Access to production entity management",
+    long_description="Access to production entity management",
     license="BBP-internal-confidential",
     keywords=('computational neuroscience',
               'simulation',
