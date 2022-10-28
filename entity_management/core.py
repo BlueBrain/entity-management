@@ -48,6 +48,8 @@ class DataDownload(BlankNode):
 
     either `downloadURL` for files or `accessURL` for folders must be provided'''
 
+    _id = None
+
     def __attrs_post_init__(self):
         super().__attrs_post_init__()
         if not self.contentUrl and not self.url:  # pylint: disable=no-member
@@ -85,12 +87,14 @@ class DataDownload(BlankNode):
             resp = nexus.upload_file(file_name, file_like, content_type, resource_id=resource_id,
                                      storage_id=storage_id,
                                      base=base, org=org, proj=proj, token=use_auth)
-        return DataDownload(name=resp['_filename'],
+        data = DataDownload(name=resp['_filename'],
                             contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
                             digest={'algorithm': resp['_digest']['_algorithm'],
                                     'value': resp['_digest']['_value']},
                             encodingFormat=resp['_mediaType'],
                             contentUrl=resp['_self'])
+        data._force_attr('_id', resp['@id'])
+        return data
 
     @classmethod
     def link_file(cls, file_path, name=None, resource_id=None, storage_id=None, content_type=None,
@@ -112,12 +116,14 @@ class DataDownload(BlankNode):
         resp = nexus.link_file(file_name, file_path, content_type, resource_id=resource_id,
                                storage_id=storage_id,
                                base=base, org=org, proj=proj, token=use_auth)
-        return DataDownload(name=resp['_filename'],
+        data = DataDownload(name=resp['_filename'],
                             contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
                             digest={'algorithm': resp['_digest']['_algorithm'],
                                     'value': resp['_digest']['_value']},
                             encodingFormat=resp['_mediaType'],
                             contentUrl=resp['_self'])
+        data._force_attr('_id', resp['@id'])
+        return data
 
     @classmethod
     def from_json_str(cls, json_str, resource_id=None,
@@ -134,11 +140,13 @@ class DataDownload(BlankNode):
         file_name = str(uuid.uuid4())
         resp = nexus.upload_file(file_name, buff, 'application/json', resource_id=resource_id,
                                  base=base, org=org, proj=proj, token=use_auth)
-        return DataDownload(contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
+        data = DataDownload(contentSize={'unitCode': 'bytes', 'value': resp['_bytes']},
                             digest={'algorithm': resp['_digest']['_algorithm'],
                                     'value': resp['_digest']['_value']},
                             encodingFormat=resp['_mediaType'],
                             contentUrl=resp['_self'])
+        data._force_attr('_id', resp['@id'])
+        return data
 
     def download(self, path=None, file_name=None, use_auth=None):
         '''Download ``contentUrl``.
@@ -182,6 +190,10 @@ class DataDownload(BlankNode):
                                                            'expecting application/json!')
 
         return nexus.file_as_dict(self.contentUrl, token=use_auth)
+
+    def get_id(self):
+        '''Retrieve _id property.'''
+        return self._id
 
 
 @attributes({'distribution': AttrOf(List[DataDownload], default=None)})
