@@ -46,7 +46,8 @@ def has_offline_token():
 def refresh_token():
     '''Get new access token from the offline token.'''
     global ACCESS_TOKEN  # pylint: disable=global-statement
-    ACCESS_TOKEN = KEYCLOAK.refresh_token(OFFLINE_TOKEN)['access_token']
+    if OFFLINE_TOKEN:
+        ACCESS_TOKEN = KEYCLOAK.refresh_token(OFFLINE_TOKEN)['access_token']
     return ACCESS_TOKEN
 
 
