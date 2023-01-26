@@ -278,8 +278,8 @@ class Activity(Identifiable):
                 and self._id is None and self.startedAtTime is None):  # pylint: disable=no-member
             self._force_attr('startedAtTime', datetime.utcnow())
 
-    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None,
-                activity=None):
+    def publish(self, resource_id=None, sync_index=False,
+                base=None, org=None, proj=None, use_auth=None, activity=None):
         '''Create or update activity resource in nexus.
 
         Args:
@@ -301,12 +301,13 @@ class Activity(Identifiable):
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
         if self._self:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+                                   sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
-                                   token=use_auth)
+                                   sync_index=sync_index, token=use_auth)
 
         self._force_attr('_id', json_ld.get(JSLD_ID))
         self._force_attr('_rev', json_ld.get('_rev'))
@@ -378,8 +379,8 @@ class EntityMixin():
 
         return _NexusBySparqlIterator(cls, query, **kwargs)
 
-    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None,
-                activity=None, was_attributed_to=None):
+    def publish(self, resource_id=None, sync_index=False, base=None, org=None, proj=None,
+                use_auth=None, activity=None, was_attributed_to=None):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -414,12 +415,13 @@ class EntityMixin():
                                else [was_attributed_to])
 
         if self._self:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+                                   sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
-                                   token=use_auth)
+                                   sync_index=sync_index, token=use_auth)
 
         self._force_attr('_id', json_ld.get(JSLD_ID))
         self._force_attr('_type', json_ld.get(JSLD_TYPE))

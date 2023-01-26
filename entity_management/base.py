@@ -494,7 +494,8 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             json_ld[JSLD_TYPE] = type(self).__name__
         return json_ld
 
-    def publish(self, resource_id=None, base=None, org=None, proj=None, use_auth=None):
+    def publish(self, resource_id=None,
+                sync_index=False, base=None, org=None, proj=None, use_auth=None):
         '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
         entity attributes.
 
@@ -506,12 +507,13 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             New instance of the same class with revision updated.
         '''
         if self._self:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(), token=use_auth)
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+                                   sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
                                    self.as_json_ld(),
                                    resource_id,
-                                   token=use_auth)
+                                   sync_index=sync_index, token=use_auth)
 
         for sys_attr in SYS_ATTRS:
             if sys_attr in json_ld:
@@ -531,7 +533,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)
 
-    def deprecate(self, use_auth=None):
+    def deprecate(self, sync_index=False, use_auth=None):
         '''Mark entity as deprecated.
         Deprecated entities are not possible to retrieve by name.
 
@@ -539,7 +541,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        nexus.deprecate(self._id, self._rev, token=use_auth)
+        nexus.deprecate(self._id, self._rev, sync_index=sync_index, token=use_auth)
         return self
 
     def evolve(self, **changes):

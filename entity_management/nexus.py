@@ -141,7 +141,7 @@ def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
 
 
 @_nexus_wrapper
-def create(base_url, payload, resource_id=None, token=None):
+def create(base_url, payload, resource_id=None, sync_index=False, token=None):
     '''Create entity, return json response
 
     Args:
@@ -152,17 +152,29 @@ def create(base_url, payload, resource_id=None, token=None):
     Returns:
         Json response.
     '''
+    if sync_index:
+        params = {'indexing': 'sync'}
+    else:
+        params = {}
     if resource_id:
         url = f'{base_url}/{resource_id}'
-        response = requests.put(url, headers=_get_headers(token), json=payload, timeout=10)
+        response = requests.put(url,
+                                headers=_get_headers(token),
+                                params=params,
+                                json=payload,
+                                timeout=10)
     else:
-        response = requests.post(base_url, headers=_get_headers(token), json=payload, timeout=10)
+        response = requests.post(base_url,
+                                 headers=_get_headers(token),
+                                 params=params,
+                                 json=payload,
+                                 timeout=10)
     response.raise_for_status()
     return _to_json(response, payload)
 
 
 @_nexus_wrapper
-def update(id_url, rev, payload, token=None):
+def update(id_url, rev, payload, sync_index=False, token=None):
     '''Update entity, return json response
 
     Args:
@@ -176,9 +188,12 @@ def update(id_url, rev, payload, token=None):
     '''
     assert id_url is not None
     assert rev > 0
+    params = {'rev': rev}
+    if sync_index:
+        params |= {'indexing': 'sync'}
     response = requests.put(id_url,
                             headers=_get_headers(token),
-                            params={'rev': rev},
+                            params=params,
                             json=payload,
                             timeout=10)
     response.raise_for_status()
@@ -186,13 +201,16 @@ def update(id_url, rev, payload, token=None):
 
 
 @_nexus_wrapper
-def deprecate(id_url, rev, token=None):
+def deprecate(id_url, rev, sync_index=False, token=None):
     '''Mark entity as deprecated, return json response'''
     assert id_url is not None
     assert rev > 0
+    params = {'rev': rev}
+    if sync_index:
+        params |= {'indexing': 'sync'}
     response = requests.delete(id_url,
                                headers=_get_headers(token),
-                               params={'rev': rev},
+                               params=params,
                                timeout=10)
     response.raise_for_status()
     return _to_json(response)

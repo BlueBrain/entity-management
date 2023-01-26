@@ -118,6 +118,11 @@ def set_base(base):
     BASE = base
 
 
+def get_base():
+    '''Get global ``BASE`` url variable.'''
+    return BASE
+
+
 def get_base_resources(base=None):
     '''Get url to nexus environment base for the resources.
 
