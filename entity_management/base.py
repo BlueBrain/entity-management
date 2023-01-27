@@ -451,6 +451,10 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         '''Retrieve _id property.'''
         return self._id
 
+    def get_rev(self):
+        '''Retrieve _rev property.'''
+        return self._rev
+
     def get_url(self):
         '''Retrieve URL of the nexus entity.
 
