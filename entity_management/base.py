@@ -545,7 +545,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        nexus.deprecate(self._id, self._rev, sync_index=sync_index, token=use_auth)
+        nexus.deprecate(self._self, self._rev, sync_index=sync_index, token=use_auth)
         return self
 
     def evolve(self, **changes):
