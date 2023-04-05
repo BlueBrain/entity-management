@@ -217,7 +217,7 @@ def deprecate(id_url, rev, sync_index=False, token=None):
 
 
 @_nexus_wrapper
-def load_by_url(url, params=None, stream=False, token=None):
+def load_by_url(url, params=None, stream=False, token=None, cross_bucket=False):
     '''Load json-ld from url
 
     Args:
@@ -225,12 +225,16 @@ def load_by_url(url, params=None, stream=False, token=None):
         params (dict): Url query params.
         stream (bool): If True then ``response.content`` stream is returned.
         token (str): Optional OAuth token.
+        cross_bucket (bool): Use resolvers to retrieve url.
 
     Returns:
         if stream is true then response stream content is returned otherwise
         json response.
     '''
+    if cross_bucket:
+        url = url.replace("/resources/", "/resolvers/")
     response = requests.get(url, headers=_get_headers(token), params=params, timeout=10)
+
     # if not found then return None
     if response.status_code == 404:
         _to_json(response)  # just log the response
