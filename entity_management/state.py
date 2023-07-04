@@ -178,3 +178,16 @@ def get_base_files(base=None):
     if base:
         return f'{base}/files'
     return f'{BASE}/files'
+
+
+def get_base_resolvers(base=None):
+    """Get url to nexus environment base for the resolvers.
+
+    Args:
+        base (str): optional ``Base`` url of nexus instance to be used.
+
+    Returns:
+        Nexus resolvers endpoint url either based on ``base`` argument provided or based on the
+        global ``Base`` variable value which is initialized from NEXUS_BASE environment variable.
+    """
+    return f"{base}/resolvers" if base else f"{BASE}/resolvers"
