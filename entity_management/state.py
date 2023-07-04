@@ -155,9 +155,10 @@ def get_base_views(base=None):
     return f'{BASE}/views'
 
 
-def get_base_url(base=None, org=None, proj=None):
+def get_base_url(base=None, org=None, proj=None, cross_bucket=False):
     '''Get base url.'''
-    return f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/_'
+    endpoint_func = get_base_resolvers if cross_bucket else get_base_resources
+    return f'{endpoint_func(base)}/{get_org(org)}/{get_proj(proj)}/_'
 
 
 def get_sparql_url(base=None, org=None, proj=None):
