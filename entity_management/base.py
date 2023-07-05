@@ -362,7 +362,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     requests to that entity.
     '''
     _id = None
-    _self = None
+    _self = NotInstantiated
     _type = NotInstantiated
     _context = NotInstantiated
     _constrainedBy = NotInstantiated
@@ -516,7 +516,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         Returns:
             New instance of the same class with revision updated.
         '''
-        if self._self:
+        if self._id:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
                                    sync_index=sync_index, token=use_auth)
         else:

@@ -300,7 +300,7 @@ class Activity(Identifiable):
                                                  base=base, org=org, proj=proj, use_auth=use_auth)
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
-        if self._self:
+        if self._id:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
                                    sync_index=sync_index, token=use_auth)
         else:
@@ -414,7 +414,7 @@ class EntityMixin():
                                if self.wasAttributedTo
                                else [was_attributed_to])
 
-        if self._self:
+        if self._id:
             json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
                                    sync_index=sync_index, token=use_auth)
         else:
