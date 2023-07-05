@@ -2,6 +2,7 @@
 
 import typing
 from urllib.parse import quote as parse_quote
+from urllib.parse import urlparse, parse_qs
 
 import attr
 from attr.validators import instance_of as instance_of_validator, optional as optional_validator
@@ -148,6 +149,14 @@ def _clean_up_dict(d):
 def quote(url):
     '''Helper function for urllib.parse.quote with safe="".'''
     return parse_quote(url, safe='')
+
+
+def split_url_from_revision_query(url):
+    """Split url from revision query."""
+    res = urlparse(url)
+    url_without_revision = f"{res.scheme}://{res.netloc}{res.path}"
+    revision_query = parse_qs(res.query)
+    return url_without_revision, revision_query
 
 
 class PP():

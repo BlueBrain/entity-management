@@ -13,7 +13,7 @@ import requests
 
 from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
-from entity_management.util import quote, PP
+from entity_management.util import quote, PP, split_url_from_revision_query
 from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
                                      get_token, refresh_token, has_offline_token, get_sparql_url,
                                      get_base_url)
@@ -263,6 +263,13 @@ def load_by_id(resource_id, cross_bucket=False, params=None, stream=False,
         json response.
     """
     base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
+
+    resource_id, revision_query = split_url_from_revision_query(resource_id)
+
+    if params is None:
+        params = {}
+    params |= revision_query
+
     url = f'{base_url}/{quote(resource_id)}'
     return load_by_url(url=url, params=params, stream=stream, token=token)
 

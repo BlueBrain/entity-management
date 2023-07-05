@@ -7,6 +7,7 @@ import responses
 import entity_management.nexus as nexus
 from entity_management.state import set_token, get_token, has_offline_token
 from entity_management.settings import NSG
+from entity_management.util import quote
 
 FILE_NAME = 'myfile'
 FILE_NAME_EXT = '%s.jpg' % FILE_NAME
@@ -105,22 +106,37 @@ def test_offline_token():
 
 
 def test_load_by_id():
+    resource_id = "https://bbp.epfl.ch/neurosciencegraph/data/1"
     with patch("entity_management.nexus.load_by_url") as patched:
-        nexus.load_by_id("my-id", base="my-base", org="my-org", proj="my-proj", cross_bucket=False)
+        nexus.load_by_id(resource_id, base="my-base", org="my-org", proj="my-proj", cross_bucket=False)
         patched.assert_called_once_with(
-            url="my-base/resources/my-org/my-proj/_/my-id",
-            params=None,
+            url=f"my-base/resources/my-org/my-proj/_/{quote(resource_id)}",
+            params={},
             stream=False,
             token=None,
         )
 
 
 def test_load_by_id__cross_bucket():
+    resource_id = "https://bbp.epfl.ch/neurosciencegraph/data/1"
     with patch("entity_management.nexus.load_by_url") as patched:
-        nexus.load_by_id("my-id", base="my-base", org="my-org", proj="my-proj", cross_bucket=True)
+        nexus.load_by_id(resource_id, base="my-base", org="my-org", proj="my-proj", cross_bucket=True)
         patched.assert_called_once_with(
-            url="my-base/resolvers/my-org/my-proj/_/my-id",
-            params=None,
+            url=f"my-base/resolvers/my-org/my-proj/_/{quote(resource_id)}",
+            params={},
+            stream=False,
+            token=None,
+        )
+
+
+def test_lod_by_id__with_revision():
+    resource_id = "https://bbp.epfl.ch/neurosciencegraph/data/1"
+    resource_id_with_revision = f"{resource_id}?rev=5"
+    with patch("entity_management.nexus.load_by_url") as patched:
+        nexus.load_by_id(resource_id_with_revision, base="my-base", org="my-org", proj="my-proj", cross_bucket=True)
+        patched.assert_called_once_with(
+            url=f"my-base/resolvers/my-org/my-proj/_/{quote(resource_id)}",
+            params={"rev": ['5']},
             stream=False,
             token=None,
         )
