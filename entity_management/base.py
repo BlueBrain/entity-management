@@ -395,7 +395,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
 
     @classmethod
     def from_id(cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None,
-                **kwargs):
+                cross_bucket=False, **kwargs):
         '''
         Load entity from resource id.
 
@@ -407,8 +407,14 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
-        url = f'{get_base_url(base, org, proj)}/{quote(resource_id)}'
-        json_ld = nexus.load_by_url(url, token=use_auth)
+        json_ld = nexus.load_by_id(
+            resource_id=resource_id,
+            cross_bucket=cross_bucket,
+            base=base,
+            org=org,
+            proj=proj,
+            token=use_auth,
+        )
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,
                                          base=base, org=org, proj=proj, token=use_auth)

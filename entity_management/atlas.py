@@ -21,7 +21,8 @@ class AtlasBrainRegion(Identifiable):
 
     @classmethod
     def from_id(
-        cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None, **kwargs
+        cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None,
+        cross_bucket=False, **kwargs
     ):
         """
         Load entity from resource id.

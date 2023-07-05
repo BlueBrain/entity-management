@@ -15,7 +15,8 @@ from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
 from entity_management.util import quote, PP
 from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
-                                     get_token, refresh_token, has_offline_token, get_sparql_url)
+                                     get_token, refresh_token, has_offline_token, get_sparql_url,
+                                     get_base_url)
 from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
 
 L = logging.getLogger(__name__)
@@ -241,6 +242,29 @@ def load_by_url(url, params=None, stream=False, token=None):
         return response.content
     else:
         return _to_json(response)
+
+
+def load_by_id(resource_id, cross_bucket=False, params=None, stream=False,
+               base=None, org=None, proj=None, token=None):
+    """Load json-ld from id.
+
+    Args:
+        resource_id (str) : Id of the entity which will be loaded.
+        cross_bucket (bool): Wether to search resource in multiple buckets or not.
+        params (dict): Url query params.
+        stream (bool): If True then ``response.content`` stream is returned.
+        base (str): The nexus base endpoint.
+        org (str): The nexus organization.
+        proj (str): The nexus project.
+        token (str): Optional OAuth token.
+
+    Returns:
+        if stream is true then response stream content is returned otherwise
+        json response.
+    """
+    base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
+    url = f'{base_url}/{quote(resource_id)}'
+    return load_by_url(url=url, params=params, stream=stream, token=token)
 
 
 @_nexus_wrapper

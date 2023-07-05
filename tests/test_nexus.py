@@ -102,3 +102,25 @@ def test_offline_token():
     from entity_management.state import ACCESS_TOKEN, OFFLINE_TOKEN
     assert ACES_TOKEN == ACCESS_TOKEN
     assert offline == OFFLINE_TOKEN
+
+
+def test_load_by_id():
+    with patch("entity_management.nexus.load_by_url") as patched:
+        nexus.load_by_id("my-id", base="my-base", org="my-org", proj="my-proj", cross_bucket=False)
+        patched.assert_called_once_with(
+            url="my-base/resources/my-org/my-proj/_/my-id",
+            params=None,
+            stream=False,
+            token=None,
+        )
+
+
+def test_load_by_id__cross_bucket():
+    with patch("entity_management.nexus.load_by_url") as patched:
+        nexus.load_by_id("my-id", base="my-base", org="my-org", proj="my-proj", cross_bucket=True)
+        patched.assert_called_once_with(
+            url="my-base/resolvers/my-org/my-proj/_/my-id",
+            params=None,
+            stream=False,
+            token=None,
+        )
