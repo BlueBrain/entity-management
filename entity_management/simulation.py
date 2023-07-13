@@ -570,19 +570,19 @@ class SimulationCampaignReportCollection(_Entity):
     '''
 
 
-@attributes({
-    'used': AttrOf(SimulationCampaignConfiguration, default=None),
-    'generated': AttrOf(SimulationCampaignReportCollection, default=None),
-})
-class SimulationCampaign(Activity):
-    '''Simulation campaign activity.
-
-    Groups multiple simulations when same circuit is tested under different conditions.
-
-    Args:
-        used (SimulationCampaignConfiguration): Used simulation campaign configuration.
-        generated (SimulationCampaignReportCollection): Generated simulation reports.
-    '''
+# @attributes({
+#     'used': AttrOf(SimulationCampaignConfiguration, default=None),
+#     'generated': AttrOf(SimulationCampaignReportCollection, default=None),
+# })
+# class SimulationCampaign(Activity):
+#     '''Simulation campaign activity.
+#
+#     Groups multiple simulations when same circuit is tested under different conditions.
+#
+#     Args:
+#         used (SimulationCampaignConfiguration): Used simulation campaign configuration.
+#         generated (SimulationCampaignReportCollection): Generated simulation reports.
+#     '''
 
 
 @attributes({
@@ -623,7 +623,7 @@ class Analysis(Activity):
 @attributes({
     'used': AttrOf(List[VariableReport], default=None),
     'generated': AttrOf(AnalysisReport, default=None),
-    'wasInformedBy': AttrOf(SimulationCampaign, default=None),
+    # 'wasInformedBy': AttrOf(SimulationCampaign, default=None),
 })
 class CampaignAnalysis(Activity):
     '''Simulation campaign analysis activity.
