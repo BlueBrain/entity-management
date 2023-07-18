@@ -399,7 +399,7 @@ class EntityMixin():
         Returns:
             New instance of the same class with revision updated.
         '''
-        if activity is None and WORKFLOW is not None:
+        if self.wasGeneratedBy is None and activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
             activity = WorkflowExecution.from_id(WORKFLOW,
                                                  base=base, org=org, proj=proj, use_auth=use_auth)
