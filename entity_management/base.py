@@ -524,13 +524,15 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                                    self.as_json_ld(),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
+        self._process_response(json_ld)
+        return self
 
+    def _process_response(self, json_ld):
         for sys_attr in SYS_ATTRS:
             if sys_attr in json_ld:
                 self._force_attr(sys_attr, json_ld[sys_attr])
         self._force_attr('_id', json_ld.get(JSLD_ID))
         self._force_attr('_type', json_ld.get(JSLD_TYPE))
-        return self
 
     def _instantiate(self):
         '''Fetch nexus object with id=self._id if it was not initialized before.'''

@@ -21,7 +21,7 @@ from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attri
                                     _NexusBySparqlIterator)
 from entity_management.util import AttrOf, NotInstantiated
 from entity_management.state import get_base_url
-from entity_management.settings import WORKFLOW, JSLD_ID, JSLD_TYPE
+from entity_management.settings import WORKFLOW
 
 
 @attributes({
@@ -308,11 +308,7 @@ class Activity(Identifiable):
                                    self.as_json_ld(),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
-
-        self._force_attr('_id', json_ld.get(JSLD_ID))
-        self._force_attr('_rev', json_ld.get('_rev'))
-        self._force_attr('_self', json_ld.get('_self'))
-
+        self._process_response(json_ld)
         return self
 
 
@@ -422,12 +418,7 @@ class EntityMixin():
                                    self.as_json_ld(),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
-
-        self._force_attr('_id', json_ld.get(JSLD_ID))
-        self._force_attr('_type', json_ld.get(JSLD_TYPE))
-        self._force_attr('_rev', json_ld.get('_rev'))
-        self._force_attr('_self', json_ld.get('_self'))
-
+        self._process_response(json_ld)
         return self
 
 
