@@ -1,7 +1,12 @@
 # pylint: disable=missing-docstring,no-member
+import json
 import responses
+from pathlib import Path
+
+import pytest
 
 import entity_management.core as core
+from entity_management import nexus
 from entity_management.state import get_base_url
 from entity_management.settings import NSG, JSLD_CTX
 from entity_management.core import DataDownload
@@ -9,7 +14,9 @@ from entity_management.util import quote
 from entity_management.simulation import (ModelReleaseIndex, EModelRelease, MorphologyRelease,
                                           Morphology, MEModel, IonChannelMechanismRelease,
                                           MorphologyDiversification, Configuration,
-                                          SimulationCampaignConfiguration)
+                                          SimulationCampaignConfiguration, DetailedCircuit)
+
+DATA_DIR = Path(__file__).parent / "data"
 
 UUID = '0c7d5e80-c275-4187-897e-946da433b642'
 DUMMY_PERSON = core.Person(email='dummy_email')
@@ -311,6 +318,17 @@ def test_sim_campaign_config_serialization():
         template=DataDownload(url='test'))
     json_ld = cfg.as_json_ld()
     assert json_ld[JSLD_CTX][0]
+
+
+@pytest.fixture
+def detailed_circuit_metadata():
+    return json.loads(Path(DATA_DIR, "detailed_circuit_resp.json").read_bytes())
+
+
+def test_detailed_circuit(monkeypatch, detailed_circuit_metadata):
+    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+    res = DetailedCircuit.from_url(None)
+    assert res.atlasRelease.get_id() is not None
 
 
 # @responses.activate

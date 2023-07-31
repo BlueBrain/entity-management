@@ -11,6 +11,7 @@ from entity_management.base import (Identifiable, attributes, Frozen, OntologyTe
 from entity_management.core import (Entity, Activity, Agent, EntityMixin,
                                     SoftwareAgent, DataDownload, Subject, DistributionMixin)
 from entity_management.electrophysiology import Trace
+from entity_management.atlas import AtlasRelease
 from entity_management.util import AttrOf
 
 
@@ -369,7 +370,8 @@ class Target(_Entity):
              'circuitType': AttrOf(str, default=None),
              'nodeCollection': AttrOf(NodeCollection, default=None),
              'edgeCollection': AttrOf(EdgeCollection, default=None),
-             'target': AttrOf(Target, default=None)})
+             'target': AttrOf(Target, default=None),
+             'atlasRelease': AttrOf(AtlasRelease, default=None)})
 class DetailedCircuit(ModelInstance):
     '''Detailed circuit.
 
@@ -388,6 +390,7 @@ class DetailedCircuit(ModelInstance):
         nodeCollection (NodeCollection): Node collection.
         edgeCollection (EdgeCollection): Edge collection.
         target (Target): Target.
+        atlasRelease (AtlasRelease): AtlasRelease associated with the circuit.
     '''
 
 

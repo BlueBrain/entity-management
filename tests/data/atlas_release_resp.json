@@ -1,0 +1,60 @@
+{
+  "@context": [
+    "https://bluebrain.github.io/nexus/contexts/metadata.json",
+    "https://bbp.neuroshapes.org"
+  ],
+  "@id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
+  "@type": [
+    "AtlasRelease",
+    "BrainAtlasRelease"
+  ],
+  "brainTemplateDataLayer": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/cce06e96-85a4-403d-8b87-634a1554cdb9",
+    "@type": "BrainTemplateDataLayer"
+  },
+  "description": "The official Atlas of the Blue Brain Project, derivated from AIBS Mouse CCF v3 (2017)",
+  "hemisphereVolume": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/392ce23b-19de-471b-a5ef-c7744d7e450e",
+    "@type": [
+      "VolumetricDataLayer",
+      "Dataset",
+      "HemisphereAnnotationDataLayer"
+    ]
+  },
+  "name": "Blue Brain Atlas",
+  "parcellationOntology": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/0518dd0b-cbc7-43ef-a75f-45631059c8c5",
+    "@type": "ParcellationOntology"
+  },
+  "parcellationVolume": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/231f6e2e-6366-4ddc-94b6-35ab50c076c0",
+    "@type": "BrainParcellationDataLayer"
+  },
+  "releaseDate": {
+    "@type": "xsd:date",
+    "@value": "2022-10-18"
+  },
+  "spatialReferenceSystem": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/allen_ccfv3_spatial_reference_system",
+    "@type": "AtlasSpatialReferenceSystem"
+  },
+  "subject": {
+    "@type": "Subject",
+    "species": {
+      "@id": "NCBITaxon:10090",
+      "label": "Mus musculus"
+    }
+  },
+  "_constrainedBy": "https://neuroshapes.org/dash/atlasrelease",
+  "_createdAt": "2022-07-13T13:35:23.237Z",
+  "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/lurie",
+  "_deprecated": false,
+  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/atlas/datashapes:atlasrelease/4906ab85-694f-469d-962f-c0174e901885/incoming",
+  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/atlas/datashapes:atlasrelease/4906ab85-694f-469d-962f-c0174e901885/outgoing",
+  "_project": "https://bbp.epfl.ch/nexus/v1/projects/bbp/atlas",
+  "_rev": 3,
+  "_schemaProject": "https://bbp.epfl.ch/nexus/v1/projects/neurosciencegraph/datamodels",
+  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/atlas/datashapes:atlasrelease/4906ab85-694f-469d-962f-c0174e901885",
+  "_updatedAt": "2023-03-28T07:29:28.005Z",
+  "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/sy"
+}

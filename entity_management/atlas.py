@@ -1,5 +1,6 @@
 """Atlas related entities."""
 from entity_management.base import Identifiable, attributes
+from entity_management.core import Entity, DataDownload
 from entity_management.util import AttrOf
 
 
@@ -55,3 +56,85 @@ class AtlasBrainRegion(Identifiable):
         if proj is None and org is None:
             proj, org = cls._ontology_location()
         return super(AtlasBrainRegion, cls).from_url(url, base, org, proj, use_auth)
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class BrainTemplateDataLayer(Entity):
+    '''Raster volume of the brain template.'''
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class HemisphereAnnotationDataLayer(Entity):
+    '''Hemisphere annotation from Allen ccfv3 volume at 25 microns.'''
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class ParcellationOntology(Entity):
+    '''Raster volume of the brain template. This originaly comes from AIBS CCF (25µm)'''
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class BrainParcellationDataLayer(Entity):
+    '''Brain region annotation as IDs, including the separation of cortical layers 2 and 3.'''
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class AtlasSpatialReferenceSystem(Entity):
+    '''This spatial reference system describes the space used by Allen Institute.
+
+    It is shared across CCFv1, CCFv2 and CCFv3 in world coordinates.
+    It uses micrometer as a spatial unit.'''
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class PlacementHintsDataLayer(Entity):
+    '''Placement hints volumes for all the cortical layers.'''
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class CellOrientationField(Entity):
+    '''Raster volume with cell orientation field as quaternions.'''
+
+
+@attributes(
+    {
+        "brainTemplateDataLayer": AttrOf(BrainTemplateDataLayer),
+        "parcellationOntology": AttrOf(ParcellationOntology),
+        "parcellationVolume": AttrOf(BrainParcellationDataLayer),
+        "spatialReferenceSystem": AttrOf(AtlasSpatialReferenceSystem),
+        "hemisphereVolume": AttrOf(HemisphereAnnotationDataLayer, default=None),
+        "placementHintsDataLayer": AttrOf(PlacementHintsDataLayer, default=None),
+        "cellOrientationField": AttrOf(CellOrientationField, default=None),
+        "subject": AttrOf(dict),
+    }
+)
+class AtlasRelease(Entity):
+    '''AtlasRelease resource representation.'''
