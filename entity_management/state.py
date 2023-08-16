@@ -11,19 +11,22 @@ from keycloak import KeycloakOpenID
 
 BASE = os.getenv('NEXUS_BASE', 'https://bbp.epfl.ch/nexus/v1')
 
-KEYCLOAK_SECRET = os.getenv('KC_SCR', None)
-
 TOKEN = os.getenv('NEXUS_TOKEN', None)  # can be access token or offline if running in bbp-workflow
 ORG = os.getenv('NEXUS_ORG', 'bbp')
 PROJ = os.getenv('NEXUS_PROJ', 'my_default_proj')
 
+AUTH_HOST = os.getenv('KC_HOST', 'https://bbpauth.epfl.ch')
+REALM = os.getenv('KC_REALM', 'BBP')
+SECRET = os.getenv('KC_SCR', None)
+CLIENT_ID = 'bbp-workflow'
+
 ACCESS_TOKEN = None
 OFFLINE_TOKEN = None
 
-KEYCLOAK = KeycloakOpenID(server_url='https://bbpauth.epfl.ch/auth/',
-                          client_id='bbp-workflow',
-                          client_secret_key=KEYCLOAK_SECRET,
-                          realm_name='BBP')
+KEYCLOAK = KeycloakOpenID(server_url=f'{AUTH_HOST}/auth/',
+                          client_id=CLIENT_ID,
+                          client_secret_key=SECRET,
+                          realm_name=REALM)
 
 
 def get_token():
