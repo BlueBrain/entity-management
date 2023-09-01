@@ -19,7 +19,7 @@ from attr.validators import in_
 from entity_management import nexus
 from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
                                     _NexusBySparqlIterator)
-from entity_management.util import AttrOf, NotInstantiated
+from entity_management.util import AttrOf, NotInstantiated, file_uri_to_path
 from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW
 
@@ -168,7 +168,7 @@ class DataDownload(BlankNode):
     def get_location(self, use_auth=None):
         '''Get file location when applicable.
 
-        For files located on the gpfs storage backend, this will give direct file path.
+        For files located on the gpfs storage backend, this will give direct file URI.
 
         Args:
             use_auth (str): Optional OAuth token.
@@ -177,6 +177,17 @@ class DataDownload(BlankNode):
         assert self.contentUrl is not None, 'No contentUrl!'
 
         return nexus.get_file_location(self.contentUrl, token=use_auth)
+
+    def get_location_path(self, use_auth=None):
+        """Get file path when applicable.
+
+        For files located on the gpfs storage backend, this will give direct filesystem path.
+
+        Args:
+            use_auth (str): Optional OAuth token.
+        """
+        file_uri = self.get_location(use_auth=use_auth)
+        return file_uri_to_path(file_uri)
 
     def as_dict(self, use_auth=None):
         '''Get ``contentUrl`` as dict.
