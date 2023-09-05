@@ -163,3 +163,12 @@ def test_data_download_get_location(monkeypatch, entity_data_download_resp, file
     entity = Entity.from_id('id')
     assert (entity.distribution.get_location()
             == 'https://s3.us-west-1.amazonaws.com/bucket/relative/path/to/file.zip')
+
+
+def test_data_download_get_location_path(monkeypatch, entity_data_download_resp, file_link_resp):
+    monkeypatch.setattr(nexus, 'load_by_url', lambda *a, **b: entity_data_download_resp)
+    monkeypatch.setattr(nexus, '_get_file_metadata', lambda *a, **b: file_link_resp)
+
+    entity = Entity.from_id('id')
+    assert (entity.distribution.get_location_path()
+            == '/bucket/relative/path/to/file.zip')

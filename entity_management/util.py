@@ -2,7 +2,7 @@
 
 import typing
 from urllib.parse import quote as parse_quote
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 
 import attr
 from attr.validators import instance_of as instance_of_validator, optional as optional_validator
@@ -167,3 +167,12 @@ class PP():
 
     def __str__(self):
         return pformat(self.value, highlight=self.highlight)
+
+
+def file_uri_to_path(file_uri):
+    """Convert a file uri to a system path.
+
+    Example:
+        file:///%5BPH%5Dlayer_6.nrrd -> /[PH]layer_6.nrrd
+    """
+    return unquote(urlparse(file_uri).path)
