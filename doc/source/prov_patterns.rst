@@ -137,10 +137,22 @@ Simulation campaign
             href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaignAnalysis"
             target = "_top"
         ]
+        CumulativeSimulationCampaignAnalysis [
+            shape = record style = filled fillcolor = lightblue
+            label = "{CumulativeSimulationCampaignAnalysis|startedAtTime,endedAtTime\lstatus\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.CumulativeSimulationCampaignAnalysis"
+            target = "_top"
+        ]
         AnalysisReport [
             shape = Mrecord style = filled fillcolor = lemonchiffon
             label = "{AnalysisReport|name,description\lcategories,types\l}"
             href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisReport"
+            target = "_top"
+        ]
+        CumulativeAnalysisReport [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{CumulativeAnalysisReport|name,description\lcategories,types\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.CumulativeAnalysisReport"
             target = "_top"
         ]
         WorkflowExecution [
@@ -160,12 +172,18 @@ Simulation campaign
         SimulationCampaignExecution -> SimulationCampaign [label = "generated"];
         SimulationCampaignExecution -> WorkflowExecution [label = "wasInfluencedBy"];
         SimulationCampaign -> SimulationCampaignExecution [label = "wasGeneratedBy"];
-        SimulationCampaign -> Simulation [label = "simulations"];
+        SimulationCampaign -> Simulation [label = "hasPart"];
         Simulation -> SimulationCampaignExecution [label = "wasGeneratedBy"];
         SimulationCampaignAnalysis -> BbpWorkflowConfig [label = "used_config"];
         SimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
         SimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
+        CumulativeSimulationCampaignAnalysis -> BbpWorkflowConfig [label = "used_config"];
+        CumulativeSimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
+        CumulativeSimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
         AnalysisReport -> Simulation [label = "derivation"];
         AnalysisReport -> SimulationCampaignAnalysis [label = "wasGeneratedBy"];
-        AnalysisReport -> DataDownload [label = "hasPart"];
+        AnalysisReport -> DataDownload [label = "distribution"];
+        CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
+        CumulativeAnalysisReport -> CumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
+        CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
     }
