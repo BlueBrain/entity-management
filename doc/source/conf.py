@@ -31,6 +31,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.intersphinx',
+              'sphinxcontrib.mermaid',
               ]
 
 # Add any paths that contain templates here, relative to this directory.

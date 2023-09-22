@@ -169,3 +169,13 @@ Simulation campaign
         AnalysisReport -> SimulationCampaignAnalysis [label = "wasGeneratedBy"];
         AnalysisReport -> DataDownload [label = "hasPart"];
     }
+
+Sequence Diagram of Nexus Interaction
+-------------------------------------
+.. mermaid::
+
+    sequenceDiagram
+        UI->>+KG: Register JSON config
+        UI->>+KG: Register Workflow CFG
+        UI->>+WF: Launch
+        WF->>+KG: Register Activity: Status Pending
