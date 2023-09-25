@@ -175,7 +175,9 @@ Sequence Diagram of Nexus Interaction
 .. mermaid::
 
     sequenceDiagram
-        UI->>+KG: Register JSON config
         UI->>+KG: Register Workflow CFG
         UI->>+WF: Launch
-        WF->>+KG: Register Activity: Status Pending
+        WF->>+KG: WorkflowExecution(Pending)
+        WF->>-UI: WorkflowExecution URL
+        WF->>+KG: Register entities with provenance
+        WF->>+KG: WorkflowExecution(Status Done/Error)
