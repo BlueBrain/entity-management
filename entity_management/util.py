@@ -169,10 +169,10 @@ class PP():
         return pformat(self.value, highlight=self.highlight)
 
 
-def file_uri_to_path(file_uri):
+def unquote_uri_path(uri):
     """Convert a file uri to a system path.
 
     Example:
         file:///%5BPH%5Dlayer_6.nrrd -> /[PH]layer_6.nrrd
     """
-    return unquote(urlparse(file_uri).path)
+    return unquote(urlparse(uri).path)

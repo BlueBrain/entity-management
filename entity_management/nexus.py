@@ -13,7 +13,7 @@ import requests
 
 from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
-from entity_management.util import quote, PP, split_url_from_revision_query, file_uri_to_path
+from entity_management.util import quote, PP, split_url_from_revision_query, unquote_uri_path
 from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
                                      get_token, refresh_token, has_offline_token, get_sparql_url,
                                      get_base_url)
@@ -339,7 +339,7 @@ def get_unquoted_uri_path(url, tag=None, token=None):
         token (str): Optional OAuth token.
     """
     location = get_file_location(url, tag=tag, token=token)
-    return file_uri_to_path(location)
+    return unquote_uri_path(location)
 
 
 def get_file_name(url, tag=None, token=None):
