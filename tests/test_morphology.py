@@ -1,7 +1,7 @@
 # pylint: disable=missing-docstring,no-member
 from six.moves import builtins
 
-from mock import patch
+from unittest.mock import patch
 import responses
 
 from entity_management.state import get_org, get_proj, get_base_resources, get_base_url

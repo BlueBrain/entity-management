@@ -1,6 +1,6 @@
 # pylint: disable=missing-docstring,no-member,import-outside-toplevel
 from six.moves import builtins
-from mock import patch
+from unittest.mock import patch
 
 import responses
 
