@@ -13,7 +13,7 @@ import requests
 
 from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
-from entity_management.util import quote, PP, split_url_from_revision_query
+from entity_management.util import quote, PP, split_url_from_revision_query, file_uri_to_path
 from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
                                      get_token, refresh_token, has_offline_token, get_sparql_url,
                                      get_base_url)
@@ -328,6 +328,18 @@ def get_file_location(url, tag=None, token=None):
         File revision.
     '''
     return _get_file_metadata(url, tag=tag, token=token).get('_location')
+
+
+def get_unquoted_uri_path(url, tag=None, token=None):
+    """Get unquoted uri location path.
+
+    Args:
+        url (str): Nexus URL of the file.
+        tag (str): Provide tag to fetch specific file.
+        token (str): Optional OAuth token.
+    """
+    location = get_file_location(url, tag=tag, token=token)
+    return file_uri_to_path(location)
 
 
 def get_file_name(url, tag=None, token=None):
