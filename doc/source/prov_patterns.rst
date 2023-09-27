@@ -149,6 +149,12 @@ Simulation campaign
             href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisReport"
             target = "_top"
         ]
+        PartialAnalysisReport [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{PartialAnalysisReport|name,description\lcategories,types\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.PartialAnalysisReport"
+            target = "_top"
+        ]
         CumulativeAnalysisReport [
             shape = Mrecord style = filled fillcolor = lemonchiffon
             label = "{CumulativeAnalysisReport|name,description\lcategories,types\l}"
@@ -178,12 +184,13 @@ Simulation campaign
         SimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
         SimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
         CumulativeSimulationCampaignAnalysis -> BbpWorkflowConfig [label = "used_config"];
-        CumulativeSimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
         CumulativeSimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
         AnalysisReport -> Simulation [label = "derivation"];
         AnalysisReport -> SimulationCampaignAnalysis [label = "wasGeneratedBy"];
         AnalysisReport -> DataDownload [label = "distribution"];
+        PartialAnalysisReport -> Simulation [label = "derivation"];
+        PartialAnalysisReport -> DataDownload [label = "distribution"];
         CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
         CumulativeAnalysisReport -> CumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
-        CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
+        CumulativeAnalysisReport -> PartialAnalysisReport [label = "hasPart"];
     }
