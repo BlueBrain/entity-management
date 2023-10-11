@@ -166,6 +166,9 @@ Simulation campaign
             href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisSoftwareSourceCode"
             target = "_top"
         ]
+        Contribution [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+        ]
         WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
             label = "{WorkflowExecution|module\ltask\lversion\lparameters\l}"
@@ -199,7 +202,8 @@ Simulation campaign
         CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
         CumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
-        CumulativeAnalysisReport -> AnalysisSoftwareSourceCode [label = "contribution, agent"];
+        CumulativeAnalysisReport -> Contribution [label = "contribution"];
+        Contribution -> AnalysisSoftwareSourceCode [label = "agent"];
         MultiCumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
