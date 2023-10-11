@@ -175,7 +175,8 @@ Simulation campaign
             href = "../generated/entity_management.core.html#entity_management.core.WorkflowExecution"
             target = "_top"
         ]
-        { rank=same SimulationCampaignConfiguration SimulationCampaign }
+        { rank=same SimulationCampaignAnalysis MultiCumulativeSimulationCampaignAnalysis }
+        # simulation
         SimulationCampaignGeneration -> BbpWorkflowConfig [label = "used_config"];
         SimulationCampaignGeneration -> DetailedCircuit [label = "used"];
         SimulationCampaignConfiguration -> SimulationCampaignGeneration [label = "wasGeneratedBy"];
@@ -189,6 +190,7 @@ Simulation campaign
         SimulationCampaign -> Simulation [label = "hasPart"];
         SimulationCampaign -> DataDownload [label = "simulations"];
         Simulation -> SimulationCampaignExecution [label = "wasGeneratedBy"];
+        # analysis
         SimulationCampaignAnalysis -> BbpWorkflowConfig [label = "used_config"];
         SimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
         SimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
