@@ -198,6 +198,7 @@ Simulation campaign
         MultiCumulativeSimulationCampaignAnalysis -> MultiCumulativeAnalysisReport [label = "generated"];
         AnalysisReport -> Simulation [label = "derivation"];
         AnalysisReport -> SimulationCampaignAnalysis [label = "wasGeneratedBy"];
+        AnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         AnalysisReport -> DataDownload [label = "distribution"];
         CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
         CumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
