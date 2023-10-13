@@ -9,7 +9,6 @@ from entity_management.util import AttrOf
         "label": AttrOf(str),
         "identifier": AttrOf(int),
         "notation": AttrOf(str),
-        "prefLabel": AttrOf(str),
     }
 )
 class AtlasBrainRegion(Identifiable):
