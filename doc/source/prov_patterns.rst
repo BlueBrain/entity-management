@@ -137,11 +137,37 @@ Simulation campaign
             href = "../generated/entity_management.simulation.html#entity_management.simulation.SimulationCampaignAnalysis"
             target = "_top"
         ]
+        MultiCumulativeSimulationCampaignAnalysis [
+            shape = record style = filled fillcolor = lightblue
+            label = "{MultiCumulativeSimulationCampaignAnalysis|startedAtTime,endedAtTime\lstatus\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.MultiCumulativeSimulationCampaignAnalysis"
+            target = "_top"
+        ]
         AnalysisReport [
             shape = Mrecord style = filled fillcolor = lemonchiffon
             label = "{AnalysisReport|name,description\lcategories,types\l}"
             href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisReport"
             target = "_top"
+        ]
+        CumulativeAnalysisReport [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{CumulativeAnalysisReport|name,description\lcategories,types\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.CumulativeAnalysisReport"
+            target = "_top"
+        ]
+        MultiCumulativeAnalysisReport [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.MultiCumulativeAnalysisReport"
+            target = "_top"
+        ]
+        AnalysisSoftwareSourceCode [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
+            label = "{AnalysisSoftwareSourceCode|name,description\lcodeRepository,commit\lsubdirectory,command\l}"
+            href = "../generated/entity_management.simulation.html#entity_management.simulation.AnalysisSoftwareSourceCode"
+            target = "_top"
+        ]
+        Contribution [
+            shape = Mrecord style = filled fillcolor = lemonchiffon
         ]
         WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
@@ -149,7 +175,8 @@ Simulation campaign
             href = "../generated/entity_management.core.html#entity_management.core.WorkflowExecution"
             target = "_top"
         ]
-        { rank=same SimulationCampaignConfiguration SimulationCampaign }
+        { rank=same SimulationCampaignAnalysis MultiCumulativeSimulationCampaignAnalysis }
+        # simulation
         SimulationCampaignGeneration -> BbpWorkflowConfig [label = "used_config"];
         SimulationCampaignGeneration -> DetailedCircuit [label = "used"];
         SimulationCampaignConfiguration -> SimulationCampaignGeneration [label = "wasGeneratedBy"];
@@ -160,12 +187,26 @@ Simulation campaign
         SimulationCampaignExecution -> SimulationCampaign [label = "generated"];
         SimulationCampaignExecution -> WorkflowExecution [label = "wasInfluencedBy"];
         SimulationCampaign -> SimulationCampaignExecution [label = "wasGeneratedBy"];
-        SimulationCampaign -> Simulation [label = "simulations"];
+        SimulationCampaign -> Simulation [label = "hasPart"];
+        SimulationCampaign -> DataDownload [label = "simulations"];
         Simulation -> SimulationCampaignExecution [label = "wasGeneratedBy"];
+        # analysis
         SimulationCampaignAnalysis -> BbpWorkflowConfig [label = "used_config"];
         SimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
         SimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
+        MultiCumulativeSimulationCampaignAnalysis -> BbpWorkflowConfig [label = "used_config"];
+        MultiCumulativeSimulationCampaignAnalysis -> SimulationCampaign [label = "used"];
+        MultiCumulativeSimulationCampaignAnalysis -> WorkflowExecution [label = "wasInfluencedBy"];
+        MultiCumulativeSimulationCampaignAnalysis -> MultiCumulativeAnalysisReport [label = "generated"];
         AnalysisReport -> Simulation [label = "derivation"];
         AnalysisReport -> SimulationCampaignAnalysis [label = "wasGeneratedBy"];
-        AnalysisReport -> DataDownload [label = "hasPart"];
+        AnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
+        AnalysisReport -> DataDownload [label = "distribution"];
+        CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
+        CumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
+        CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
+        CumulativeAnalysisReport -> Contribution [label = "contribution"];
+        Contribution -> AnalysisSoftwareSourceCode [label = "agent"];
+        MultiCumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
+        MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
