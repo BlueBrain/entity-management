@@ -388,7 +388,7 @@ class EntityMixin():
         return _NexusBySparqlIterator(cls, query, **kwargs)
 
     def publish(self, resource_id=None, sync_index=False, base=None, org=None, proj=None,
-                use_auth=None, activity=None, was_attributed_to=None):
+                use_auth=None, activity=None, was_attributed_to=None, include_rev=False):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -423,11 +423,11 @@ class EntityMixin():
                                else [was_attributed_to])
 
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
