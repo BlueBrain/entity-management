@@ -14,7 +14,7 @@ import requests
 from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
 from entity_management.util import quote, PP, split_url_from_revision_query, unquote_uri_path
-from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
+from entity_management.state import (get_base_files, get_org, get_proj,
                                      get_token, refresh_token, has_offline_token, get_sparql_url,
                                      get_base_url)
 from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
