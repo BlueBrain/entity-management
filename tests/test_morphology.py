@@ -4,7 +4,7 @@ from six.moves import builtins
 from unittest.mock import patch
 import responses
 
-from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
+from entity_management.state import get_org, get_proj, get_base_resources, get_base_resolvers, get_base_url
 from entity_management.settings import NSG, DASH
 from entity_management.core import Entity
 from entity_management.morphology import ReconstructedPatchedCell
@@ -141,12 +141,22 @@ def test_reconstructed_patched_cell():
 
     responses.add(  # mock patched cell detailed response
         responses.GET,
-        '%s/%s' % (get_base_url(), quote(CELL_ID)),
+        '%s/%s' % (get_base_url(cross_bucket=False), quote(CELL_ID)),
+        json=CELL_RESPONSE)
+
+    responses.add(  # mock patched cell detailed response
+        responses.GET,
+        '%s/%s' % (get_base_url(cross_bucket=True), quote(CELL_ID)),
         json=CELL_RESPONSE)
 
     responses.add(  # mock image response
         responses.GET,
         '%s/%s/%s/_/%s' % (get_base_resources(), get_org(), get_proj(), quote(IMAGE_ID)),
+        json=IMAGE_RESPOSE)
+
+    responses.add(  # mock image response
+        responses.GET,
+        '%s/%s/%s/_/%s' % (get_base_resolvers(), get_org(), get_proj(), quote(IMAGE_ID)),
         json=IMAGE_RESPOSE)
 
     cells = ReconstructedPatchedCell.list_by_schema()

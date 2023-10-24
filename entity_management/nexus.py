@@ -127,9 +127,10 @@ def _nexus_wrapper(func):
 
 
 @_nexus_wrapper
-def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
+def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cross_bucket=False):
     '''Get type which corresponds to the id_url'''
-    url = f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/_/{quote(resource_id)}'
+    base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
+    url = f"{base_url}/{quote(resource_id)}"
     response = requests.get(url, headers=_get_headers(token), timeout=10)
     response.raise_for_status()
     response_json = response.json()

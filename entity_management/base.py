@@ -273,7 +273,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             type_ = data_raw[JSLD_TYPE]
             # root type was used or union of types, try to recover it from resource_id
             if data_type is Identifiable or _type_class(data_type) is typing.Union:
-                data_type = nexus.get_type_from_id(resource_id, base, org, proj, token=token)
+                data_type = nexus.get_type_from_id(resource_id, base, org, proj, token=token, cross_bucket=True)
             return data_type._lazy_init(resource_id, type_, base, org, proj)
 
         if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
@@ -540,7 +540,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             base, org, proj = getattr(self, '_lazy_meta_')
         else:
             base, org, proj = (None, None, None)
-        fetched_instance = type(self).from_id(self._id, base=base, org=org, proj=proj)
+        fetched_instance = type(self).from_id(self._id, base=base, org=org, proj=proj, cross_bucket=True)
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)
