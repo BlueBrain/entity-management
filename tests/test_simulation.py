@@ -330,6 +330,9 @@ def test_detailed_circuit(monkeypatch, detailed_circuit_metadata):
     res = DetailedCircuit.from_url(None)
     assert res.atlasRelease.get_id() is not None
 
+    # revision exists in the linked metadata
+    assert res.atlasRelease.get_rev() == 5
+
 
 # @responses.activate
 # def test_load_morphology_release_by_url():

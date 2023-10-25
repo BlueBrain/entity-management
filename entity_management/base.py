@@ -274,11 +274,12 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
                 or (not _is_typing_generic(data_type) and issubclass(data_type, Identifiable))):
             resource_id = data_raw[JSLD_ID]
             type_ = data_raw[JSLD_TYPE]
+            rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
             # root type was used or union of types, try to recover it from resource_id
             if data_type is Identifiable or _type_class(data_type) is typing.Union:
                 data_type = nexus.get_type_from_id(resource_id, base, org, proj,
                                                    token=token, cross_bucket=True)
-            return data_type._lazy_init(resource_id, type_, base, org, proj)
+            return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
 
         if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
             return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
