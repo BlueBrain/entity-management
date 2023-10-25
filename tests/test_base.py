@@ -10,7 +10,7 @@ import attr
 import requests
 from SPARQLWrapper import Wrapper
 
-from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE
+from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE, JSLD_LINK_REV
 from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
 from entity_management.base import (Identifiable, OntologyTerm,
                                     _deserialize_list, _serialize_obj, Unconstrained)
@@ -52,6 +52,36 @@ def test_serialize():
     assert _serialize_obj(dummy) == {'a': {1: 2}, 'b': [{'@id': 'A', 'label': 'B'}]}
 
     assert _serialize_obj(42) == 42
+
+
+def test_serialize_obj__include_rev__instantiated_with_revision():
+
+    class A(Identifiable):
+        pass
+
+    a = A._lazy_init(resource_id="foo", type_="A", rev=5)
+
+    res = _serialize_obj(a, include_rev=False)
+    assert res == {JSLD_ID: "foo", JSLD_TYPE: "A"}
+
+    res = _serialize_obj(a, include_rev=True)
+    assert res == {JSLD_ID: "foo", JSLD_TYPE: "A", JSLD_LINK_REV: 5}
+
+
+def test_serialize_obj__include_rev__instantiated_wout_revision(monkeypatch):
+
+    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: {"@type": "A", "_rev": 8})
+
+    class A(Identifiable):
+        pass
+
+    a = A._lazy_init(resource_id="foo", type_="A")
+
+    res = _serialize_obj(a, include_rev=False)
+    assert res == {JSLD_ID: "foo", JSLD_TYPE: "A"}
+
+    res = _serialize_obj(a, include_rev=True)
+    assert res == {JSLD_ID: "foo", JSLD_TYPE: "A", JSLD_LINK_REV: 8}
 
 
 def test_deserialize_list():

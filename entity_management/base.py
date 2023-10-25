@@ -197,7 +197,7 @@ def _serialize_obj(value, include_rev=False):
         return {JSLD_ID: value.url, 'label': value.label}
 
     if isinstance(value, Identifiable):
-        if include_rev and not isinstance(value._rev, NotInstantiated):
+        if include_rev:
             return {JSLD_ID: value._id, JSLD_TYPE: value._type, JSLD_LINK_REV: value._rev}
         else:
             return {JSLD_ID: value._id, JSLD_TYPE: value._type}
@@ -274,7 +274,6 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
                 or (not _is_typing_generic(data_type) and issubclass(data_type, Identifiable))):
             resource_id = data_raw[JSLD_ID]
             type_ = data_raw[JSLD_TYPE]
-            rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
             # root type was used or union of types, try to recover it from resource_id
             if data_type is Identifiable or _type_class(data_type) is typing.Union:
                 data_type = nexus.get_type_from_id(resource_id, base, org, proj,
