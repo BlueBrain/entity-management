@@ -17,7 +17,8 @@ from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
 from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
-from entity_management.settings import JSLD_ID, JSLD_TYPE, JSLD_LINK_REV, JSLD_CTX, RDF, NXV, NSG, DASH
+from entity_management.settings import (JSLD_ID, JSLD_TYPE, JSLD_LINK_REV, JSLD_CTX,
+                                        RDF, NXV, NSG, DASH)
 from entity_management.util import (AttrOf, NotInstantiated, _clean_up_dict, _get_list_params,
                                     quote)
 
@@ -380,7 +381,8 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     _updatedBy = NotInstantiated
 
     @classmethod
-    def _lazy_init(cls, resource_id, type_=NotInstantiated, rev=NotInstantiated, base=None, org=None, proj=None):
+    def _lazy_init(cls, resource_id, type_=NotInstantiated, rev=NotInstantiated,
+                   base=None, org=None, proj=None):
         '''Instantiate an object and put all its attributes to NotInstantiated.'''
         # Running the validator has the side effect of instantiating
         # the object, which we do not want
@@ -548,10 +550,12 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         else:
             base, org, proj = (None, None, None)
 
-        rev = vars().get("_rev", NotInstantiated)
+        # get the _rev if it's
+        rev = object.__getattribute__(self, "_rev")
+        params = None if rev is NotInstantiated else {"rev": rev}
 
         fetched_instance = type(self).from_id(self._id, base=base, rev=rev, org=org, proj=proj,
-                                              cross_bucket=True)
+                                              cross_bucket=True, params=params)
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)
