@@ -1,6 +1,7 @@
 '''Utilities'''
 
 import typing
+from collections.abc import Mapping
 from urllib.parse import quote as parse_quote
 from urllib.parse import urlparse, parse_qs, unquote
 
@@ -37,6 +38,28 @@ class _ListOfValidator():
     def __repr__(self):
         return f'<instance_of validator for list of type {self.type_!r}>'
 
+@attr.s(repr=False, slots=True, hash=True)
+class _DictOfValidator():
+    """Validate dict of type."""
+    type_ = attr.ib()
+    default = attr.ib()
+
+    def __call__(self, inst, attribute, value):
+
+        if self.default is not None and value is None:
+            raise TypeError(f"'{attribute.name}' must be provided", attribute, self.type_, value)
+
+        if value is not None:
+            if not isinstance(value, Mapping):
+                raise TypeError(f"'{attribute.name}' must be a dict", attribute, self.type_, value)
+            if not all(isinstance(v, self.type_) for v in value.values()):
+                raise TypeError(
+                    f"'{attribute.name}' must be dict of {self.type_!r} (got {value!r} that is a "
+                    f'{type(value)!r}).', attribute, self.type_, value,
+                )
+
+    def __repr__(self):
+        return f'<instance_of validator for dict of type {self.type_!r}>'
 
 def _list_of(type_, default):
     '''
@@ -52,6 +75,10 @@ def _list_of(type_, default):
         got.
     '''
     return _ListOfValidator(type_, default)
+
+
+def _dict_of(type_, default):
+    return _DictOfValidator(type_, default)
 
 
 @attr.s(repr=False, slots=True, hash=True)
@@ -129,6 +156,58 @@ class AttrOf():
                 validator = optional_of(type_)
             else:  # default either not provided -> mandatory, or initialized with value
                 validator = instance_of(type_)
+
+        validators = [validator] + validators if isinstance(validators, list) else [validators]
+        self.fn = lambda: attr.ib(type=type_,
+                                  default=default,
+                                  validator=validators,
+                                  repr=False,
+                                  kw_only=True)
+
+    def __call__(self):
+        return self.fn()
+
+
+class AttrOf2():
+    '''Create an object with self.fn(Callable) that will be used to create an attr.ib by invoking
+    Callable.
+
+    .. deprecated:: 1.2.9
+        Use regular attrs. This used to do some magic for previous versions of attrs.
+    '''
+
+    def __init__(self, type_, default=attr.NOTHING, validators=None):
+        if validators is None:
+            validators = []
+
+        def instance_of(type_):
+            '''instance_of'''
+            return _NotInstatiatedValidator(instance_of_validator(type_))
+
+        def optional_of(type_):
+            '''optional_of'''
+            return optional_validator(instance_of(type_))
+
+        if (hasattr(type_, '__origin__') and issubclass(type_.__origin__, typing.List)):
+            # the collection was explicitly specified in attr.ib
+            # like typing.List[Distribution]
+            list_element_type = _get_list_params(type_)[0]
+            if (hasattr(list_element_type, '__args__') or
+                    hasattr(list_element_type, '__union_params__')):
+                types = _get_union_params(list_element_type)
+                validator = _list_of(types, default)
+            else:
+                validator = _list_of(list_element_type, default)
+        elif issubclass(typing.get_origin(type_), Mapping):
+            value_type = typing.get_args(type_)[1]
+            validator = _dict_of(value_type, default)
+        else:
+            if default is None:  # default explicitly provided as None
+                validator = optional_of(type_)
+            else:  # default either not provided -> mandatory, or initialized with value
+                validator = instance_of(type_)
+
+            
 
         validators = [validator] + validators if isinstance(validators, list) else [validators]
         self.fn = lambda: attr.ib(type=type_,

@@ -252,6 +252,24 @@ def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token
         return result_list
 
 
+def _deserialize_dict(data_type, data_raw, base=None, org=None, proj=None, token=None):
+
+    type_args = typing.get_args(data_type)
+
+    # dict type without arguments is treated as a plain dict without instantiating any of its
+    # arguments to maintain backwards compatibility
+    if not type_args:
+        return data_type(**_clean_up_dict(data_raw))
+
+    assert len(type_args) == 2
+    _, value_type = typing.get_args(data_type)
+
+    result_dict = {}
+    for key, value in data_raw.items():
+        result_dict[key] = _deserialize_json_to_datatype(value_type, value, base=base, org=org, proj=proj, token=token)
+    return result_dict
+
+
 def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj=None, token=None):
     '''Deserialize raw data json to data_type'''
     # pylint: disable=too-many-return-statements,too-many-branches
@@ -295,6 +313,8 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
         if isinstance(data_raw, Mapping):  # we have dict although in class it is specified as List
             if _is_typing_generic(data_type) and issubclass(_type_class(data_type), typing.List):
                 return _deserialize_list(data_type, [data_raw], base, org, proj, token)
+            elif _is_typing_generic(data_type) and issubclass(_type_class(data_type), Mapping):
+                return _deserialize_dict(data_type, data_raw, base, org, proj, token)
             else:
                 return data_type(**_clean_up_dict(data_raw))
 
@@ -318,6 +338,7 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
                 type_ = field.type
                 init_args[field.name] = _deserialize_json_to_datatype(type_, raw,
                                                                       base, org, proj, token)
+
         instance = cls(**init_args)
 
     # augment instance with extra params present in the response

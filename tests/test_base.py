@@ -13,7 +13,7 @@ from SPARQLWrapper import Wrapper
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE
 from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
 from entity_management.base import (Identifiable, OntologyTerm,
-                                    _deserialize_list, _serialize_obj, Unconstrained)
+                                    _deserialize_list, _serialize_obj, Unconstrained, _deserialize_dict)
 from entity_management import state
 from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
@@ -62,6 +62,29 @@ def test_deserialize_list():
         a = attr.ib(default=42)
         b = attr.ib(default=None)
     assert _deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None) == [Dummy(a=1, b=2)]
+
+
+def test_deserialize_dict__single_type():
+
+    @attr.s
+    class Dummy(object):
+        a = attr.ib(default=42)
+        b = attr.ib(default=None)
+
+    res = _deserialize_dict(dict[str, Dummy], {"foo": {"a": 1, "b": 2}, "bar": {"a": 2, "b": 3}})
+
+    assert res == {"foo": Dummy(a=1, b=2), "bar": Dummy(a=2, b=3)}
+
+
+def test_deserialize_dict__no_types():
+    @attr.s
+    class Dummy(object):
+        a = attr.ib(default=42)
+        b = attr.ib(default=None)
+
+    res = _deserialize_dict(dict, {"foo": {"a": 1, "b": 2}, "bar": {"a": 2, "b": 3}})
+
+    assert res == {"foo": {"a": 1, "b": 2}, "bar": {"a": 2, "b": 3}}
 
 
 @pytest.fixture(name='unconstrained_resp', scope='session')
