@@ -547,7 +547,10 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             base, org, proj = getattr(self, '_lazy_meta_')
         else:
             base, org, proj = (None, None, None)
-        fetched_instance = type(self).from_id(self._id, base=base, org=org, proj=proj,
+
+        rev = vars().get("_rev", NotInstantiated)
+
+        fetched_instance = type(self).from_id(self._id, base=base, rev=rev, org=org, proj=proj,
                                               cross_bucket=True)
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
