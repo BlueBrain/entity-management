@@ -550,12 +550,13 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         else:
             base, org, proj = (None, None, None)
 
-        # get the _rev if it's
+        # use the revision in the retrieval if it's a priori available
         rev = object.__getattribute__(self, "_rev")
-        params = None if rev is NotInstantiated else {"rev": rev}
+        resource_id = self._id if rev is NotInstantiated else f"{self._id}?rev={rev}"
 
-        fetched_instance = type(self).from_id(self._id, base=base, rev=rev, org=org, proj=proj,
-                                              cross_bucket=True, params=params)
+        fetched_instance = type(self).from_id(resource_id, base=base, org=org, proj=proj,
+                                              cross_bucket=True)
+
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)

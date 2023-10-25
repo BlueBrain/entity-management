@@ -291,7 +291,7 @@ class Activity(Identifiable):
             self._force_attr('startedAtTime', datetime.utcnow())
 
     def publish(self, resource_id=None, sync_index=False,
-                base=None, org=None, proj=None, use_auth=None, activity=None):
+                base=None, org=None, proj=None, use_auth=None, activity=None, include_rev=False):
         '''Create or update activity resource in nexus.
 
         Args:
@@ -313,11 +313,11 @@ class Activity(Identifiable):
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
