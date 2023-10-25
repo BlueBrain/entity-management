@@ -14,7 +14,7 @@ import requests
 from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
 
 from entity_management.util import quote, PP, split_url_from_revision_query, unquote_uri_path
-from entity_management.state import (get_base_resources, get_base_files, get_org, get_proj,
+from entity_management.state import (get_base_files, get_org, get_proj,
                                      get_token, refresh_token, has_offline_token, get_sparql_url,
                                      get_base_url)
 from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
@@ -127,9 +127,10 @@ def _nexus_wrapper(func):
 
 
 @_nexus_wrapper
-def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None):
+def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cross_bucket=False):
     '''Get type which corresponds to the id_url'''
-    url = f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/_/{quote(resource_id)}'
+    base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
+    url = f"{base_url}/{quote(resource_id)}"
     response = requests.get(url, headers=_get_headers(token), timeout=10)
     response.raise_for_status()
     response_json = response.json()
