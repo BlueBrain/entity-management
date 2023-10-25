@@ -13,7 +13,7 @@ from SPARQLWrapper import Wrapper
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE, JSLD_LINK_REV
 from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
 from entity_management.base import (Identifiable, OntologyTerm,
-                                    _deserialize_list, _serialize_obj, Unconstrained)
+                                    _deserialize_list, _serialize_obj, Unconstrained, NotInstantiated)
 from entity_management import state
 from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
@@ -175,3 +175,41 @@ def test_list_by_sparql(monkeypatch):
         params = ModelRuntimeParameters.list_by_model('dummy_model_resource_id')
         param = next(params)
         assert param.get_id().endswith('org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38')
+
+
+def test_instantiate__wout_rev(monkeypatch):
+
+    def load_by_id(resource_id, *args, **kwargs):
+        if resource_id == "foo":
+            return {"_rev": 1}
+        raise
+
+    monkeypatch.setattr(nexus, "load_by_id", load_by_id)
+
+    r = Identifiable._lazy_init(resource_id="foo", type_="Foo")
+
+    # check that _rev is not set before instantiation
+    assert object.__getattribute__(r, "_rev") is NotInstantiated
+
+    r._instantiate()
+
+    # after instantation the _rev should be 1
+    assert r.get_rev() == 1
+
+
+def test_instantiate__with_rev(monkeypatch):
+
+    def load_by_id(resource_id, *args, **kwargs):
+        if resource_id == "foo?rev=3":
+            return {"_rev": 3}
+        raise
+
+    monkeypatch.setattr(nexus, "load_by_id", load_by_id)
+
+    r = Identifiable._lazy_init(resource_id="foo", type_="Foo", rev=3)
+
+    # check that before instantiation the _rev is set
+    assert object.__getattribute__(r, "_rev") == 3
+    r._instantiate()
+    # and that after instantiation the correct rev is fetched
+    assert r.get_rev() == 3

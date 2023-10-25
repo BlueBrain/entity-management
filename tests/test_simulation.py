@@ -334,6 +334,27 @@ def test_detailed_circuit(monkeypatch, detailed_circuit_metadata):
     assert res.atlasRelease.get_rev() == 5
 
 
+def test_detailed_circuit__as_json_ld__include_revision(monkeypatch, detailed_circuit_metadata):
+    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+
+    circuit = DetailedCircuit.from_url(None)
+
+    res = circuit.as_json_ld(include_rev=False)
+
+    assert "_rev" not in res["brainLocation"]
+    assert "_rev" not in res["subject"]
+    assert "_rev" not in res['circuitConfigPath']
+    assert "_rev" not in res['atlasRelease']
+
+    res = circuit.as_json_ld(include_rev=True)
+
+    assert "_rev" not in res["brainLocation"]
+    assert res["subject"]["_rev"] == 1
+    assert "_rev" not in res['circuitConfigPath']
+    assert res['atlasRelease']["_rev"] == 5
+
+
+
 # @responses.activate
 # def test_load_morphology_release_by_url():
 #     url = '%s/%s' % (MorphologyRelease.base_url, UUID)
