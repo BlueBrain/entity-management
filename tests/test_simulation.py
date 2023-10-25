@@ -2,6 +2,7 @@
 import json
 import responses
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -353,6 +354,35 @@ def test_detailed_circuit__as_json_ld__include_revision(monkeypatch, detailed_ci
     assert "_rev" not in res['circuitConfigPath']
     assert res['atlasRelease']["_rev"] == 5
 
+
+def test_detailed_circuit__publish__wout_revision(monkeypatch, detailed_circuit_metadata):
+    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+
+    circuit = DetailedCircuit.from_url(None)
+    circuit._force_attr("_id", None)
+
+    with patch("entity_management.nexus.create") as patched:
+        circuit.publish()
+        payload = patched.call_args[0][1]
+        assert "_rev" not in payload["brainLocation"]
+        assert "_rev" not in payload["subject"]
+        assert "_rev" not in payload['circuitConfigPath']
+        assert "_rev" not in payload['atlasRelease']
+
+
+def test_detailed_circuit__publish__with_revision(monkeypatch, detailed_circuit_metadata):
+    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+
+    circuit = DetailedCircuit.from_url(None)
+    circuit._force_attr("_id", None)
+
+    with patch("entity_management.nexus.create") as patched:
+        circuit.publish(include_rev=True)
+        payload = patched.call_args[0][1]
+        assert "_rev" not in payload["brainLocation"]
+        assert payload["subject"]["_rev"] == 1
+        assert "_rev" not in payload['circuitConfigPath']
+        assert payload['atlasRelease']["_rev"] == 5
 
 
 # @responses.activate
