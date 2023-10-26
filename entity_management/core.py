@@ -291,7 +291,7 @@ class Activity(Identifiable):
             self._force_attr('startedAtTime', datetime.utcnow())
 
     def publish(self, resource_id=None, sync_index=False,
-                base=None, org=None, proj=None, use_auth=None, activity=None, include_rev=False):
+                base=None, org=None, proj=None, use_auth=None, include_rev=False, activity=None):
         '''Create or update activity resource in nexus.
 
         Args:
