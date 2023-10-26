@@ -521,6 +521,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             resource_id (str): Resource identifier. If not provided nexus will generate one.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
         Returns:
             New instance of the same class with revision updated.
         '''

@@ -296,6 +296,7 @@ class Activity(Identifiable):
 
         Args:
             resource_id (str): Resource identifier.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
             activity (Activity): Optional activity which provided information to the current
                 activity.
 
@@ -403,6 +404,7 @@ class EntityMixin():
                 set of attribution parameter ``self.wasAttributedTo``.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
 
         Returns:
             New instance of the same class with revision updated.
