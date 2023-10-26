@@ -291,11 +291,12 @@ class Activity(Identifiable):
             self._force_attr('startedAtTime', datetime.utcnow())
 
     def publish(self, resource_id=None, sync_index=False,
-                base=None, org=None, proj=None, use_auth=None, activity=None):
+                base=None, org=None, proj=None, use_auth=None, include_rev=False, activity=None):
         '''Create or update activity resource in nexus.
 
         Args:
             resource_id (str): Resource identifier.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
             activity (Activity): Optional activity which provided information to the current
                 activity.
 
@@ -313,11 +314,11 @@ class Activity(Identifiable):
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
@@ -388,7 +389,7 @@ class EntityMixin():
         return _NexusBySparqlIterator(cls, query, **kwargs)
 
     def publish(self, resource_id=None, sync_index=False, base=None, org=None, proj=None,
-                use_auth=None, activity=None, was_attributed_to=None):
+                use_auth=None, activity=None, was_attributed_to=None, include_rev=False):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -403,6 +404,7 @@ class EntityMixin():
                 set of attribution parameter ``self.wasAttributedTo``.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
 
         Returns:
             New instance of the same class with revision updated.
@@ -423,11 +425,11 @@ class EntityMixin():
                                else [was_attributed_to])
 
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
