@@ -193,7 +193,7 @@ class DataDownload(BlankNode):
         """Get url path when applicable."""
         # pylint: disable=no-member
         assert self.url is not None, "No url!"
-        assert self.url.startswith("file://"), f"url {self.url} is not a file URI."
+        assert self.url.startswith("file://"), f"url '{self.url}' is not a file URI."
         return unquote_uri_path(self.url)
 
     def as_dict(self, use_auth=None):
