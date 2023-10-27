@@ -1,9 +1,10 @@
 """Entities for Model building config"""
 from datetime import datetime
-from entity_management.base import attributes, _NexusBySparqlIterator, Identifiable
+from entity_management.base import attributes, _NexusBySparqlIterator, Identifiable, Frozen, BrainLocation
 from entity_management.util import AttrOf
-from entity_management.core import Entity, DataDownload, Activity
-from entity_management.nexus import sparql_query, load_by_id, register_type
+from entity_management.atlas import AtlasRelease, AtlasSpatialReferenceSystem
+from entity_management.core import Entity, DataDownload, Subject, Agent
+from entity_management.simulation import DetailedCircuit
 from attr.validators import in_
 
 
@@ -29,9 +30,6 @@ class SubConfig(Entity):
         """ % (
             self.get_id()
         )
-        #result = sparql_query(query)
-        #ids = [item["entity"]["value"] for item in result["results"]["bindings"] if item["entity"]["type"] == "uri"]
-        #return {item: load_by_id(item)["generated"]["@id"] for item in ids}
         return _NexusBySparqlIterator(GeneratorTaskActivity, query)
 
     @property
@@ -53,6 +51,14 @@ class EModelAssignmentConfig(SubConfig):
     pass
 
 
+class MacroConnectomeConfig(SubConfig):
+    pass
+
+
+class MicroConnectomeConfig(SubConfig):
+    pass
+
+
 class MorphologyAssignmentConfig(SubConfig):
     pass
 
@@ -61,28 +67,24 @@ class SynapseConfig(SubConfig):
     pass
 
 
-@attributes({"configs": AttrOf(dict)})
+@attributes({
+    "cellCompositionConfig": AttrOf(CellCompositionConfig, default=None),
+    "cellPositionConfig": AttrOf(CellPositionConfig, default=None),
+    "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig, default=None),
+    "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig, default=None),
+    "macroConnectomeConfig": AttrOf(MacroConnectomeConfig, default=None),
+    "microConnectomeConfig": AttrOf(MicroConnectomeConfig, default=None),
+    "synapseConfig": AttrOf(SynapseConfig, default=None),
+})
+class Configs(Frozen):
+    pass
+
+
+@attributes({
+    "configs": AttrOf(Configs),
+})
 class ModelBuildingConfig(Entity):
-    """ModelBuildingConfig."""
-
-    def _instantiate_configs(self):
-        # pylint: disable=no-member
-        for key, value in self.configs.items():
-            self.configs[key] = SubConfig.from_id(resource_id=value["@id"], cross_bucket=True)
-
-    @classmethod
-    def from_id(cls, **kwargs):
-        # pylint: disable=arguments-differ,no-member
-        result = super().from_id(**kwargs)
-        result._instantiate_configs()
-        return result
-
-    @classmethod
-    def from_url(cls, **kwargs):
-        # pylint: disable=arguments-differ,no-member
-        result = super().from_url(**kwargs)
-        result._instantiate_configs()
-        return result
+    pass
 
 
 @attributes({
@@ -95,7 +97,50 @@ class ModelBuildingConfig(Entity):
     'used_rev': AttrOf(int, default=None),
     'generated': AttrOf(Identifiable, default=None),
     'startedAtTime': AttrOf(datetime, default=None),
-    #'wasInfluencedBy': AttrOf(Identifiable, default=None),
+    'wasInfluencedBy': AttrOf(Identifiable, default=None),
 })
 class GeneratorTaskActivity(Identifiable):
+    pass
+
+
+@attributes({
+    'agent': AttrOf(Agent, default=None),
+})
+class Contribution(Frozen):
+    pass
+
+
+@attributes({
+    'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'contribution': AttrOf(Contribution, default=None),
+    "distribution": AttrOf(DataDownload),
+    'subject': AttrOf(Subject, default=None),
+})
+class CellCompositionSummary(Entity):
+    pass
+
+
+@attributes({
+    'about': AttrOf(list[str], default=None),
+    'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'contribution': AttrOf(Contribution, default=None),
+    "distribution": AttrOf(DataDownload),
+    'subject': AttrOf(Subject, default=None),
+})
+class CellCompositionVolume(Entity):
+    pass
+
+
+@attributes({
+    'about': AttrOf(list[str], default=None),
+    'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'atlasSpatialReferenceSystem': AttrOf(AtlasSpatialReferenceSystem, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'cellCompositionSummary': AttrOf(CellCompositionSummary, default=None),
+    'cellCompositionVolume': AttrOf(CellCompositionVolume, default=None),
+    'contribution': AttrOf(Contribution, default=None),
+})
+class CellComposition(Entity):
     pass

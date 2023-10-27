@@ -23,6 +23,7 @@ setup(
         'pyjwt',
         'python-keycloak',
         'devtools[pygments]',
+        'click',
     ],
     tests_require=TESTS_REQUIRE,
     extras_require={
@@ -35,6 +36,7 @@ setup(
     description="Access to production entity management",
     long_description="Access to production entity management",
     license="BBP-internal-confidential",
+    entry_points={"console_scripts": ["model-building-config=entity_management.cli.model_building_config:cli"]},
     keywords=('computational neuroscience',
               'simulation',
               'analysis',
