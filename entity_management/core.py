@@ -19,7 +19,7 @@ from attr.validators import in_
 from entity_management import nexus
 from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
                                     _NexusBySparqlIterator)
-from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path, load_json
+from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW
 
@@ -174,9 +174,6 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         '''
         # pylint: disable=no-member
-        if self.url:
-            return self.url
-
         assert self.contentUrl is not None, 'No contentUrl!'
         return nexus.get_file_location(self.contentUrl, token=use_auth)
 
@@ -189,11 +186,15 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         """
         # pylint: disable=no-member
-        if self.url:
-            return unquote_uri_path(self.url)
-
         assert self.contentUrl is not None, 'No contentUrl!'
         return nexus.get_unquoted_uri_path(self.contentUrl, token=use_auth)
+
+    def get_url_as_path(self):
+        """Get url path when applicable."""
+        # pylint: disable=no-member
+        assert self.url is not None, "No url!"
+        assert self.url.startswith("file://"), f"url {self.url} is not a file URI."
+        return unquote_uri_path(self.url)
 
     def as_dict(self, use_auth=None):
         '''Get ``contentUrl`` as dict.
@@ -202,9 +203,6 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         '''
         # pylint: disable=no-member
-        if self.url:
-            return load_json(self.get_location_path())
-
         assert self.contentUrl is not None
         assert self.encodingFormat == 'application/json', ('Wrong encodingFormat, '
                                                            'expecting application/json!')
