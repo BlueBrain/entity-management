@@ -203,7 +203,7 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         '''
         # pylint: disable=no-member
-        assert self.contentUrl is not None
+        assert self.contentUrl is not None, 'No contentUrl!'
         assert self.encodingFormat == 'application/json', ('Wrong encodingFormat, '
                                                            'expecting application/json!')
 
