@@ -186,7 +186,7 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         """
         # pylint: disable=no-member
-        assert self.contentUrl is not None, 'No contentUrl!'
+        assert self.contentUrl is not None, "No contentUrl!"
         return nexus.get_unquoted_uri_path(self.contentUrl, token=use_auth)
 
     def get_url_as_path(self):
