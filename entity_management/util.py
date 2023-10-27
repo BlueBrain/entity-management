@@ -1,6 +1,8 @@
 '''Utilities'''
 
+import json
 import typing
+from pathlib import Path
 from urllib.parse import quote as parse_quote
 from urllib.parse import urlparse, parse_qs, unquote
 
@@ -176,3 +178,8 @@ def unquote_uri_path(uri):
         file:///%5BPH%5Dlayer_6.nrrd -> /[PH]layer_6.nrrd
     """
     return unquote(urlparse(uri).path)
+
+
+def load_json(filepath):
+    """Load a json file."""
+    return json.loads(Path(filepath).read_bytes())
