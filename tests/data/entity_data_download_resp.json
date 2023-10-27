@@ -5,6 +5,7 @@
     "name": "name",
     "distribution": {
         "@type": "DataDownload",
+	"url": "file:///gpfs/distribution_path.json",
         "contentUrl": "0c7d5e80-c275-4187-897e-946da433b642"
     },
     "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
