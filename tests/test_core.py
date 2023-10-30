@@ -176,7 +176,6 @@ def test_data_download_get_location_path(monkeypatch, entity_data_download_resp,
 
 def test_data_download_get_url_as_path(monkeypatch, entity_data_download_resp):
     monkeypatch.setattr(nexus, 'load_by_url', lambda *a, **b: entity_data_download_resp)
-    #monkeypatch.setattr(nexus, '_get_file_metadata', lambda *a, **b: file_link_resp)
     entity = Entity.from_id("id")
     assert entity.distribution.get_url_as_path() == "/gpfs/distribution_path.json"
 
