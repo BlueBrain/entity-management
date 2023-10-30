@@ -1,4 +1,9 @@
-"""Entities for Model building config"""
+"""Entities for Model building config
+
+    see entity_management/cli/model_building_config.py for an example
+    on how to use the objects
+
+"""
 from datetime import datetime
 from attr.validators import in_
 from entity_management.base import (
