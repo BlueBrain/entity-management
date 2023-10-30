@@ -150,7 +150,7 @@ def test_data_download_link_file(monkeypatch, file_link_resp):
     assert 'b00896ef-db8c-4fae-90e4-ae157a306746' in distribution.contentUrl
 
 
-@pytest.fixture(name='entity_data_download_resp', scope='session')
+@pytest.fixture(name='entity_data_download_resp')
 def fixture_entity_data_download_resp():
     with open('tests/data/entity_data_download_resp.json') as f:
         return json.load(f)
@@ -172,3 +172,25 @@ def test_data_download_get_location_path(monkeypatch, entity_data_download_resp,
     entity = Entity.from_id('id')
     assert (entity.distribution.get_location_path()
             == '/bucket/relative/path/to/file.zip')
+
+
+def test_data_download_get_url_as_path(monkeypatch, entity_data_download_resp):
+    monkeypatch.setattr(nexus, 'load_by_url', lambda *a, **b: entity_data_download_resp)
+    entity = Entity.from_id("id")
+    assert entity.distribution.get_url_as_path() == "/gpfs/distribution_path.json"
+
+
+def test_data_download_get_url_as_path__raises(monkeypatch, entity_data_download_resp):
+
+    del entity_data_download_resp["distribution"]["url"]
+    monkeypatch.setattr(nexus, 'load_by_url', lambda *a, **b: entity_data_download_resp)
+    entity = Entity.from_id("id")
+
+    with pytest.raises(AssertionError, match='No url!'):
+        entity.distribution.get_url_as_path()
+
+    entity_data_download_resp["distribution"]["url"] = "https://non-file-uri"
+    entity = Entity.from_id("id")
+
+    with pytest.raises(AssertionError, match=r"URL 'https://non-file-uri' is not a file URI."):
+        entity.distribution.get_url_as_path()

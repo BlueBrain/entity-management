@@ -19,7 +19,7 @@ from attr.validators import in_
 from entity_management import nexus
 from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
                                     _NexusBySparqlIterator)
-from entity_management.util import AttrOf, NotInstantiated
+from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW
 
@@ -175,7 +175,6 @@ class DataDownload(BlankNode):
         '''
         # pylint: disable=no-member
         assert self.contentUrl is not None, 'No contentUrl!'
-
         return nexus.get_file_location(self.contentUrl, token=use_auth)
 
     def get_location_path(self, use_auth=None):
@@ -189,6 +188,13 @@ class DataDownload(BlankNode):
         # pylint: disable=no-member
         assert self.contentUrl is not None, "No contentUrl!"
         return nexus.get_unquoted_uri_path(self.contentUrl, token=use_auth)
+
+    def get_url_as_path(self):
+        """Get url path when applicable."""
+        # pylint: disable=no-member
+        assert self.url is not None, "No url!"
+        assert self.url.startswith("file://"), f"URL '{self.url}' is not a file URI."
+        return unquote_uri_path(self.url)
 
     def as_dict(self, use_auth=None):
         '''Get ``contentUrl`` as dict.
