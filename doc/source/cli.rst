@@ -24,6 +24,7 @@ Return significant values about the whole model building config structure.
     model-building-config get --url "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fmodelconfigurations%2F1921aaae-69c4-4366-ae9d-7aa1453f2158"
 
 .. code-block:: python
+
     {
         "configs": {
             "Cell composition config": {

@@ -63,3 +63,4 @@ class is available under `Bases` section.
    prov_patterns
    examples
    api
+   cli
