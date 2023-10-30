@@ -4,7 +4,7 @@ from pprint import pprint
 import click
 from entity_management.model.building.config import ModelBuildingConfig
 from entity_management.simulation import DetailedCircuit
-from entity_management.model.building.config import CellComposition
+from entity_management.atlas import CellComposition
 
 
 @click.group()

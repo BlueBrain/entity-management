@@ -18,7 +18,7 @@ from attr.validators import in_
 
 from entity_management import nexus
 from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
-                                    _NexusBySparqlIterator)
+                                    _NexusBySparqlIterator, Frozen)
 from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW
@@ -332,6 +332,22 @@ class Activity(Identifiable):
 
 
 @attributes({
+    'status': AttrOf(str, default=None, validators=in_([None,
+                                                        'Pending',
+                                                        'Running',
+                                                        'Done',
+                                                        'Failed'])),
+    'used_config': AttrOf(Identifiable, default=None),
+    'used_rev': AttrOf(int, default=None),
+    'generated': AttrOf(Identifiable, default=None),
+    'startedAtTime': AttrOf(datetime, default=None),
+    'wasInfluencedBy': AttrOf(Identifiable, default=None),
+})
+class GeneratorTaskActivity(Identifiable):
+    """GeneratorTaskActivity"""
+
+
+@attributes({
     'name': AttrOf(str),
     'module': AttrOf(str),
     'task': AttrOf(str),
@@ -519,3 +535,10 @@ class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
         ''' % model_resource_id
 
         return _NexusBySparqlIterator(cls, query, **kwargs)
+
+
+@attributes({
+    'agent': AttrOf(Agent, default=None),
+})
+class Contribution(Frozen):
+    """Contribution"""

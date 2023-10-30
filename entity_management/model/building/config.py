@@ -4,14 +4,10 @@
     on how to use the objects
 
 """
-from datetime import datetime
-from attr.validators import in_
 from entity_management.base import (
-    attributes, _NexusBySparqlIterator, Identifiable, Frozen, BrainLocation)
+    attributes, _NexusBySparqlIterator, Frozen)
 from entity_management.util import AttrOf
-from entity_management.atlas import AtlasRelease, AtlasSpatialReferenceSystem
-from entity_management.core import Entity, DataDownload, Subject, Agent
-from entity_management.simulation import DetailedCircuit  # pylint: disable=unused-import
+from entity_management.core import Entity, GeneratorTaskActivity
 
 
 @attributes(
@@ -91,62 +87,3 @@ class Configs(Frozen):
 })
 class ModelBuildingConfig(Entity):
     """ModelBuildingConfig"""
-
-
-@attributes({
-    'status': AttrOf(str, default=None, validators=in_([None,
-                                                        'Pending',
-                                                        'Running',
-                                                        'Done',
-                                                        'Failed'])),
-    'used_config': AttrOf(Identifiable, default=None),
-    'used_rev': AttrOf(int, default=None),
-    'generated': AttrOf(Identifiable, default=None),
-    'startedAtTime': AttrOf(datetime, default=None),
-    'wasInfluencedBy': AttrOf(Identifiable, default=None),
-})
-class GeneratorTaskActivity(Identifiable):
-    """GeneratorTaskActivity"""
-
-
-@attributes({
-    'agent': AttrOf(Agent, default=None),
-})
-class Contribution(Frozen):
-    """Contribution"""
-
-
-@attributes({
-    'atlasRelease': AttrOf(AtlasRelease, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    'subject': AttrOf(Subject, default=None),
-})
-class CellCompositionSummary(Entity):
-    """CellCompositionSummary"""
-
-
-@attributes({
-    'about': AttrOf(list[str], default=None),
-    'atlasRelease': AttrOf(AtlasRelease, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    'subject': AttrOf(Subject, default=None),
-})
-class CellCompositionVolume(Entity):
-    """CellCompositionVolume"""
-
-
-@attributes({
-    'about': AttrOf(list[str], default=None),
-    'atlasRelease': AttrOf(AtlasRelease, default=None),
-    'atlasSpatialReferenceSystem': AttrOf(AtlasSpatialReferenceSystem, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'cellCompositionSummary': AttrOf(CellCompositionSummary, default=None),
-    'cellCompositionVolume': AttrOf(CellCompositionVolume, default=None),
-    'contribution': AttrOf(Contribution, default=None),
-})
-class CellComposition(Entity):
-    """CellComposition"""
