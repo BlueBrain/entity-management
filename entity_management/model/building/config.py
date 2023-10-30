@@ -1,11 +1,12 @@
 """Entities for Model building config"""
 from datetime import datetime
-from entity_management.base import attributes, _NexusBySparqlIterator, Identifiable, Frozen, BrainLocation
+from attr.validators import in_
+from entity_management.base import (
+    attributes, _NexusBySparqlIterator, Identifiable, Frozen, BrainLocation)
 from entity_management.util import AttrOf
 from entity_management.atlas import AtlasRelease, AtlasSpatialReferenceSystem
 from entity_management.core import Entity, DataDownload, Subject, Agent
-from entity_management.simulation import DetailedCircuit
-from attr.validators import in_
+from entity_management.simulation import DetailedCircuit  # pylint: disable=unused-import
 
 
 @attributes(
@@ -40,31 +41,31 @@ class SubConfig(Entity):
 
 
 class CellCompositionConfig(SubConfig):
-    pass
+    """CellCompositionConfig"""
 
 
 class CellPositionConfig(SubConfig):
-    pass
+    """CellPositionConfig"""
 
 
 class EModelAssignmentConfig(SubConfig):
-    pass
+    """EModelAssignmentConfig"""
 
 
 class MacroConnectomeConfig(SubConfig):
-    pass
+    """MacroConnectomeConfig"""
 
 
 class MicroConnectomeConfig(SubConfig):
-    pass
+    """MicroConnectomeConfig"""
 
 
 class MorphologyAssignmentConfig(SubConfig):
-    pass
+    """MorphologyAssignmentConfig"""
 
 
 class SynapseConfig(SubConfig):
-    pass
+    """SynapseConfig"""
 
 
 @attributes({
@@ -77,14 +78,14 @@ class SynapseConfig(SubConfig):
     "synapseConfig": AttrOf(SynapseConfig, default=None),
 })
 class Configs(Frozen):
-    pass
+    """Sub configs of ModelBuildingConfig."""
 
 
 @attributes({
     "configs": AttrOf(Configs),
 })
 class ModelBuildingConfig(Entity):
-    pass
+    """ModelBuildingConfig"""
 
 
 @attributes({
@@ -100,14 +101,14 @@ class ModelBuildingConfig(Entity):
     'wasInfluencedBy': AttrOf(Identifiable, default=None),
 })
 class GeneratorTaskActivity(Identifiable):
-    pass
+    """GeneratorTaskActivity"""
 
 
 @attributes({
     'agent': AttrOf(Agent, default=None),
 })
 class Contribution(Frozen):
-    pass
+    """Contribution"""
 
 
 @attributes({
@@ -118,7 +119,7 @@ class Contribution(Frozen):
     'subject': AttrOf(Subject, default=None),
 })
 class CellCompositionSummary(Entity):
-    pass
+    """CellCompositionSummary"""
 
 
 @attributes({
@@ -130,7 +131,7 @@ class CellCompositionSummary(Entity):
     'subject': AttrOf(Subject, default=None),
 })
 class CellCompositionVolume(Entity):
-    pass
+    """CellCompositionVolume"""
 
 
 @attributes({
@@ -143,4 +144,4 @@ class CellCompositionVolume(Entity):
     'contribution': AttrOf(Contribution, default=None),
 })
 class CellComposition(Entity):
-    pass
+    """CellComposition"""

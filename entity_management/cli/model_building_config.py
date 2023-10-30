@@ -1,6 +1,7 @@
+"""Command line interface for Model Building Config."""
 import logging
-import click
 from pprint import pprint
+import click
 from entity_management.model.building.config import ModelBuildingConfig
 from entity_management.simulation import DetailedCircuit
 from entity_management.model.building.config import CellComposition
@@ -85,7 +86,3 @@ def get(nexus_url, nexus_id):
             result["configs"][config.name]["used_in"].append(used_in_result)
 
     pprint(result)
-
-
-if __name__ == "__main__":
-    get()
