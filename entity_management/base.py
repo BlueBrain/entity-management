@@ -17,7 +17,8 @@ from rdflib.graph import Graph, BNode
 
 from entity_management import nexus
 from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
-from entity_management.settings import JSLD_ID, JSLD_TYPE, JSLD_CTX, RDF, NXV, NSG, DASH
+from entity_management.settings import (JSLD_ID, JSLD_TYPE, JSLD_LINK_REV, JSLD_CTX,
+                                        RDF, NXV, NSG, DASH)
 from entity_management.util import (AttrOf, NotInstantiated, _clean_up_dict, _get_list_params,
                                     quote)
 
@@ -191,13 +192,16 @@ class BlankNode(Frozen):
         self._force_attr('_type', type(self).__name__)
 
 
-def _serialize_obj(value):
+def _serialize_obj(value, include_rev=False):
     '''Serialize object'''
     if isinstance(value, OntologyTerm):
         return {JSLD_ID: value.url, 'label': value.label}
 
     if isinstance(value, Identifiable):
-        return {JSLD_ID: value._id, JSLD_TYPE: value._type}
+        if include_rev:
+            return {JSLD_ID: value._id, JSLD_TYPE: value._type, JSLD_LINK_REV: value._rev}
+        else:
+            return {JSLD_ID: value._id, JSLD_TYPE: value._type}
 
     if isinstance(value, datetime):
         return value.isoformat()
@@ -271,10 +275,12 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
                 or (not _is_typing_generic(data_type) and issubclass(data_type, Identifiable))):
             resource_id = data_raw[JSLD_ID]
             type_ = data_raw[JSLD_TYPE]
+            rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
             # root type was used or union of types, try to recover it from resource_id
             if data_type is Identifiable or _type_class(data_type) is typing.Union:
-                data_type = nexus.get_type_from_id(resource_id, base, org, proj, token=token)
-            return data_type._lazy_init(resource_id, type_, base, org, proj)
+                data_type = nexus.get_type_from_id(resource_id, base, org, proj,
+                                                   token=token, cross_bucket=True)
+            return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
 
         if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
             return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
@@ -375,7 +381,8 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     _updatedBy = NotInstantiated
 
     @classmethod
-    def _lazy_init(cls, resource_id, type_=NotInstantiated, base=None, org=None, proj=None):
+    def _lazy_init(cls, resource_id, type_=NotInstantiated, rev=NotInstantiated,
+                   base=None, org=None, proj=None):
         '''Instantiate an object and put all its attributes to NotInstantiated.'''
         # Running the validator has the side effect of instantiating
         # the object, which we do not want
@@ -383,6 +390,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         obj = cls(**{arg.name: NotInstantiated for arg in attr.fields(cls)})
         obj._force_attr('_id', resource_id)
         obj._force_attr('_type', type_)
+        obj._force_attr('_rev', rev)
         obj._force_attr('_lazy_meta_', (base, org, proj))
         attr.set_run_validators(True)
         return obj
@@ -469,7 +477,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         '''
         return self._self
 
-    def as_json_ld(self):
+    def as_json_ld(self, include_rev=False):
         '''Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
         '''
@@ -482,12 +490,12 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
                 if isinstance(attr_value, (tuple, list, set)):
-                    json_ld[attr_name] = [_serialize_obj(i) for i in attr_value]
+                    json_ld[attr_name] = [_serialize_obj(i, include_rev) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    json_ld[attr_name] = dict((kk, _serialize_obj(vv))
+                    json_ld[attr_name] = dict((kk, _serialize_obj(vv, include_rev))
                                               for kk, vv in attr_value.items())
                 else:
-                    json_ld[attr_name] = _serialize_obj(attr_value)
+                    json_ld[attr_name] = _serialize_obj(attr_value, include_rev)
         if hasattr(self, '_context') and self._context is not NotInstantiated:
             json_ld[JSLD_CTX] = self._context
         else:
@@ -505,7 +513,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         return json_ld
 
     def publish(self, resource_id=None,
-                sync_index=False, base=None, org=None, proj=None, use_auth=None):
+                sync_index=False, base=None, org=None, proj=None, use_auth=None, include_rev=False):
         '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
         entity attributes.
 
@@ -513,15 +521,16 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             resource_id (str): Resource identifier. If not provided nexus will generate one.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
         Returns:
             New instance of the same class with revision updated.
         '''
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
@@ -540,7 +549,14 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             base, org, proj = getattr(self, '_lazy_meta_')
         else:
             base, org, proj = (None, None, None)
-        fetched_instance = type(self).from_id(self._id, base=base, org=org, proj=proj)
+
+        # use the revision in the retrieval if it's a priori available
+        rev = object.__getattribute__(self, "_rev")
+        resource_id = self._id if rev is NotInstantiated else f"{self._id}?rev={rev}"
+
+        fetched_instance = type(self).from_id(resource_id, base=base, org=org, proj=proj,
+                                              cross_bucket=True)
+
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)

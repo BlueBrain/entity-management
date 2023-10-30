@@ -10,7 +10,8 @@
     "@type": [
       "AtlasRelease",
       "BrainAtlasRelease"
-    ]
+    ],
+    "_rev": 5
   },
   "brainLocation": {
     "@type": "BrainLocation",

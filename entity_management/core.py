@@ -19,7 +19,7 @@ from attr.validators import in_
 from entity_management import nexus
 from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
                                     _NexusBySparqlIterator)
-from entity_management.util import AttrOf, NotInstantiated
+from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW
 
@@ -175,7 +175,6 @@ class DataDownload(BlankNode):
         '''
         # pylint: disable=no-member
         assert self.contentUrl is not None, 'No contentUrl!'
-
         return nexus.get_file_location(self.contentUrl, token=use_auth)
 
     def get_location_path(self, use_auth=None):
@@ -189,6 +188,13 @@ class DataDownload(BlankNode):
         # pylint: disable=no-member
         assert self.contentUrl is not None, "No contentUrl!"
         return nexus.get_unquoted_uri_path(self.contentUrl, token=use_auth)
+
+    def get_url_as_path(self):
+        """Get url path when applicable."""
+        # pylint: disable=no-member
+        assert self.url is not None, "No url!"
+        assert self.url.startswith("file://"), f"URL '{self.url}' is not a file URI."
+        return unquote_uri_path(self.url)
 
     def as_dict(self, use_auth=None):
         '''Get ``contentUrl`` as dict.
@@ -291,11 +297,12 @@ class Activity(Identifiable):
             self._force_attr('startedAtTime', datetime.utcnow())
 
     def publish(self, resource_id=None, sync_index=False,
-                base=None, org=None, proj=None, use_auth=None, activity=None):
+                base=None, org=None, proj=None, use_auth=None, include_rev=False, activity=None):
         '''Create or update activity resource in nexus.
 
         Args:
             resource_id (str): Resource identifier.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
             activity (Activity): Optional activity which provided information to the current
                 activity.
 
@@ -313,11 +320,11 @@ class Activity(Identifiable):
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
@@ -388,7 +395,7 @@ class EntityMixin():
         return _NexusBySparqlIterator(cls, query, **kwargs)
 
     def publish(self, resource_id=None, sync_index=False, base=None, org=None, proj=None,
-                use_auth=None, activity=None, was_attributed_to=None):
+                use_auth=None, activity=None, was_attributed_to=None, include_rev=False):
         '''Create or update resource in nexus. Makes a remote call to nexus instance to persist
         resource attributes. If ``use_auth`` token is provided user agent will be extracted
         from it and corresponding activity with ``createdBy`` field will be created.
@@ -403,6 +410,7 @@ class EntityMixin():
                 set of attribution parameter ``self.wasAttributedTo``.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
+            include_rev (bool): Whether to include _rev in the linked entities or not.
 
         Returns:
             New instance of the same class with revision updated.
@@ -423,11 +431,11 @@ class EntityMixin():
                                else [was_attributed_to])
 
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(),
+            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
                                    sync_index=sync_index, token=use_auth)
         else:
             json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(),
+                                   self.as_json_ld(include_rev),
                                    resource_id,
                                    sync_index=sync_index, token=use_auth)
         self._process_response(json_ld)
