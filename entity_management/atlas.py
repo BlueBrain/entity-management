@@ -164,11 +164,11 @@ class CellCompositionVolume(Entity):
 
 @attributes({
     'about': AttrOf(list[str], default=None),
-    'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'atlasRelease': AttrOf(AtlasRelease),
     'atlasSpatialReferenceSystem': AttrOf(AtlasSpatialReferenceSystem, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'cellCompositionSummary': AttrOf(CellCompositionSummary, default=None),
-    'cellCompositionVolume': AttrOf(CellCompositionVolume, default=None),
+    'cellCompositionSummary': AttrOf(CellCompositionSummary),
+    'cellCompositionVolume': AttrOf(CellCompositionVolume),
     'contribution': AttrOf(Contribution, default=None),
 })
 class CellComposition(Entity):

@@ -11,7 +11,7 @@ from entity_management.core import Entity, GeneratorTaskActivity
 
 
 @attributes(
-    {"generatorName": AttrOf(str), "configVersion": AttrOf(int)}
+    {"generatorName": AttrOf(str, default=None), "configVersion": AttrOf(int, default=None)}
 )
 class SubConfig(Entity):
     """SubConfig.
@@ -26,9 +26,14 @@ class SubConfig(Entity):
             Iterator through the found resources.
         """
         query = """
+            PREFIX nxv: <https://bluebrain.github.io/nexus/vocabulary/>
+            PREFIX bmo: <https://bbp.epfl.ch/ontologies/core/bmo/>
             SELECT ?entity
-            WHERE {?entity <https://bbp.epfl.ch/ontologies/core/bmo/used_config> <%s> .}
-            LIMIT 20
+            WHERE {
+                ?entity a bmo:GeneratorTaskActivity ;
+                    bmo:used_config <%s> ;
+                    nxv:deprecated false .
+            }
         """ % (
             self.get_id()
         )
@@ -70,13 +75,13 @@ class SynapseConfig(SubConfig):
 
 
 @attributes({
-    "cellCompositionConfig": AttrOf(CellCompositionConfig, default=None),
-    "cellPositionConfig": AttrOf(CellPositionConfig, default=None),
-    "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig, default=None),
-    "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig, default=None),
-    "macroConnectomeConfig": AttrOf(MacroConnectomeConfig, default=None),
-    "microConnectomeConfig": AttrOf(MicroConnectomeConfig, default=None),
-    "synapseConfig": AttrOf(SynapseConfig, default=None),
+    "cellCompositionConfig": AttrOf(CellCompositionConfig),
+    "cellPositionConfig": AttrOf(CellPositionConfig),
+    "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig),
+    "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig),
+    "macroConnectomeConfig": AttrOf(MacroConnectomeConfig),
+    "microConnectomeConfig": AttrOf(MicroConnectomeConfig),
+    "synapseConfig": AttrOf(SynapseConfig),
 })
 class Configs(Frozen):
     """Sub configs of ModelBuildingConfig."""

@@ -20,8 +20,8 @@ def cli(verbose):
 
 
 @cli.command()
-@click.option("--url", "nexus_url", type=str, help="URL of the ModelBuildingConfig")
-@click.option("--id", "nexus_id", type=str, help="ID of the ModelBuildingConfig")
+@click.option("--url", "nexus_url", type=str, help="URL of the ModelBuildingConfig", required=False)
+@click.option("--id", "nexus_id", type=str, help="ID of the ModelBuildingConfig", required=False)
 def get(nexus_url, nexus_id):
     """Get ModelBuildingConfig instance from Nexus by URL or ID.
 
@@ -29,7 +29,7 @@ def get(nexus_url, nexus_id):
         nexus_url (str): URL of the ModelBuildingConfig
         nexus_id (str): ID of the ModelBuildingConfig
     """
-    if (nexus_url is None) == (nexus_id is None):
+    if (nexus_url and nexus_id) or ((not nexus_url) and (not nexus_id)):
         raise ValueError("Exactly one of `url` or `id` must be set at a time.")
 
     if nexus_url:
