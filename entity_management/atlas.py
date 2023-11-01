@@ -173,3 +173,9 @@ class CellCompositionVolume(Entity):
 })
 class CellComposition(Entity):
     """CellComposition"""
+
+    @staticmethod
+    def _fix_format(json_ld):
+        if isinstance(json_ld["cellCompositionSummary"], list):
+            json_ld["cellCompositionSummary"] = json_ld["cellCompositionSummary"][0]
+        return json_ld

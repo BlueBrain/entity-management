@@ -423,6 +423,8 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             proj=proj,
             token=use_auth,
         )
+        json_ld = cls._fix_format(json_ld)
+
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,
                                          base=base, org=org, proj=proj, token=use_auth)
@@ -443,6 +445,8 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         json_ld = nexus.load_by_url(url, token=use_auth)
+        json_ld = cls._fix_format(json_ld)
+
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,
                                          base=base, org=org, proj=proj, token=use_auth)
@@ -584,6 +588,11 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         obj = attr.evolve(self, **changes)
         _copy_sys_meta(self, obj)
         return obj
+
+    @staticmethod
+    def _fix_format(json_ld):
+        '''Fix format of json loaded from nexus prior to deserialization.'''
+        return json_ld
 
 
 @attributes({

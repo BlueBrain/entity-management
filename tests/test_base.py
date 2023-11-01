@@ -94,6 +94,20 @@ def test_deserialize_list():
     assert _deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None) == [Dummy(a=1, b=2)]
 
 
+def test_fix_format(monkeypatch):
+    monkeypatch.setattr(nexus, 'load_by_url', lambda *a, **b: "WRONG FORMAT")
+
+    class Dummy(Identifiable):
+        '''A dummy class'''
+        @staticmethod
+        def _fix_format(json_ld):
+            assert json_ld == "WRONG FORMAT"
+            return {'@id': 'id'}
+    
+    dummy = Dummy.from_id('id')
+    assert dummy.get_id() == 'id'
+
+
 @pytest.fixture(name='unconstrained_resp', scope='session')
 def fixture_unconstrained():
     with open('tests/data/unconstrained_resp.json') as f:
