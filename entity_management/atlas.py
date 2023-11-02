@@ -176,6 +176,9 @@ class CellComposition(Entity):
 
     @staticmethod
     def _fix_format(json_ld):
+        if json_ld is None:
+            return None
+
         if isinstance(json_ld["cellCompositionSummary"], list):
             json_ld["cellCompositionSummary"] = json_ld["cellCompositionSummary"][0]
         return json_ld
