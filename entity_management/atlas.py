@@ -142,9 +142,9 @@ class AtlasRelease(Entity):
 @attributes({
     'atlasRelease': AttrOf(AtlasRelease, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(Contribution, default=None),
+    'contribution': AttrOf(list[Contribution], default=None),
     "distribution": AttrOf(DataDownload),
-    'subject': AttrOf(Subject, default=None),
+    'subject': AttrOf(dict, default=None),
 })
 class CellCompositionSummary(Entity):
     """CellCompositionSummary"""
@@ -154,9 +154,9 @@ class CellCompositionSummary(Entity):
     'about': AttrOf(list[str], default=None),
     'atlasRelease': AttrOf(AtlasRelease, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(Contribution, default=None),
+    'contribution': AttrOf(list[Contribution], default=None),
     "distribution": AttrOf(DataDownload),
-    'subject': AttrOf(Subject, default=None),
+    'subject': AttrOf(dict, default=None),
 })
 class CellCompositionVolume(Entity):
     """CellCompositionVolume"""
