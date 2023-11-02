@@ -12,4 +12,5 @@ API Documentation
    entity_management.morphology
    entity_management.simulation
    entity_management.circuit.building.functional
-   entity_management.model.building.config
+   entity_management.sbo.config
+   entity_management.sbo.activity
