@@ -1,6 +1,6 @@
 """Atlas related entities."""
 from entity_management.base import Identifiable, attributes, BrainLocation
-from entity_management.core import Entity, DataDownload, Subject, Contribution
+from entity_management.core import Entity, DataDownload, Contribution
 from entity_management.util import AttrOf
 
 
