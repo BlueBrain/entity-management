@@ -332,22 +332,6 @@ class Activity(Identifiable):
 
 
 @attributes({
-    'status': AttrOf(str, default=None, validators=in_([None,
-                                                        'Pending',
-                                                        'Running',
-                                                        'Done',
-                                                        'Failed'])),
-    'used_config': AttrOf(Identifiable, default=None),
-    'used_rev': AttrOf(int, default=None),
-    'generated': AttrOf(Identifiable, default=None),
-    'startedAtTime': AttrOf(datetime, default=None),
-    'wasInfluencedBy': AttrOf(Identifiable, default=None),
-})
-class GeneratorTaskActivity(Identifiable):
-    """GeneratorTaskActivity"""
-
-
-@attributes({
     'name': AttrOf(str),
     'module': AttrOf(str),
     'task': AttrOf(str),

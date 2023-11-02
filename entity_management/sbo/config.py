@@ -6,8 +6,9 @@
 """
 from entity_management.base import (
     attributes, _NexusBySparqlIterator, Frozen)
+from entity_management.sbo.activity import GeneratorTaskActivity
 from entity_management.util import AttrOf
-from entity_management.core import Entity, GeneratorTaskActivity
+from entity_management.core import Entity
 
 
 @attributes(
