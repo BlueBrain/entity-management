@@ -169,7 +169,7 @@ class CellCompositionVolume(Entity):
     'brainLocation': AttrOf(BrainLocation, default=None),
     'cellCompositionSummary': AttrOf(CellCompositionSummary),
     'cellCompositionVolume': AttrOf(CellCompositionVolume),
-    'contribution': AttrOf(Contribution, default=None),
+    'contribution': AttrOf(list[Contribution], default=None),
 })
 class CellComposition(Entity):
     """CellComposition"""
