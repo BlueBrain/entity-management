@@ -9,105 +9,112 @@ TOKEN is the OAuth2 optional access token. Provide it in case the endpoint has O
 access control. If token is available in the environment variable `NEXUS_TOKEN` it will be used
 by default unless it was explicitly provided in the method argument.
 
-Model building config
-#####################
-
 Get
-***
+###
 
-Return significant values about the whole model building config structure.
+Return significant values about a Nexus object. Not all types are currently supported
 
 .. code-block:: bash
 
-    model-building-config get --id "https://bbp.epfl.ch/neurosciencegraph/data/modelconfigurations/1921aaae-69c4-4366-ae9d-7aa1453f2158"
+    entity-management get --id "https://bbp.epfl.ch/neurosciencegraph/data/modelconfigurations/1921aaae-69c4-4366-ae9d-7aa1453f2158"
     # OR
-    model-building-config get --url "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fmodelconfigurations%2F1921aaae-69c4-4366-ae9d-7aa1453f2158"
+    entity-management get --url "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fmodelconfigurations%2F1921aaae-69c4-4366-ae9d-7aa1453f2158"
 
 .. code-block:: python
 
     {
         "configs": {
             "Cell composition config": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F8a9b7a11-3629-48d4-aeba-bd991c1696bd?rev=1016",
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F915a2ebc-534e-4d3d-8515-b7776686670e?rev=6",
                 "description": "NA",
                 "generatorName": "cell_composition",
                 "name": "Cell composition config",
                 "used_in": [
                     {
                         "atlas_release_id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
-                        "cell_composition_summary": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/71513f09-2834-4749-9a1c-e2460232c890",
-                        "cell_composition_volume": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/da949d3c-b10a-4ded-89ee-041d928517d0",
-                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/4ecd6153-9ce5-4adb-9d82-b0df2d2d3322",
+                        "cell_composition_summary": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/3f3aaf7d-8363-45c7-b33e-0f95d552f17f",
+                        "cell_composition_volume": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/7230e226-bb71-433a-b189-0fc438f246d5",
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/847b2a62-7ca0-405a-a065-2a361cc86702",
                     }
                 ],
             },
             "Cell position config": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F802f7149-43be-480c-97ed-1d3017c7e131?rev=3",
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Fc70c69d2-ccbd-4b57-a0e9-c00acf53d50a?rev=1",
                 "description": "NA",
                 "generatorName": "cell_position",
                 "name": "Cell position config",
                 "used_in": [
                     {
                         "atlas_release_id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
-                        "circuit_url": "file:///gpfs/bbp.cscs.ch/project/proj134/workflow-outputs/14092023-d23c8bf4-f805-4c90-a1a2-5e7cfe839df5/cellPositionConfig/root/build/config.json",
-                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/e1ae5eb4-51f0-4f52-b339-94805e894cf1",
+                        "circuit_url": "file:///gpfs/bbp.cscs.ch/data/scratch/proj134/workflow-outputs/27102023-96f9af1a-a941-409d-bca4-eedb4153e9ea/cellPositionConfig/root/build/config.json",
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/df76acaf-ab50-4810-aa7f-0958a0f7d92a",
                     }
                 ],
             },
             "EModel assignment config": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F54e4068d-48b8-492c-9e2d-49be9e5bfc3f?rev=5",
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Ff4c642b8-ac26-46ac-a00b-a1e32c9d56d7?rev=1",
                 "description": None,
                 "generatorName": "placeholder",
                 "name": "EModel assignment config",
                 "used_in": [
                     {
                         "atlas_release_id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
-                        "circuit_url": "file:///gpfs/bbp.cscs.ch/project/proj134/workflow-outputs/14092023-d23c8bf4-f805-4c90-a1a2-5e7cfe839df5/eModelAssignmentConfig/root/circuit_config.json",
-                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/95889eef-89f8-4625-a074-c6006e9f1808",
+                        "circuit_url": "file:///gpfs/bbp.cscs.ch/data/scratch/proj134/workflow-outputs/27102023-96f9af1a-a941-409d-bca4-eedb4153e9ea/eModelAssignmentConfig/root/circuit_config.json",
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/5613f0ba-90c5-4744-990f-9e92790c1853",
                     }
                 ],
             },
             "MacroConnectomeConfig": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fc65236c6-386f-44d4-9c7f-4f71c1965aa8?rev=3",
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Fc7c30811-fa82-4658-836a-c67d3f647c5a?rev=1",
                 "description": None,
                 "generatorName": "connectome",
                 "name": "MacroConnectomeConfig",
-                "used_in": [],
+                "used_in": [
+                    {
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/f226ae37-85d4-4cd2-88c6-d899a0b69fd3"
+                    }
+                ],
             },
             "Micro-connectome configuration": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F1c967425-693f-48b6-8440-f4f9cb824b5b?rev=5",
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F6859c6cf-ec20-4b56-940b-ecb508e7ff3d?rev=1",
                 "description": None,
                 "generatorName": "connectome",
                 "name": "Micro-connectome " "configuration",
-                "used_in": [],
+                "used_in": [
+                    {
+                        "atlas_release_id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
+                        "circuit_url": "file:///gpfs/bbp.cscs.ch/data/scratch/proj134/workflow-outputs/27102023-96f9af1a-a941-409d-bca4-eedb4153e9ea/microConnectomeConfig/placeholder__v1/circuit_config.json",
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/311f7081-ef2f-486c-b28d-1d86ba6e49f5",
+                    }
+                ],
             },
             "MorphologyAssignmentConfig": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fnexus%2Fv1%2Fresources%2Fbbp%2Fmmb-point-neuron-framework-model%2F_%2Fcd5a45d6-bc0d-42c8-9736-f5cb74607cfd?rev=20",
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Fdc378c4d-a3de-4658-9b5d-477256be9fbf?rev=5",
                 "description": None,
                 "generatorName": "mmodel",
                 "name": "MorphologyAssignmentConfig",
                 "used_in": [
                     {
                         "atlas_release_id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
-                        "circuit_url": "file:///gpfs/bbp.cscs.ch/project/proj134/workflow-outputs/14092023-d23c8bf4-f805-4c90-a1a2-5e7cfe839df5/morphologyAssignmentConfig/circuit_config.json",
-                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/2d386fab-fa41-4a11-b006-89aeb624bdba",
+                        "circuit_url": "file:///gpfs/bbp.cscs.ch/data/scratch/proj134/workflow-outputs/27102023-96f9af1a-a941-409d-bca4-eedb4153e9ea/morphologyAssignmentConfig/circuit_config.json",
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/638cba2e-ffe1-4db4-8bec-ccc99e8c8c4e",
                     }
                 ],
             },
-            "SynapseConfig": {
-                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fab9fd41b-ce10-42bb-9b69-c505543d8f7f?rev=6",
+            "SynapseConfig.": {
+                "content": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F7d7fe556-087b-4fbe-9598-cb50cfc046aa?rev=2",
                 "description": None,
                 "generatorName": "connectome_filtering",
-                "name": "SynapseConfig",
+                "name": "SynapseConfig.",
                 "used_in": [
                     {
                         "atlas_release_id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
-                        "circuit_url": "file:///gpfs/bbp.cscs.ch/project/proj134/workflow-outputs/14092023-d23c8bf4-f805-4c90-a1a2-5e7cfe839df5/synapseConfig/circuit_config.json",
-                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/68ab6f28-8ab0-4e53-a2a5-9052ed541c93",
+                        "circuit_url": "file:///gpfs/bbp.cscs.ch/data/scratch/proj134/workflow-outputs/30102023-f84c50a8-4f9c-4ddd-b8e8-444cf7acb948/synapseConfig/circuit_config.json",
+                        "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/b6e2a15b-cb89-44ba-8bf4-0ca92c49fc54",
                     }
                 ],
             },
         },
-        "description": "Latest supported by workflow.",
-        "name": "Release 23.01",
+        "description": "Fully supported by circuit building.",
+        "name": "Workshop - antonel",
     }

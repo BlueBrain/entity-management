@@ -8,13 +8,13 @@ from entity_management.base import (
     attributes, _NexusBySparqlIterator, Frozen)
 from entity_management.sbo.activity import GeneratorTaskActivity
 from entity_management.util import AttrOf
-from entity_management.core import Entity
+from entity_management.core import Entity, EntityMixin, Identifiable
 
 
 @attributes(
     {"generatorName": AttrOf(str, default=None), "configVersion": AttrOf(int, default=None)}
 )
-class SubConfig(Entity):
+class _SubConfig(Entity):
     """SubConfig.
     One of several partial configs making up the whole ModelBuildingConfig
     """
@@ -47,32 +47,36 @@ class SubConfig(Entity):
         return self.distribution.as_dict()
 
 
-class CellCompositionConfig(SubConfig):
+class CellCompositionConfig(_SubConfig):
     """CellCompositionConfig"""
 
 
-class CellPositionConfig(SubConfig):
+class CellPositionConfig(_SubConfig):
     """CellPositionConfig"""
 
 
-class EModelAssignmentConfig(SubConfig):
+class EModelAssignmentConfig(_SubConfig):
     """EModelAssignmentConfig"""
 
 
-class MacroConnectomeConfig(SubConfig):
+class MacroConnectomeConfig(_SubConfig):
     """MacroConnectomeConfig"""
 
 
-class MicroConnectomeConfig(SubConfig):
+class MicroConnectomeConfig(_SubConfig):
     """MicroConnectomeConfig"""
 
 
-class MorphologyAssignmentConfig(SubConfig):
+class MorphologyAssignmentConfig(_SubConfig):
     """MorphologyAssignmentConfig"""
 
 
-class SynapseConfig(SubConfig):
+class SynapseConfig(_SubConfig):
     """SynapseConfig"""
+
+
+class MEModelConfig(_SubConfig):
+    """MEModelConfig"""
 
 
 @attributes({
@@ -83,13 +87,16 @@ class SynapseConfig(SubConfig):
     "macroConnectomeConfig": AttrOf(MacroConnectomeConfig),
     "microConnectomeConfig": AttrOf(MicroConnectomeConfig),
     "synapseConfig": AttrOf(SynapseConfig),
+    "meModelConfig": AttrOf(MEModelConfig, default=None),
 })
 class Configs(Frozen):
     """Sub configs of ModelBuildingConfig."""
 
 
 @attributes({
+    'name': AttrOf(str),
+    'description': AttrOf(str, default=None),
     "configs": AttrOf(Configs),
 })
-class ModelBuildingConfig(Entity):
+class ModelBuildingConfig(EntityMixin, Identifiable):
     """ModelBuildingConfig"""

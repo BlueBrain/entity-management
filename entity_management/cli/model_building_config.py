@@ -1,28 +1,12 @@
 """Command line interface for Model Building Config."""
 import logging
 from pprint import pprint
-import click
-from entity_management.sbo.config import ModelBuildingConfig
+from entity_management.sbo.config import MacroConnectomeConfig, ModelBuildingConfig
 from entity_management.simulation import DetailedCircuit
 from entity_management.atlas import CellComposition
 
 
-@click.group()
-@click.version_option()
-@click.option("-v", "--verbose", count=True)
-def cli(verbose):
-    """The CLI object."""
-    logging.basicConfig(
-        level=(logging.WARNING, logging.INFO, logging.DEBUG)[min(verbose, 2)],
-        format="%(asctime)s %(levelname)-8s %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-
-@cli.command()
-@click.option("--url", "nexus_url", type=str, help="URL of the ModelBuildingConfig", required=False)
-@click.option("--id", "nexus_id", type=str, help="ID of the ModelBuildingConfig", required=False)
-def get(nexus_url, nexus_id):
+def get_model_building_config(nexus_url, nexus_id):
     """Get ModelBuildingConfig instance from Nexus by URL or ID.
 
     Args:
@@ -52,7 +36,11 @@ def get(nexus_url, nexus_id):
         data.configs.macroConnectomeConfig,
         data.configs.microConnectomeConfig,
         data.configs.synapseConfig,
+        data.configs.meModelConfig,
     ):
+        if config is None:
+            continue
+
         result["configs"][config.name] = {
             "name": config.name,
             "description": config.description,
@@ -80,8 +68,15 @@ def get(nexus_url, nexus_id):
                 used_in_result[
                     "cell_composition_volume"
                 ] = used_in.generated.cellCompositionVolume.get_id()
+            elif isinstance(used_in.generated, MacroConnectomeConfig):
+                pass  # the `generated` points back to the MacroConnectomeConfig
             else:
-                raise TypeError(f"Unexpected type of `used_in`: {type(used_in)}")
+                logging.warning(
+                    "Unexpected type of `used_in` in \"%s\": %s (id: %s)",
+                    config.name,
+                    type(used_in.generated),
+                    used_in.generated.get_id(),
+                )
 
             result["configs"][config.name]["used_in"].append(used_in_result)
 
