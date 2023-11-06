@@ -1,6 +1,7 @@
 '''Simulation domain entities.'''
 
 from typing import List, Union
+from datetime import datetime
 
 from attr.validators import in_
 
@@ -12,6 +13,7 @@ from entity_management.core import (Entity, Activity, Agent, EntityMixin,
                                     SoftwareAgent, DataDownload, Subject, DistributionMixin)
 from entity_management.electrophysiology import Trace
 from entity_management.atlas import AtlasRelease
+from entity_management.workflow import BbpWorkflowActivity
 from entity_management.util import AttrOf
 
 
@@ -113,17 +115,6 @@ class SynapseRelease(ModelRelease):
 @attributes()
 class Configuration(_Entity):
     '''Configuration file'''
-
-
-@attributes({'used': AttrOf(List[Configuration])})
-class MorphologyDiversification(Activity):
-    '''Morphology release building activity.
-
-    Args:
-        used(List[Identifiable]): Configurations(neurondb.xml, placement_rules.xml) which were used
-            to generate the emodel.
-    '''
-    _url_domain = 'simulation'  # need to override as Activity will set it to 'core'
 
 
 @attributes({
@@ -473,25 +464,27 @@ class VariableReport(Report):
 
 
 @attributes({
-    'used': AttrOf(DetailedCircuit, default=None),
-    'spikes': AttrOf(SpikeReport, default=None),
-    'generated': AttrOf(List[Report], default=None),
-    'jobId': AttrOf(str, default=None),
-    'path': AttrOf(str, default=None),
-    'params': AttrOf(DataDownload, default=None),
+    'parameter': AttrOf(dict),
+    'startedAtTime': AttrOf(datetime, default=None),
+    'endedAtTime': AttrOf(datetime, default=None),
+    'status': AttrOf(str, default=None, validators=in_([None,
+                                                        'Pending',
+                                                        'Running',
+                                                        'Done',
+                                                        'Failed'])),
+    'log_url': AttrOf(str, default=None),
+    'config_file': AttrOf(str, default=None),
 })
-class Simulation(Activity):
-    '''Simulation activity.
+class Simulation(Entity):
+    '''Simulation of the campaign entity.
 
     Args:
-        used (DetailedCircuit): Detailed circuit used to run the simulation.
-        spikes (SpikeReport): Generated spike report.
-        generated (List[Report]): Generated reports by the simulation. This will include
-            mandatory SpikeReport and other VariableReport's.
-        jobId (str): SLURM job id.
-        path (str): Location of the simulation BlueConfig and the SLURM log.
-        params (DataDownload): If simulation is part of the campaign, ``params``
-            will contain all the parameters used to instantiate this simulation.
+        parameter (dict): Dictionary of specific coords within the campaign.
+        startedAtTime (datetime): Start time.
+        endedAtTime (datetime): End time.
+        status (str): Status of the simulation.
+        log_url (str): URL at which log file can be viewed.
+        config_file (): Full path to the simulation configuration file.
     '''
 
 
@@ -526,7 +519,7 @@ class SimulationCampaignConfiguration(_Entity):
     'used': AttrOf(DetailedCircuit, default=None),
     'generated': AttrOf(SimulationCampaignConfiguration, default=None),
 })
-class SimulationCampaignGeneration(Activity):
+class SimulationCampaignGeneration(BbpWorkflowActivity):
     '''Simulation campaign generation activity.
 
     Args:
@@ -545,7 +538,6 @@ class SimulationCampaignGeneration(Activity):
         Returns:
             Iterator through the found resources.
         '''
-
         type_ = f'{get_base_url()}/{cls.__name__}'
         # pylint: disable=consider-using-f-string
         query = '''
@@ -652,3 +644,24 @@ class DetailedCircuitValidationReport(AnalysisReport):
 @attributes()
 class PlotCollection(DistributionMixin, _Entity):
     '''Collection of plots.'''
+
+
+@attributes({
+    'simulations': AttrOf(DataDownload),
+    'parameter': AttrOf(dict, default={}),
+})
+class SimulationCampaign(Entity):
+    '''Simulation campaign entity that was executed.
+
+    Args:
+        simulations (DataDownload): serialized simulations xarray.
+        parameter (dict): Parameters corresponding to the specific simulation.
+    '''
+
+
+class SimulationCampaignExecution(BbpWorkflowActivity):
+    '''Simulation campagn execution activity.'''
+
+
+class SimulationCampaignAnalysis(BbpWorkflowActivity):
+    '''Simulation campaign analysis entity.'''

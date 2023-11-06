@@ -14,8 +14,8 @@ from entity_management.core import DataDownload
 from entity_management.util import quote
 from entity_management.simulation import (ModelReleaseIndex, EModelRelease, MorphologyRelease,
                                           Morphology, MEModel, IonChannelMechanismRelease,
-                                          MorphologyDiversification, Configuration,
-                                          SimulationCampaignConfiguration, DetailedCircuit)
+                                          Configuration, SimulationCampaignConfiguration,
+                                          DetailedCircuit)
 
 DATA_DIR = Path(__file__).parent / "data"
 

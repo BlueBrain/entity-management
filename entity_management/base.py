@@ -636,3 +636,10 @@ class BrainLocation(Frozen):
     Args:
         brainRegion (OntologyTerm): Brain region ontology term.
     '''
+
+
+@attributes({
+    'entity': AttrOf(Identifiable),
+})
+class Derivation(Frozen):
+    '''Derivation.'''
