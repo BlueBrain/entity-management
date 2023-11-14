@@ -13,7 +13,7 @@ from entity_management.core import (Entity, Activity, Agent, EntityMixin,
                                     SoftwareAgent, DataDownload, Subject, DistributionMixin)
 from entity_management.electrophysiology import Trace
 from entity_management.atlas import AtlasRelease
-from entity_management.workflow import BbpWorkflowActivity
+from entity_management.workflow import BbpWorkflowActivity, BbpWorkflowConfig
 from entity_management.util import AttrOf
 
 
@@ -518,6 +518,8 @@ class SimulationCampaignConfiguration(_Entity):
 @attributes({
     'used': AttrOf(DetailedCircuit, default=None),
     'generated': AttrOf(SimulationCampaignConfiguration, default=None),
+    'used_config': AttrOf(BbpWorkflowConfig, default=None),  # FIXME default=None
+    'used_rev': AttrOf(int, default=None),  # FIXME same default to support old use cases(non OBP)
 })
 class SimulationCampaignGeneration(BbpWorkflowActivity):
     '''Simulation campaign generation activity.
