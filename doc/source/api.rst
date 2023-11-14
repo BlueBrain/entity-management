@@ -11,4 +11,6 @@ API Documentation
    entity_management.experiment
    entity_management.morphology
    entity_management.simulation
+   entity_management.workflow
    entity_management.circuit.building.functional
+   entity_management.sbo.config

@@ -1,6 +1,6 @@
 """Atlas related entities."""
-from entity_management.base import Identifiable, attributes
-from entity_management.core import Entity, DataDownload
+from entity_management.base import Identifiable, attributes, BrainLocation
+from entity_management.core import Entity, DataDownload, Contribution
 from entity_management.util import AttrOf
 
 
@@ -137,3 +137,39 @@ class CellOrientationField(Entity):
 )
 class AtlasRelease(Entity):
     '''AtlasRelease resource representation.'''
+
+
+@attributes({
+    'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'contribution': AttrOf(list[Contribution], default=None),
+    "distribution": AttrOf(DataDownload),
+    'subject': AttrOf(dict, default=None),
+})
+class CellCompositionSummary(Entity):
+    """CellCompositionSummary"""
+
+
+@attributes({
+    'about': AttrOf(list[str], default=None),
+    'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'contribution': AttrOf(list[Contribution], default=None),
+    "distribution": AttrOf(DataDownload),
+    'subject': AttrOf(dict, default=None),
+})
+class CellCompositionVolume(Entity):
+    """CellCompositionVolume"""
+
+
+@attributes({
+    'about': AttrOf(list[str], default=None),
+    'atlasRelease': AttrOf(AtlasRelease),
+    'atlasSpatialReferenceSystem': AttrOf(AtlasSpatialReferenceSystem, default=None),
+    'brainLocation': AttrOf(BrainLocation, default=None),
+    'cellCompositionSummary': AttrOf(CellCompositionSummary),
+    'cellCompositionVolume': AttrOf(CellCompositionVolume),
+    'contribution': AttrOf(list[Contribution], default=None),
+})
+class CellComposition(Entity):
+    """CellComposition"""

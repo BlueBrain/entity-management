@@ -423,6 +423,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             proj=proj,
             token=use_auth,
         )
+
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,
                                          base=base, org=org, proj=proj, token=use_auth)
@@ -443,6 +444,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 Token should be in the format for the authorization header: Bearer VALUE.
         '''
         json_ld = nexus.load_by_url(url, token=use_auth)
+
         if json_ld is not None:
             return _deserialize_resource(json_ld, cls,
                                          base=base, org=org, proj=proj, token=use_auth)

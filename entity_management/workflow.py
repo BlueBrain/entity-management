@@ -69,3 +69,7 @@ class BbpWorkflowActivity(Activity):
             LIMIT 1
         '''
         return _NexusBySparqlIterator(cls, query, **kwargs)
+
+
+class GeneratorTaskActivity(BbpWorkflowActivity):
+    """Activity of a Generator Task."""
