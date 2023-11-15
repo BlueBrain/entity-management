@@ -31,7 +31,7 @@ def get(nexus_url, nexus_id):
         raise ValueError("Exactly one of `url` or `id` must be set at a time.")
 
     if nexus_url:
-        data = load_by_url(nexus_url, cross_bucket=True)
+        data = load_by_url(nexus_url)
     elif nexus_id:
         data = load_by_id(nexus_id, cross_bucket=True)
 
