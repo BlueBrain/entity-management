@@ -8,13 +8,14 @@ from entity_management.base import (
     attributes, _NexusBySparqlIterator, Frozen)
 from entity_management.workflow import GeneratorTaskActivity
 from entity_management.util import AttrOf
-from entity_management.core import Entity, EntityMixin, Identifiable
+from entity_management.core import EntityMixin, Identifiable
+from entity_management.workflow import BbpWorkflowConfig
 
 
 @attributes(
     {"generatorName": AttrOf(str, default=None), "configVersion": AttrOf(int, default=None)}
 )
-class _SubConfig(Entity):
+class _SubConfig(BbpWorkflowConfig):
     """SubConfig.
     One of several partial configs making up the whole ModelBuildingConfig
     """
