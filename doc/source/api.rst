@@ -13,4 +13,4 @@ API Documentation
    entity_management.simulation
    entity_management.workflow
    entity_management.circuit.building.functional
-   entity_management.sbo.config
+   entity_management.config
