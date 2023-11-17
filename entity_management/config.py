@@ -84,7 +84,7 @@ class MEModelConfig(_SubConfig):
     "cellCompositionConfig": AttrOf(CellCompositionConfig),
     "cellPositionConfig": AttrOf(CellPositionConfig),
     "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig),
-    "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig),
+    "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig, default=None),
     "macroConnectomeConfig": AttrOf(MacroConnectomeConfig),
     "microConnectomeConfig": AttrOf(MicroConnectomeConfig),
     "synapseConfig": AttrOf(SynapseConfig),

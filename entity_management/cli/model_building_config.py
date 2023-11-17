@@ -1,7 +1,7 @@
 """Command line interface for Model Building Config."""
 import logging
 from pprint import pprint
-from entity_management.sbo.config import MacroConnectomeConfig, ModelBuildingConfig
+from entity_management.config import MacroConnectomeConfig, ModelBuildingConfig
 from entity_management.simulation import DetailedCircuit
 from entity_management.atlas import CellComposition
 
