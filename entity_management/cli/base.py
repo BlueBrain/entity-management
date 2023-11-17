@@ -18,22 +18,41 @@ def cli(verbose):
 
 
 @cli.command()
-@click.option("--url", "nexus_url", type=str, help="URL of the Nexus object", required=False)
-@click.option("--id", "nexus_id", type=str, help="ID of the Nexus object", required=False)
-def get(nexus_url, nexus_id):
+@click.argument('identifier', type=str, nargs=1)
+@click.option("--url", "url_hint", is_flag=True, default=False,
+              help="Force identifier as nexus id.")
+@click.option("--id", "id_hint", is_flag=True, default=False,
+              help="Force identifier as nexus url.")
+def get(identifier, url_hint, id_hint):
     """Get object instance from Nexus by URL or ID.
 
     Args:
-        nexus_url (str): URL of the Nexus object
-        nexus_id (str): ID of the Nexus object
+        (str): URL or ID of the Nexus object
+        url_hint (bool): Force identifier as nexus id
+        id_hint (bool): Force identifier as nexus url
     """
-    if (nexus_url and nexus_id) or ((not nexus_url) and (not nexus_id)):
-        raise ValueError("Exactly one of `url` or `id` must be set at a time.")
+    if (url_hint and id_hint):
+        raise ValueError("At most one of `url` or `id` cat be set at a time.")
 
-    if nexus_url:
-        data = load_by_url(nexus_url)
-    elif nexus_id:
-        data = load_by_id(nexus_id, cross_bucket=True)
+    nexus_id = None
+    nexus_url = None
+
+    if url_hint:
+        data = load_by_url(identifier)
+        nexus_url = identifier
+    elif id_hint:
+        data = load_by_id(identifier, cross_bucket=True)
+        nexus_id = identifier
+    else:
+        data = load_by_id(identifier, cross_bucket=True)
+        if not data:
+            data = load_by_url(identifier)
+            nexus_url = identifier
+        else:
+            nexus_id = identifier
+
+    if not data:
+        raise ValueError("Not found")
 
     types = data["@type"] if isinstance(data["@type"], list) else [data["@type"]]
 

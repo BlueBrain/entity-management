@@ -12,13 +12,19 @@ by default unless it was explicitly provided in the method argument.
 Get
 ###
 
-Return significant values about a Nexus object. Not all types are currently supported
+Return significant values about a Nexus object. Not all types are currently supported. 
+
+If id or url is not explicitly specified, by including `--id` or `--url`, first attempt at finding the resource is made by id and if nothing is found a second attempt is made by url. 
 
 .. code-block:: bash
 
+    entity-management get "https://bbp.epfl.ch/neurosciencegraph/data/modelconfigurations/1921aaae-69c4-4366-ae9d-7aa1453f2158"
+    # OR
     entity-management get --id "https://bbp.epfl.ch/neurosciencegraph/data/modelconfigurations/1921aaae-69c4-4366-ae9d-7aa1453f2158"
     # OR
-    entity-management get --url "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fmodelconfigurations%2F1921aaae-69c4-4366-ae9d-7aa1453f2158"
+    entity-management get "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fmodelconfigurations%2F1921aaae-69c4-4366-ae9d-7aa1453f2158"
+    # OR
+    entity-management get "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fmodelconfigurations%2F1921aaae-69c4-4366-ae9d-7aa1453f2158"  --url
 
 .. code-block:: python
 
