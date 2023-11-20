@@ -18,7 +18,7 @@ from attr.validators import in_
 
 from entity_management import nexus
 from entity_management.base import (Identifiable, BlankNode, OntologyTerm, attributes,
-                                    _NexusBySparqlIterator, Frozen)
+                                    _NexusBySparqlIterator)
 from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 from entity_management.state import get_base_url
 from entity_management.settings import WORKFLOW
@@ -524,5 +524,5 @@ class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
 @attributes({
     'agent': AttrOf(Agent),
 })
-class Contribution(Frozen):
+class Contribution(BlankNode):
     """Contribution"""
