@@ -48,6 +48,10 @@ class _SubConfig(BbpWorkflowConfig):
         return self.distribution.as_dict()
 
 
+class BrainRegionSelectorConfig(_SubConfig):
+    """BrainRegionSelectorConfig"""
+
+
 class CellCompositionConfig(_SubConfig):
     """CellCompositionConfig"""
 
@@ -81,6 +85,7 @@ class MEModelConfig(_SubConfig):
 
 
 @attributes({
+    "brainRegionSelectorConfig": AttrOf(BrainRegionSelectorConfig, default=None),
     "cellCompositionConfig": AttrOf(CellCompositionConfig),
     "cellPositionConfig": AttrOf(CellPositionConfig),
     "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig),

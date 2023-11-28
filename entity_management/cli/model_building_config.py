@@ -1,7 +1,9 @@
 """Command line interface for Model Building Config."""
 import logging
 from pprint import pprint
-from entity_management.config import MacroConnectomeConfig, ModelBuildingConfig
+from entity_management.config import (
+    MacroConnectomeConfig, ModelBuildingConfig, BrainRegionSelectorConfig
+)
 from entity_management.simulation import DetailedCircuit
 from entity_management.atlas import CellComposition
 
@@ -68,7 +70,7 @@ def get_model_building_config(nexus_url, nexus_id):
                 used_in_result[
                     "cell_composition_volume"
                 ] = used_in.generated.cellCompositionVolume.get_id()
-            elif isinstance(used_in.generated, MacroConnectomeConfig):
+            elif isinstance(used_in.generated, (MacroConnectomeConfig, BrainRegionSelectorConfig)):
                 pass  # the `generated` points to a clone of the MacroConnectomeConfig
             else:
                 logging.warning(
