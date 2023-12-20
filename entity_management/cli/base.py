@@ -26,6 +26,8 @@ def cli(verbose):
 def get(identifier, url_hint, id_hint):
     """Get object instance from Nexus by URL or ID.
 
+    Command requires environmental variables NEXUS_ORG, NEXUS_PROJ and NEXUS_TOKEN.
+    
     Args:
         (str): URL or ID of the Nexus object
         url_hint (bool): Force identifier as nexus id
@@ -36,20 +38,20 @@ def get(identifier, url_hint, id_hint):
 
     nexus_id = None
     nexus_url = None
+    data = None
 
-    if url_hint:
+    if id_hint or not url_hint:
+        try:
+            data = load_by_id(identifier, cross_bucket=True)
+            nexus_id = identifier
+        except (AttributeError, ValueError, TypeError) as e:
+            # if lookup by id was requested, propagate the exception
+            if id_hint:
+                raise e
+    
+    if data is None:
         data = load_by_url(identifier)
         nexus_url = identifier
-    elif id_hint:
-        data = load_by_id(identifier, cross_bucket=True)
-        nexus_id = identifier
-    else:
-        data = load_by_id(identifier, cross_bucket=True)
-        if not data:
-            data = load_by_url(identifier)
-            nexus_url = identifier
-        else:
-            nexus_id = identifier
 
     if not data:
         raise ValueError("Not found")
