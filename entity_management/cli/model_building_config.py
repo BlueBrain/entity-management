@@ -1,9 +1,8 @@
 """Command line interface for Model Building Config."""
+import os
 import logging
 import attr
-from entity_management.config import (
-    MacroConnectomeConfig, BrainRegionSelectorConfig
-)
+from entity_management.config import MacroConnectomeConfig, BrainRegionSelectorConfig
 from entity_management.simulation import DetailedCircuit
 from entity_management.atlas import CellComposition
 
@@ -57,3 +56,19 @@ def model_building_config_as_dict(model_config):
         "description": model_config.description,
         "configs": _configs_as_dict(_iter_configs(model_config.configs))
     }
+
+
+def download_config_files(path, model_config):
+    """Download ModelBuildingConfig's config files."""
+    configs = [*_iter_configs(model_config.configs)]
+
+    if len(configs) == 0:
+        print(" * No configs to download")
+        return
+
+    os.makedirs(path, exist_ok=True)
+
+    for config in configs:
+        config.distribution.download(path)
+
+    print(f" * Saved {len(configs)} configs to {path}")
