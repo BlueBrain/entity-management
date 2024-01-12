@@ -1,7 +1,7 @@
 {
     "@context": [
         "https://bluebrain.github.io/nexus/contexts/search.json",
-        "https://bluebrain.github.io/nexus/contexts/resource.json"
+        "https://bluebrain.github.io/nexus/contexts/metadata.json"
     ],
     "_next": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/https:%2F%2Fneuroshapes.org%2Fdash%2Freconstructedpatchedcell?size=2&deprecated=False&after=%5B1556292574232,%22https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52%22%5D",
     "_results": [

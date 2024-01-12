@@ -19,7 +19,10 @@ IMAGE_NAME = 'myimage'
 IMAGE_ID = NSG[IMAGE_NAME]
 
 CELL_RESPONSE = {
-    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
+    '@context': [
+        'https://bluebrain.github.io/nexus/contexts/search.json',
+        "https://bluebrain.github.io/nexus/contexts/metadata.json"
+    ],
     '@id': CELL_ID,
     '@type': [
         'ReconstructedPatchedCell',
@@ -67,7 +70,10 @@ CELL_RESPONSE = {
 }
 
 IMAGE_RESPOSE = {
-    '@context': 'https://bluebrain.github.io/nexus/contexts/resource.json',
+    '@context': [
+        'https://bluebrain.github.io/nexus/contexts/search.json',
+        "https://bluebrain.github.io/nexus/contexts/metadata.json"
+    ],
     '@id': IMAGE_ID,
     '@type': 'Entity',
     '_constrainedBy': 'nsg:dash/entity',
@@ -101,7 +107,7 @@ IMAGE_RESPOSE = {
 CELL_LIST_RESPONSE = {
     '@context': [
         'https://bluebrain.github.io/nexus/contexts/search.json',
-        'https://bluebrain.github.io/nexus/contexts/resource.json'
+        "https://bluebrain.github.io/nexus/contexts/metadata.json"
     ],
     '_results': [
         {
