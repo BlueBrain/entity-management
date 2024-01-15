@@ -1,4 +1,6 @@
 """Atlas related entities."""
+import typing
+
 from entity_management.base import Identifiable, attributes, BrainLocation
 from entity_management.core import Entity, DataDownload, Contribution
 from entity_management.util import AttrOf
@@ -77,7 +79,7 @@ class HemisphereAnnotationDataLayer(Entity):
 
 @attributes(
     {
-        "distribution": AttrOf(list[DataDownload]),
+        "distribution": AttrOf(typing.List[DataDownload]),
     }
 )
 class ParcellationOntology(Entity):
