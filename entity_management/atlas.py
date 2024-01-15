@@ -77,7 +77,7 @@ class HemisphereAnnotationDataLayer(Entity):
 
 @attributes(
     {
-        "distribution": AttrOf(DataDownload),
+        "distribution": AttrOf(list[DataDownload]),
     }
 )
 class ParcellationOntology(Entity):
