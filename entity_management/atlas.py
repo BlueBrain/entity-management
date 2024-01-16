@@ -112,15 +112,6 @@ class AtlasSpatialReferenceSystem(Entity):
         "distribution": AttrOf(DataDownload),
     }
 )
-class PlacementHintsDataLayer(Entity):
-    '''Placement hints volumes for all the cortical layers.'''
-
-
-@attributes(
-    {
-        "distribution": AttrOf(DataDownload),
-    }
-)
 class CellOrientationField(Entity):
     '''Raster volume with cell orientation field as quaternions.'''
 
