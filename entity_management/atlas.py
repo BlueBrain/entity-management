@@ -112,8 +112,8 @@ class AtlasSpatialReferenceSystem(Entity):
         "distribution": AttrOf(DataDownload),
     }
 )
-class PlacementHintsDataLayer(Entity):
-    '''Placement hints volumes for all the cortical layers.'''
+class CellOrientationField(Entity):
+    '''Raster volume with cell orientation field as quaternions.'''
 
 
 @attributes(
@@ -121,8 +121,8 @@ class PlacementHintsDataLayer(Entity):
         "distribution": AttrOf(DataDownload),
     }
 )
-class CellOrientationField(Entity):
-    '''Raster volume with cell orientation field as quaternions.'''
+class PlacementHintsDataCatalog(Entity):
+    """Placement hint volumes data catalog."""
 
 
 @attributes(
@@ -132,7 +132,7 @@ class CellOrientationField(Entity):
         "parcellationVolume": AttrOf(BrainParcellationDataLayer),
         "spatialReferenceSystem": AttrOf(AtlasSpatialReferenceSystem),
         "hemisphereVolume": AttrOf(HemisphereAnnotationDataLayer, default=None),
-        "placementHintsDataLayer": AttrOf(PlacementHintsDataLayer, default=None),
+        "placementHintsDataCatalog": AttrOf(PlacementHintsDataCatalog, default=None),
         "cellOrientationField": AttrOf(CellOrientationField, default=None),
         "subject": AttrOf(dict),
     }
