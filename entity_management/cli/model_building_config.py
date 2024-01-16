@@ -1,5 +1,6 @@
 """Command line interface for Model Building Config."""
 import os
+import json
 import logging
 import attr
 from entity_management.config import MacroConnectomeConfig, BrainRegionSelectorConfig
@@ -62,13 +63,14 @@ def download_config_files(path, model_config):
     """Download ModelBuildingConfig's config files."""
     configs = [*_iter_configs(model_config.configs)]
 
-    if len(configs) == 0:
-        print(" * No configs to download")
-        return
-
     os.makedirs(path, exist_ok=True)
 
-    for config in configs:
-        config.distribution.download(path)
+    print("\nSaving ModelBuildingConfig...")
+    with open(os.path.join(path, 'ModelBuildingConfig.json'), 'w', encoding='utf-8') as fd:
+        print(f" * {fd.name}")
+        json.dump(model_config.as_json_ld(), fd, indent=4)
 
-    print(f" * Saved {len(configs)} configs to {path}")
+    if len(configs) > 0:
+        for config in configs:
+            config_path = config.distribution.download(path)
+            print(f" * {config_path}")

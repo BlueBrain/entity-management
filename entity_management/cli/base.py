@@ -54,7 +54,6 @@ def get(id_or_url, output):
         pprint(model_building_config_as_dict(config))
 
         if output is not None:
-            print("\nDownloading configs...")
             download_config_files(output, config)
     else:
         raise ValueError(f"Unsupported type: {types} (expected: 'ModelBuildingConfig')")
