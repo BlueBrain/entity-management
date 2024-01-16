@@ -26,23 +26,17 @@ def cli(verbose):
 
 @cli.command()
 @click.argument("id_or_url", type=str, nargs=1)
-@click.option("--download", is_flag=True, default=False,
-              help="Download ModelBuildingConfig's config files.")
 @click.option("-o", "--output",
               type=click.Path(writable=True, file_okay=False, resolve_path=True),
               default=None,
-              help="Output directory for downloaded configs [required if '--download']")
-def get(id_or_url, download, output):
+              help="If specified, the configs will be downloaded and saved to the given directory.")
+def get(id_or_url, output):
     """Fetch a ModelBuildingConfig by ID or URL and print a subset of its contents.
 
     Requires NEXUS_TOKEN, NEXUS_ORG and NEXUS_PROJ to be set in the environment.
 
     NOTE: Does not support revisions. I.e., only retrieves the current revision of the entity.
     """
-    if download and output is None:
-        raise click.ClickException(
-            "Output directory ('--output' / '-o') is required with '--download'")
-
     if not_set := [v for v in ("NEXUS_TOKEN", "NEXUS_ORG", "NEXUS_PROJ") if not os.getenv(v)]:
         raise click.ClickException(f"Variable(s) {', '.join(not_set)} not set in environment.")
 
@@ -59,7 +53,7 @@ def get(id_or_url, download, output):
         config = ModelBuildingConfig.from_id(data['@id'], cross_bucket=True)
         pprint(model_building_config_as_dict(config))
 
-        if download:
+        if output is not None:
             print("\nDownloading configs...")
             download_config_files(output, config)
     else:
