@@ -127,12 +127,21 @@ class CellOrientationField(Entity):
 
 @attributes(
     {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class PlacementHintsDataCatalog(Entity):
+    """Placement hint volumes data catalog."""
+
+
+@attributes(
+    {
         "brainTemplateDataLayer": AttrOf(BrainTemplateDataLayer),
         "parcellationOntology": AttrOf(ParcellationOntology),
         "parcellationVolume": AttrOf(BrainParcellationDataLayer),
         "spatialReferenceSystem": AttrOf(AtlasSpatialReferenceSystem),
         "hemisphereVolume": AttrOf(HemisphereAnnotationDataLayer, default=None),
-        "placementHintsDataLayer": AttrOf(PlacementHintsDataLayer, default=None),
+        "placementHintsDataCatalog": AttrOf(PlacementHintsDataCatalog, default=None),
         "cellOrientationField": AttrOf(CellOrientationField, default=None),
         "subject": AttrOf(dict),
     }
