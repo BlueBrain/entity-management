@@ -1,7 +1,7 @@
 """Atlas related entities."""
-import typing
+from typing import List
 
-from entity_management.base import Identifiable, attributes, BrainLocation
+from entity_management.base import Identifiable, attributes, BrainLocation, Derivation
 from entity_management.core import Entity, DataDownload, Contribution
 from entity_management.util import AttrOf
 
@@ -79,7 +79,7 @@ class HemisphereAnnotationDataLayer(Entity):
 
 @attributes(
     {
-        "distribution": AttrOf(typing.List[DataDownload]),
+        "distribution": AttrOf(List[DataDownload]),
     }
 )
 class ParcellationOntology(Entity):
@@ -143,9 +143,11 @@ class AtlasRelease(Entity):
 
 @attributes({
     'atlasRelease': AttrOf(AtlasRelease, default=None),
+    'about': AttrOf(List[str], default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(list[Contribution], default=None),
-    "distribution": AttrOf(DataDownload),
+    'contribution': AttrOf(List[Contribution], default=None),
+    'derivation': AttrOf(Derivation, default=None),
+    'distribution': AttrOf(DataDownload),
     'subject': AttrOf(dict, default=None),
 })
 class CellCompositionSummary(Entity):
@@ -153,11 +155,12 @@ class CellCompositionSummary(Entity):
 
 
 @attributes({
-    'about': AttrOf(list[str], default=None),
+    'about': AttrOf(List[str], default=None),
     'atlasRelease': AttrOf(AtlasRelease, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(list[Contribution], default=None),
-    "distribution": AttrOf(DataDownload),
+    'contribution': AttrOf(List[Contribution], default=None),
+    'derivation': AttrOf(Derivation, default=None),
+    'distribution': AttrOf(DataDownload),
     'subject': AttrOf(dict, default=None),
 })
 class CellCompositionVolume(Entity):
@@ -165,13 +168,13 @@ class CellCompositionVolume(Entity):
 
 
 @attributes({
-    'about': AttrOf(list[str], default=None),
+    'about': AttrOf(List[str], default=None),
     'atlasRelease': AttrOf(AtlasRelease),
     'atlasSpatialReferenceSystem': AttrOf(AtlasSpatialReferenceSystem, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
     'cellCompositionSummary': AttrOf(CellCompositionSummary),
     'cellCompositionVolume': AttrOf(CellCompositionVolume),
-    'contribution': AttrOf(list[Contribution], default=None),
+    'contribution': AttrOf(List[Contribution], default=None),
 })
 class CellComposition(Entity):
     """CellComposition"""
