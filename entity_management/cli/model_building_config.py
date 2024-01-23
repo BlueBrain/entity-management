@@ -105,7 +105,7 @@ def _get_distribution_filename(entity, distribution_item):
     return f"{_get_timestamp(entity)}__{distribution_item.get('name')}"
 
 
-def download_and_get_ids_from_distribution(entity, path):
+def download_and_get_ids_from_distribution(entity, path, mapping):
     """Download the distribution files and get ids from them (if JSON)."""
     ids = set()
     distribution = entity.get('distribution', [])
@@ -118,6 +118,7 @@ def download_and_get_ids_from_distribution(entity, path):
             filename = _get_distribution_filename(entity, d_item)
             print(f"    {filename}")
             download_file(url, path, file_name=filename)
+            mapping[url] = filename
             if d_item.get('encodingFormat', '') == 'application/json':
                 content = file_as_dict(url)
                 ids |= _get_ids_from_dict(content)
@@ -131,8 +132,10 @@ def _save_entity(entity, path):
     with open(os.path.join(path, filename), 'w', encoding='utf-8') as fd:
         json.dump(entity, fd)
 
+    return filename
 
-def _download_entity_get_ids(id_, path):
+
+def _download_entity_get_ids(id_, path, mapping):
     def _err_exit():
         print(f"\nERROR: Can't fetch: {id_}\n")
         return set()
@@ -146,31 +149,37 @@ def _download_entity_get_ids(id_, path):
     if not entity:
         return _err_exit()
 
-    _save_entity(entity, path)
+    mapping[id_] = _save_entity(entity, path)
 
     entity.pop('@id', None)
     ids = _get_ids_from_dict(entity)
-    ids |= download_and_get_ids_from_distribution(entity, path)
+    ids |= download_and_get_ids_from_distribution(entity, path, mapping)
 
     return ids
 
 
-def _download_entity_recursive(id_, path, depth, downloaded=None):
-    downloaded = downloaded or set()
+def _download_entity_recursive(id_, path, depth, mapping=None):
+    mapping = mapping or {}
 
-    if id_ in downloaded:
+    if id_ in mapping:
         return
 
-    entity_ids = _download_entity_get_ids(id_, path)
-    downloaded.add(id_)
+    entity_ids = _download_entity_get_ids(id_, path, mapping)
 
     if depth > 0:
         for sub_id in entity_ids:
-            _download_entity_recursive(sub_id, path, depth - 1, downloaded)
+            _download_entity_recursive(sub_id, path, depth - 1, mapping)
+
+    return mapping
 
 
 def download_model_config(model_config, path, depth):
     """Download model config recursively."""
     os.makedirs(path, exist_ok=True)
     print(f"\nSaving files to '{path}':\n")
-    _download_entity_recursive(model_config.get_id(), path, depth)
+    mapping = _download_entity_recursive(model_config.get_id(), path, depth)
+
+    filename = "id_url_file_mapping.json"
+    with open(os.path.join(path, filename), 'w', encoding='utf-8') as fd:
+        print(f"    {filename}")
+        json.dump(mapping, fd, indent=4)
