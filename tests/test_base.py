@@ -99,6 +99,7 @@ class Dummy:
     a = attr.ib(default=42)
     b = attr.ib(default=None)
 
+
 @attributes({
     "a": AttrOf(int, default=42),
     "b": AttrOf(str, default=None),
@@ -106,7 +107,9 @@ class Dummy:
 class FrozenDummy(Frozen):
     pass
 
+
 @pytest.mark.parametrize("data_type, data_raw, expected", [
+    (str, None, None),
     (dict, {"a": "b"}, {"a": "b"}),
     (Dict, {"a": "b"}, {"a": "b"}),
     (dict, [{"a": "b"}], {"a": "b"}),
@@ -131,11 +134,12 @@ class FrozenDummy(Frozen):
     (FrozenDummy, {'a': 1, 'b': "2"}, FrozenDummy(a=1, b="2")),
     (list[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
     (List[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
-    (dict[str, Dummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': Dummy(a=1, b=2)}),
-    (dict[str, FrozenDummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': FrozenDummy(a=1, b="2")})
+    (dict[str, Dummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': Dummy(a=1, b="2")}),
+    (dict[str, FrozenDummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': FrozenDummy(a=1, b="2")}),
+    (OntologyTerm, {"@id": "foo", "label": "bar", "@type": "zee"}, OntologyTerm(url="foo", label="bar"))
 ])
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
-    assert _deserialize_json_to_datatype(data_type, data_raw, expected)
+    assert _deserialize_json_to_datatype(data_type, data_raw) == expected
 
 
 def _make_valid_resp(data):

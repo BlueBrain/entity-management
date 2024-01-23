@@ -251,11 +251,8 @@ def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token
     # TODO check this with nexus it might be a bug on their side
     if not len(result_list):
         return None
-    # do not use collection for single elements unless it was explicitly specified as typing.List
-    elif not is_explicit_list and len(result_list) == 1:
-        return result_list[0]
-    else:
-        return result_list
+
+    return result_list
 
 
 def _deserialize_dict(data_type, data_raw, base, org, proj, token):
@@ -301,16 +298,16 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
         if _is_type_union(type_class):
             return _deserialize_union(data_type, data_raw, base, org, proj, token)
 
-        if issubclass(data_type, Identifiable):
+        if issubclass(type_class, Identifiable):
             return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
 
-        if issubclass(data_type, OntologyTerm):
+        if issubclass(type_class, OntologyTerm):
             return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
 
-        if issubclass(data_type, Frozen):
+        if issubclass(type_class, Frozen):
             return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
 
-        if data_type == datetime:
+        if type_class == datetime:
             return parse(data_raw)
 
         # attr classes that are not subclasses of Identifiable or Frozen
