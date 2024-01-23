@@ -162,7 +162,7 @@ def _download_entity_recursive(id_, path, depth, mapping=None):
     mapping = mapping or {}
 
     if id_ in mapping:
-        return
+        return mapping
 
     entity_ids = _download_entity_get_ids(id_, path, mapping)
 
