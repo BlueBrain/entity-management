@@ -126,6 +126,11 @@ def _nexus_wrapper(func):
     return wrapper
 
 
+def get_type_from_name(name):
+    """Get type class for type name or return None."""
+    return _HINT_TO_CLS_MAP.get(_find_type(name), None)
+
+
 @_nexus_wrapper
 def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cross_bucket=False):
     '''Get type which corresponds to the id_url'''
