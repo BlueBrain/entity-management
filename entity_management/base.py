@@ -223,23 +223,16 @@ def _serialize_obj(value, include_rev=False):
 
 def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token=None):
     '''Deserialize list of json elements'''
-
     # Enforce a list of a single element if data_raw is not a sequence
     if not _is_data_sequence(data_raw):
         data_raw = [data_raw]
 
-    is_explicit_list = False
+    if not len(data_raw):
+        return None
+
     type_args = typing.get_args(data_type)
-    # find the type of collection element
-    if type_args:
-        # the collection was explicitly specified in attr.ib
-        # like typing.List[Distribution]
-        is_explicit_list = True
-        list_element_type = type_args[0]
-    else:
-        # nexus returns a collection of one element
-        # element type is the type specified in attr.ib
-        list_element_type = type(data_raw[0])
+
+    list_element_type = type_args[0] if type_args else type(data_raw[0])
 
     result_list = []
     for data_element in data_raw:
@@ -247,6 +240,7 @@ def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token
                                              base, org, proj, token)
         if data is not None:
             result_list.append(data)
+
     # if only one then probably nexus is just responding with the collection for single element
     # TODO check this with nexus it might be a bug on their side
     if not len(result_list):
@@ -256,11 +250,15 @@ def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token
 
 
 def _deserialize_dict(data_type, data_raw, base, org, proj, token):
+    """Deserialize a dict of json elements."""
 
     # collapse a sequence of one element if the data_type is a mapping
     if _is_data_sequence(data_raw):
         assert len(data_raw) == 1
         data_raw = data_raw[0]
+
+    if not len(data_raw):
+        return None
 
     type_args = typing.get_args(data_type)
     if type_args:
@@ -356,10 +354,16 @@ def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
 
 
 def _deserialize_frozen(data_type, data_raw, base, org, proj, token):
+
+    attr_fields = attr.fields_dict(data_type)
+
     data = data_type(
-        **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v,
-                                            base, org, proj, token)
-           for k, v in data_raw.items() if k in attr.fields_dict(data_type)})
+        **{
+            k: _deserialize_json_to_datatype(attr_fields[k].type, v, base, org, proj, token)
+            for k, v in data_raw.items()
+            if k in attr_fields
+        }
+    )
     if issubclass(data_type, BlankNode):
         data._force_attr('_type', data_raw[JSLD_TYPE])
     return data

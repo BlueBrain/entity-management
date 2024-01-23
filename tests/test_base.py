@@ -3,6 +3,7 @@ import io
 import json
 from datetime import datetime
 from typing import List, Dict
+from dateutil.parser import parse
 
 import pytest
 
@@ -110,6 +111,9 @@ class FrozenDummy(Frozen):
 
 @pytest.mark.parametrize("data_type, data_raw, expected", [
     (str, None, None),
+    (list, [], None),
+    (dict, {}, None),
+    (datetime, "2024-01-22T10:07:16.052123Z", parse("2024-01-22T10:07:16.052123Z")),
     (dict, {"a": "b"}, {"a": "b"}),
     (Dict, {"a": "b"}, {"a": "b"}),
     (dict, [{"a": "b"}], {"a": "b"}),
@@ -117,9 +121,12 @@ class FrozenDummy(Frozen):
     (list, [{"a": "b"}], [{"a": "b"}]),
     (List, [{"a": "b"}], [{"a": "b"}]),
     (list[dict], [{"a": "b"}], [{"a": "b"}]),
+    (list[dict], [], None),
     (List[dict], [{"a": "b"}], [{"a": "b"}]),
     (List[str], "Ringo", ["Ringo"]),
     (list[str], "Ringo", ["Ringo"]),
+    (list[str], [], None),
+    (list[str], ["a", "b"], ["a", "b"]),
     (List[int], 2, [2]),
     (list[int], 2, [2]),
     (List[float], 2., [2.]),
@@ -129,13 +136,17 @@ class FrozenDummy(Frozen):
     (Dummy, {'a': 1, 'b': 2}, Dummy(a=1, b=2)),
     (List[Dummy], [{'a': 1, 'b': 2}], [Dummy(a=1, b=2)]),
     (list[Dummy], [{'a': 1, 'b': 2}], [Dummy(a=1, b=2)]),
+    (list[Dummy], [], None),
     (List[Dummy], {'a': 1, 'b': 2}, [Dummy(a=1, b=2)]),
     (list[Dummy], {'a': 1, 'b': 2}, [Dummy(a=1, b=2)]),
+    (list[Dummy], [{'a': 1, 'b': 2}, {'a': 2, 'b': 3}], [Dummy(a=1, b=2), Dummy(a=2, b=3)]),
     (FrozenDummy, {'a': 1, 'b': "2"}, FrozenDummy(a=1, b="2")),
-    (list[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
     (List[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
+    (list[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
+    (list[FrozenDummy], [], None),
     (dict[str, Dummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': Dummy(a=1, b="2")}),
     (dict[str, FrozenDummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': FrozenDummy(a=1, b="2")}),
+    (dict[str, list[Dummy]], {'foo': {'a': 1, 'b': "2"}}, {'foo': [Dummy(a=1, b="2")]}),
     (OntologyTerm, {"@id": "foo", "label": "bar", "@type": "zee"}, OntologyTerm(url="foo", label="bar"))
 ])
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
