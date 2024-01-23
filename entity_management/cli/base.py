@@ -35,7 +35,7 @@ def cli(verbose):
               show_default=True,
               help=("Download is recursive, this is its maximum depth. "
                     "'0' only downloads given entity and it's distribution. "))
-def get(id_or_url, output, depth):
+def get(id_or_url, output, max_depth):
     """Fetch a ModelBuildingConfig by ID or URL and print a subset of its contents.
 
     Requires NEXUS_TOKEN, NEXUS_ORG and NEXUS_PROJ to be set in the environment.
@@ -59,6 +59,6 @@ def get(id_or_url, output, depth):
         pprint(model_building_config_as_dict(config))
 
         if output is not None:
-            download_model_config(config, output, depth)
+            download_model_config(config, output, max_depth)
     else:
         raise ValueError(f"Unsupported type: {types} (expected: 'ModelBuildingConfig')")
