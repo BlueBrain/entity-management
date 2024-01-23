@@ -26,4 +26,4 @@ def test_atlas_release(monkeypatch, atlas_release_metadata):
     assert res.parcellationOntology.get_id() is not None
     assert res.parcellationVolume.get_id() is not None
     assert res.spatialReferenceSystem.get_id() is not None
-    assert res.subject == {'species': {'@id': 'NCBITaxon:10090', 'label': 'Mus musculus'}}
+    assert res.subject == {'@type': 'Subject', 'species': {'@id': 'NCBITaxon:10090', 'label': 'Mus musculus'}}

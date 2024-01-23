@@ -272,14 +272,12 @@ def _deserialize_dict(data_type, data_raw, base, org, proj, token):
     else:
         value_type = None
 
-    data = {
+    return {
         data_key: _deserialize_json_to_datatype(
             value_type or type(data_element), data_element, base, org, proj, token
         )
         for data_key, data_element in data_raw.items()
     }
-
-    return _clean_up_dict(data)
 
 
 def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj=None, token=None):
@@ -340,7 +338,7 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
         return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
 
     raise NotImplementedError(
-        "Only Union of Identifiable types are supported.\n"
+        "Only Union of Identifiable types is supported.\n"
         f"data_type: {data_type}\n"
         f"data_raw : {data_raw}"
     )
@@ -376,10 +374,6 @@ def _is_type_sequence(data_type):
 
 def _is_type_mapping(data_type):
     return issubclass(data_type, Mapping)
-
-
-def _is_data_mapping(data_raw):
-    return isinstance(data_raw, Mapping)
 
 
 def _is_data_sequence(data_raw):
