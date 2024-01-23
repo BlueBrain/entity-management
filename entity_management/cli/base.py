@@ -7,7 +7,7 @@ from entity_management.config import ModelBuildingConfig
 from entity_management.nexus import load_by_id, load_by_url
 from entity_management.util import split_url_from_revision_query
 from entity_management.cli.model_building_config import (
-    download_config_files,
+    download_model_config,
     model_building_config_as_dict,
 )
 
@@ -30,7 +30,12 @@ def cli(verbose):
               type=click.Path(writable=True, file_okay=False, resolve_path=True),
               default=None,
               help="If specified, the configs will be downloaded and saved to the given directory.")
-def get(id_or_url, output):
+@click.option("-d", "--max-depth",
+              default=1,
+              show_default=True,
+              help=("Download is recursive, this is its maximum depth. "
+                    "'0' only downloads given entity and it's distribution. "))
+def get(id_or_url, output, depth):
     """Fetch a ModelBuildingConfig by ID or URL and print a subset of its contents.
 
     Requires NEXUS_TOKEN, NEXUS_ORG and NEXUS_PROJ to be set in the environment.
@@ -54,6 +59,6 @@ def get(id_or_url, output):
         pprint(model_building_config_as_dict(config))
 
         if output is not None:
-            download_config_files(output, config)
+            download_model_config(config, output, depth)
     else:
         raise ValueError(f"Unsupported type: {types} (expected: 'ModelBuildingConfig')")
