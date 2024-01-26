@@ -123,6 +123,7 @@ class FrozenDummy(Frozen):
     (list[dict], [{"a": "b"}], [{"a": "b"}]),
     (list[dict], [], None),
     (List[dict], [{"a": "b"}], [{"a": "b"}]),
+    (list[dict], {"a": "b"}, [{"a": "b"}]),
     (List[str], "Ringo", ["Ringo"]),
     (list[str], "Ringo", ["Ringo"]),
     (list[str], [], None),
