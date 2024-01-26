@@ -236,8 +236,6 @@ def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token
         if data is not None:
             result_list.append(data)
 
-    # if only one then probably nexus is just responding with the collection for single element
-    # TODO check this with nexus it might be a bug on their side
     if not len(result_list):
         return None
 
