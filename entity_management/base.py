@@ -54,11 +54,6 @@ def _type_class(type_):
     return typing.get_origin(type_) or type_
 
 
-def _is_typing_generic(type_):
-    '''Check if type is typing.Generic.'''
-    return hasattr(type_, '__origin__')
-
-
 def custom_getattr(obj, name):
     '''Overload of __getattribute__ to trigger instantiation of Nexus object
     if the attribute is NotInstantiated'''
