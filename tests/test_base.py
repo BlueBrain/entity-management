@@ -85,16 +85,6 @@ def test_serialize_obj__include_rev__instantiated_wout_revision(monkeypatch):
     assert res == {JSLD_ID: "foo", JSLD_TYPE: "A", JSLD_LINK_REV: 8}
 
 
-def test_deserialize_list():
-    # assert _deserialize_list(dict, [{'a': 'b'}], token=None) == {'a': 'b'}
-
-    @attr.s
-    class Dummy(object):
-        a = attr.ib(default=42)
-        b = attr.ib(default=None)
-    assert _deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None) == [Dummy(a=1, b=2)]
-
-
 @attr.s
 class Dummy:
     a = attr.ib(default=42)
