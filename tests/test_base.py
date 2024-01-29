@@ -170,7 +170,7 @@ def _make_valid_resp(data):
         "_updatedAt": "2024-01-22T10:07:16.052123Z",
         "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
     }
-    return {**data, **essentials}
+    return data | essentials
 
 
 def test_deserialize_json_to_datatype__union(monkeypatch):
