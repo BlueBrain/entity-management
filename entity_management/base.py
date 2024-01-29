@@ -5,10 +5,11 @@ Base simulation entities
    :parts: 2
 '''
 from __future__ import print_function
+import types
 import logging
 import typing
 from datetime import datetime
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping, Sequence
 from pprint import pformat
 from dateutil.parser import parse
 
@@ -19,7 +20,7 @@ from entity_management import nexus
 from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
 from entity_management.settings import (JSLD_ID, JSLD_TYPE, JSLD_LINK_REV, JSLD_CTX,
                                         RDF, NXV, NSG, DASH)
-from entity_management.util import (AttrOf, NotInstantiated, _clean_up_dict, _get_list_params,
+from entity_management.util import (AttrOf, NotInstantiated, _clean_up_dict,
                                     quote)
 
 
@@ -50,18 +51,7 @@ def _copy_sys_meta(src, dest):
 
 def _type_class(type_):
     '''Get type class. First try if it's `typing` type class then fallback to regular type.'''
-    try:
-        try:
-            return type_.__extra__  # 3.6
-        except AttributeError:
-            return type_.__origin__  # 3.7
-    except AttributeError:
-        return type_
-
-
-def _is_typing_generic(type_):
-    '''Check if type is typing.Generic.'''
-    return hasattr(type_, '__origin__')
+    return typing.get_origin(type_) or type_
 
 
 def custom_getattr(obj, name):
@@ -228,87 +218,164 @@ def _serialize_obj(value, include_rev=False):
 
 def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token=None):
     '''Deserialize list of json elements'''
+    # Enforce a list of a single element if data_raw is not a sequence
+    if not _is_data_sequence(data_raw):
+        data_raw = [data_raw]
+
+    if not len(data_raw):
+        return None
+
+    type_args = typing.get_args(data_type)
+
+    list_element_type = type_args[0] if type_args else type(data_raw[0])
+
     result_list = []
-    is_explicit_list = False
-    # find the type of collection element
-    if _is_typing_generic(data_type) and issubclass(_type_class(data_type), list):
-        # the collection was explicitly specified in attr.ib
-        # like typing.List[Distribution]
-        is_explicit_list = True
-        list_element_type = _get_list_params(data_type)[0]
-    else:
-        # nexus returns a collection of one element
-        # element type is the type specified in attr.ib
-        list_element_type = data_type
     for data_element in data_raw:
         data = _deserialize_json_to_datatype(list_element_type, data_element,
                                              base, org, proj, token)
         if data is not None:
             result_list.append(data)
-    # if only one then probably nexus is just responding with the collection for single element
-    # TODO check this with nexus it might be a bug on their side
+
     if not len(result_list):
         return None
-    # do not use collection for single elements unless it was explicitly specified as typing.List
-    elif not is_explicit_list and len(result_list) == 1:
-        return result_list[0]
+
+    return result_list
+
+
+def _deserialize_dict(data_type, data_raw, base, org, proj, token):
+    """Deserialize a dict of json elements."""
+
+    # collapse a sequence of one element if the data_type is a mapping
+    if _is_data_sequence(data_raw):
+        assert len(data_raw) == 1
+        data_raw = data_raw[0]
+
+    if not len(data_raw):
+        return None
+
+    type_args = typing.get_args(data_type)
+    if type_args:
+        assert len(type_args) == 2
+        value_type = type_args[1]
     else:
-        return result_list
+        value_type = None
+
+    return {
+        data_key: _deserialize_json_to_datatype(
+            value_type or type(data_element), data_element, base, org, proj, token
+        )
+        for data_key, data_element in data_raw.items()
+    }
 
 
 def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj=None, token=None):
     '''Deserialize raw data json to data_type'''
-    # pylint: disable=too-many-return-statements,too-many-branches
+    # pylint: disable=too-many-return-statements
     if data_raw is None:
         return None
 
     try:
-        if (not isinstance(data_raw, dict)
-                and not isinstance(data_raw, str)
-                and isinstance(data_raw, Iterable)):
+        if data_type in {str, int, float, bool}:
+            return data_type(data_raw)
+
+        type_class = _type_class(data_type)
+
+        if _is_type_sequence(type_class):
             return _deserialize_list(data_type, data_raw, base, org, proj, token)
 
-        if (  # in case we have bunch of the Identifiable types as a Union
-                (_type_class(data_type) is typing.Union  # noqa
-                    and all(issubclass(cls, Identifiable) for cls in _get_list_params(data_type)))
-                # or we have just Identifiable, make sure it is not typing.Generic
-                or (not _is_typing_generic(data_type) and issubclass(data_type, Identifiable))):
-            resource_id = data_raw[JSLD_ID]
-            type_ = data_raw[JSLD_TYPE]
-            rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
-            # root type was used or union of types, try to recover it from resource_id
-            if data_type is Identifiable or _type_class(data_type) is typing.Union:
-                data_type = nexus.get_type_from_id(resource_id, base, org, proj,
-                                                   token=token, cross_bucket=True)
-            return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
+        if _is_type_mapping(type_class):
+            return _deserialize_dict(data_type, data_raw, base, org, proj, token)
 
-        if not _is_typing_generic(data_type) and issubclass(data_type, OntologyTerm):
+        if _is_type_union(type_class):
+            return _deserialize_union(data_type, data_raw, base, org, proj, token)
+
+        if issubclass(type_class, Identifiable):
+            return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
+
+        if issubclass(type_class, OntologyTerm):
             return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
 
-        if data_type == datetime:
+        if issubclass(type_class, Frozen):
+            return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
+
+        if type_class == datetime:
             return parse(data_raw)
 
-        if not _is_typing_generic(data_type) and issubclass(data_type, Frozen):
-            # nested obj literals should be deserialized before passed to composite obj constructor
-            data = data_type(
-                **{k: _deserialize_json_to_datatype(attr.fields_dict(data_type)[k].type, v,
-                                                    base, org, proj, token)
-                   for k, v in data_raw.items() if k in attr.fields_dict(data_type)})
-            if issubclass(data_type, BlankNode):
-                data._force_attr('_type', data_raw[JSLD_TYPE])
-            return data
-
-        if isinstance(data_raw, Mapping):  # we have dict although in class it is specified as List
-            if _is_typing_generic(data_type) and issubclass(_type_class(data_type), typing.List):
-                return _deserialize_list(data_type, [data_raw], base, org, proj, token)
-            else:
-                return data_type(**_clean_up_dict(data_raw))
-
-        return data_type(data_raw)
+        # attr classes that are not subclasses of Identifiable or Frozen
+        return data_type(**_clean_up_dict(data_raw))
 
     except Exception:
         L.error('Error deserializing type: %s for raw data:\n%s', data_type, pformat(data_raw))
         raise
+
+
+def _deserialize_union(data_type, data_raw, base, org, proj, token):
+    """Deserialize a union of types."""
+    type_args = typing.get_args(data_type)
+
+    # get type class by name from the global registry if present
+    data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
+
+    if all(issubclass(cls, Identifiable) for cls in type_args):
+
+        # otherwise get the class type from the id
+        if not data_type:
+            data_type = nexus.get_type_from_id(data_raw[JSLD_ID], base, org, proj,
+                                               token=token, cross_bucket=True)
+
+        return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
+
+    raise NotImplementedError(
+        "Only Union of Identifiable types is supported.\n"
+        f"data_type: {data_type}\n"
+        f"data_raw : {data_raw}"
+    )
+
+
+def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
+    """Deserialize an Identifiable class."""
+    resource_id = data_raw[JSLD_ID]
+    type_ = data_raw[JSLD_TYPE]
+    rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
+
+    # if generic Identifiable class is declared get the more specific type from the id
+    if data_type is Identifiable:
+        data_type = nexus.get_type_from_id(resource_id, base, org, proj,
+                                           token=token, cross_bucket=True)
+
+    return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
+
+
+def _deserialize_frozen(data_type, data_raw, base, org, proj, token):
+
+    attr_fields = attr.fields_dict(data_type)
+
+    data = data_type(
+        **{
+            k: _deserialize_json_to_datatype(attr_fields[k].type, v, base, org, proj, token)
+            for k, v in data_raw.items()
+            if k in attr_fields
+        }
+    )
+    if issubclass(data_type, BlankNode):
+        data._force_attr('_type', data_raw[JSLD_TYPE])
+    return data
+
+
+def _is_type_sequence(data_type):
+    return data_type is not str and issubclass(data_type, Sequence)
+
+
+def _is_type_mapping(data_type):
+    return issubclass(data_type, Mapping)
+
+
+def _is_data_sequence(data_raw):
+    return not isinstance(data_raw, str) and isinstance(data_raw, Sequence)
+
+
+def _is_type_union(data_type):
+    return data_type in {typing.Union, types.UnionType}
 
 
 def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=None):

@@ -155,7 +155,7 @@ class CellCompositionSummary(Entity):
 
 
 @attributes({
-    'about': AttrOf(str, default=None),
+    'about': AttrOf(List[str], default=None),
     'atlasRelease': AttrOf(AtlasRelease, default=None),
     'brainLocation': AttrOf(BrainLocation, default=None),
     'contribution': AttrOf(List[Contribution], default=None),

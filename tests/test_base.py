@@ -2,7 +2,8 @@
 import io
 import json
 from datetime import datetime
-from typing import List
+from typing import List, Dict
+from dateutil.parser import parse
 
 import pytest
 
@@ -13,7 +14,7 @@ from SPARQLWrapper import Wrapper
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE, JSLD_LINK_REV
 from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
 from entity_management.base import (Identifiable, OntologyTerm,
-                                    _deserialize_list, _serialize_obj, Unconstrained, NotInstantiated)
+                                    _deserialize_list, _deserialize_json_to_datatype, _serialize_obj, Unconstrained, NotInstantiated, Frozen, attributes, AttrOf)
 from entity_management import state
 from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
@@ -84,14 +85,176 @@ def test_serialize_obj__include_rev__instantiated_wout_revision(monkeypatch):
     assert res == {JSLD_ID: "foo", JSLD_TYPE: "A", JSLD_LINK_REV: 8}
 
 
-def test_deserialize_list():
-    assert _deserialize_list(dict, [{'a': 'b'}], token=None) == {'a': 'b'}
+@attr.s
+class Dummy:
+    a = attr.ib(default=42)
+    b = attr.ib(default=None)
 
-    @attr.s
-    class Dummy(object):
-        a = attr.ib(default=42)
-        b = attr.ib(default=None)
-    assert _deserialize_list(List[Dummy], [{'a': 1, 'b': 2}], token=None) == [Dummy(a=1, b=2)]
+
+@attributes({
+    "a": AttrOf(int, default=42),
+    "b": AttrOf(str, default=None),
+})
+class FrozenDummy(Frozen):
+    pass
+
+
+@pytest.mark.parametrize("data_type, data_raw, expected", [
+    (str, None, None),
+    (list, [], None),
+    (dict, {}, None),
+    (datetime, "2024-01-22T10:07:16.052123Z", parse("2024-01-22T10:07:16.052123Z")),
+    (dict, {"a": "b"}, {"a": "b"}),
+    (Dict, {"a": "b"}, {"a": "b"}),
+    (dict, [{"a": "b"}], {"a": "b"}),
+    (Dict, [{"a": "b"}], {"a": "b"}),
+    (list, [{"a": "b"}], [{"a": "b"}]),
+    (List, [{"a": "b"}], [{"a": "b"}]),
+    (list[dict], [{"a": "b"}], [{"a": "b"}]),
+    (list[dict], [], None),
+    (List[dict], [{"a": "b"}], [{"a": "b"}]),
+    (list[dict], {"a": "b"}, [{"a": "b"}]),
+    (List[str], "Ringo", ["Ringo"]),
+    (list[str], "Ringo", ["Ringo"]),
+    (list[str], [], None),
+    (list[str], ["a", "b"], ["a", "b"]),
+    (List[int], 2, [2]),
+    (list[int], 2, [2]),
+    (List[float], 2., [2.]),
+    (list[float], 2., [2.]),
+    (List[bool], True, [True]),
+    (list[bool], False, [False]),
+    (Dummy, {'a': 1, 'b': 2}, Dummy(a=1, b=2)),
+    (List[Dummy], [{'a': 1, 'b': 2}], [Dummy(a=1, b=2)]),
+    (list[Dummy], [{'a': 1, 'b': 2}], [Dummy(a=1, b=2)]),
+    (list[Dummy], [], None),
+    (List[Dummy], {'a': 1, 'b': 2}, [Dummy(a=1, b=2)]),
+    (list[Dummy], {'a': 1, 'b': 2}, [Dummy(a=1, b=2)]),
+    (list[Dummy], [{'a': 1, 'b': 2}, {'a': 2, 'b': 3}], [Dummy(a=1, b=2), Dummy(a=2, b=3)]),
+    (FrozenDummy, {'a': 1, 'b': "2"}, FrozenDummy(a=1, b="2")),
+    (List[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
+    (list[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
+    (list[FrozenDummy], [], None),
+    (dict[str, Dummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': Dummy(a=1, b="2")}),
+    (dict[str, FrozenDummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': FrozenDummy(a=1, b="2")}),
+    (dict[str, list[Dummy]], {'foo': {'a': 1, 'b': "2"}}, {'foo': [Dummy(a=1, b="2")]}),
+    (
+        OntologyTerm,
+        {"@id": "foo", "label": "bar", "@type": "zee"},
+        OntologyTerm(url="foo", label="bar"),
+    )
+])
+def test_deserialize_json_to_datatype(data_type, data_raw, expected):
+    assert _deserialize_json_to_datatype(data_type, data_raw) == expected
+
+
+def _make_valid_resp(data):
+    essentials = {
+        "@context": [
+            "https://bluebrain.github.io/nexus/contexts/metadata.json",
+            "https://bbp.neuroshapes.org"
+        ], 
+        "_rev": 1,
+        "_project": "my-project",
+        "_self":  "my-self",
+        "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
+        "_createdAt": "2024-01-22T10:07:16.052123Z",
+        "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
+        "_deprecated": False,
+        "_updatedAt": "2024-01-22T10:07:16.052123Z",
+        "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
+    }
+    return data | essentials
+
+
+def test_deserialize_json_to_datatype__union(monkeypatch):
+
+    @attributes({
+        "a": AttrOf(int, default=42),
+        "b": AttrOf(str, default=None),
+    })
+    class T1(Identifiable):
+        pass
+
+
+    @attributes({
+        "c": AttrOf(int, default=42),
+        "d": AttrOf(str, default=None),
+    })
+    class T2(Identifiable):
+        pass
+
+    data_raw_t1 = _make_valid_resp({
+        "@id": "t1-id",
+        "@type": "T1",
+        "a": 1,
+        "b": "2",
+    })
+
+    monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t1)
+
+    res = _deserialize_json_to_datatype(T1 | T2, data_raw_t1)
+    assert res == T1(a=1, b="2")
+
+    data_raw_t2 = _make_valid_resp({
+        "@id": "t2-id",
+        "@type": "T2",
+        "c": 1,
+        "d": "2",
+    })
+
+    monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t2)
+
+    res = _deserialize_json_to_datatype(T1 | T2, data_raw_t2)
+    assert res == T2(c=1, d="2")
+
+
+def test_deserialize_json_to_datatype__list_union(monkeypatch):
+
+    @attributes({
+        "a": AttrOf(int, default=42),
+        "b": AttrOf(str, default=None),
+    })
+    class T1(Identifiable):
+        pass
+
+    @attributes({
+        "c": AttrOf(int, default=42),
+        "d": AttrOf(str, default=None),
+    })
+    class T2(Identifiable):
+        pass
+
+    @attributes({
+        "e": AttrOf(int, default=42),
+        "f": AttrOf(str, default=None),
+    })
+    class T3(Identifiable):
+        pass
+
+    data_raw_t1= _make_valid_resp({
+        "@id": "t1-id",
+        "@type": "T1",
+        "a": 2,
+        "b": "3",
+    })
+    data_raw_t3 = _make_valid_resp({
+        "@id": "t3-id",
+        "@type": "T3",
+        "e": 4,
+        "f": "5",
+    })
+
+    def mock_load_by_id(resource_id, *args, **kwargs):
+        if resource_id == "t1-id?rev=1":
+            return data_raw_t1
+        if resource_id == "t3-id?rev=1":
+            return data_raw_t3
+        raise
+
+    monkeypatch.setattr(nexus, "load_by_id", mock_load_by_id)
+    res = _deserialize_json_to_datatype(list[T1 | T2 | T3], [data_raw_t3, data_raw_t1])
+    assert res == [T3(e=4, f="5"), T1(a=2, b="3")]
 
 
 @pytest.fixture(name='unconstrained_resp', scope='session')
