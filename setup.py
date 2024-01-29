@@ -25,6 +25,7 @@ setup(
         'devtools[pygments]',
         'click',
     ],
+    python_requires=">=3.10",
     tests_require=TESTS_REQUIRE,
     extras_require={
         'extension_tests': TESTS_REQUIRE,
