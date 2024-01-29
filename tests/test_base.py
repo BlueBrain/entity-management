@@ -148,7 +148,11 @@ class FrozenDummy(Frozen):
     (dict[str, Dummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': Dummy(a=1, b="2")}),
     (dict[str, FrozenDummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': FrozenDummy(a=1, b="2")}),
     (dict[str, list[Dummy]], {'foo': {'a': 1, 'b': "2"}}, {'foo': [Dummy(a=1, b="2")]}),
-    (OntologyTerm, {"@id": "foo", "label": "bar", "@type": "zee"}, OntologyTerm(url="foo", label="bar"))
+    (
+        OntologyTerm,
+        {"@id": "foo", "label": "bar", "@type": "zee"},
+        OntologyTerm(url="foo", label="bar"),
+    )
 ])
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
     assert _deserialize_json_to_datatype(data_type, data_raw) == expected
