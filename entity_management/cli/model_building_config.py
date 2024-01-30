@@ -134,15 +134,6 @@ def download_and_get_ids_from_distribution(entity, path, mapping):
     return ids
 
 
-def _save_entity(entity, path):
-    filename = _get_entity_filename(entity)
-    print(f"    {filename}")
-    with open(os.path.join(path, filename), 'w', encoding='utf-8') as fd:
-        json.dump(entity, fd)
-
-    return filename
-
-
 def _download_entity_get_ids(id_, path, mapping):
     def _err_exit():
         print(f"\nERROR: Can't fetch: {id_}\n")
