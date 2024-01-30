@@ -5,7 +5,7 @@ import json
 import logging
 import attr
 from requests.exceptions import JSONDecodeError
-from entity_management.nexus import load_by_url, download_file, file_as_dict
+from entity_management.nexus import load_by_id, download_file, file_as_dict
 from entity_management.config import MacroConnectomeConfig, BrainRegionSelectorConfig
 from entity_management.simulation import DetailedCircuit
 from entity_management.atlas import CellComposition
@@ -80,6 +80,8 @@ def _get_ids_from_dict(config):
         id_ = _get_key(config, 'id')
         type_ = _get_key(config, 'type')
         if id_ and type_:
+            if rev := (_get_key(config, '_rev') or _get_key(config, 'rev')):
+                id_ = f'{id_}?rev={rev}'
             ids.add(id_)
         for key, item in config.items():
             if key not in UNALLOWED_ID_KEYS:
@@ -147,7 +149,7 @@ def _download_entity_get_ids(id_, path, mapping):
         return set()
 
     try:
-        entity = load_by_url(id_)
+        entity = load_by_id(id_)
     except JSONDecodeError:
         # In case id_ is a web URL instead of 'Nexus Address'
         return _err_exit()
