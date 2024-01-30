@@ -13,6 +13,12 @@ from entity_management.atlas import CellComposition
 UNALLOWED_ID_KEYS = {'store', 'contribution'}
 
 
+def _write_json(dict_, dir_, filename):
+    print(f"    {filename}")
+    with open(os.path.join(dir_, filename), 'w', encoding='utf-8') as fd:
+        json.dump(dict_, fd, indent=2)
+
+
 def _used_in_as_dict(used_in, config):
     result = {"id": used_in.generated.get_id()}
 
@@ -149,7 +155,9 @@ def _download_entity_get_ids(id_, path, mapping):
     if not entity:
         return _err_exit()
 
-    mapping[id_] = _save_entity(entity, path)
+    filename = _get_entity_filename(entity)
+    _write_json(entity, path, filename)
+    mapping[id_] = filename
 
     entity.pop('@id', None)
     ids = _get_ids_from_dict(entity)
@@ -178,8 +186,4 @@ def download_model_config(model_config, path, depth):
     os.makedirs(path, exist_ok=True)
     print(f"\nSaving files to '{path}':\n")
     mapping = _download_entity_recursive(model_config.get_id(), path, depth)
-
-    filename = "id_url_file_mapping.json"
-    with open(os.path.join(path, filename), 'w', encoding='utf-8') as fd:
-        print(f"    {filename}")
-        json.dump(mapping, fd, indent=4)
+    _write_json(mapping, path, "id_url_file_mapping.json")
