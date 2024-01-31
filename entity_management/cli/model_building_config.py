@@ -10,12 +10,12 @@ from entity_management.config import MacroConnectomeConfig, BrainRegionSelectorC
 from entity_management.simulation import DetailedCircuit
 from entity_management.atlas import CellComposition
 
-UNALLOWED_ID_KEYS = {'store', 'contribution'}
+UNALLOWED_ID_KEYS = {"store", "contribution"}
 
 
 def _write_json(dict_, dir_, filename):
     print(f"    {filename}")
-    with open(os.path.join(dir_, filename), 'w', encoding='utf-8') as fd:
+    with open(os.path.join(dir_, filename), "w", encoding="utf-8") as fd:
         json.dump(dict_, fd, indent=2)
 
 
@@ -33,7 +33,7 @@ def _used_in_as_dict(used_in, config):
         pass  # the `generated` points to a clone of the MacroConnectomeConfig
     else:
         logging.warning(
-            "Unexpected type of `used_in` in \"%s\": %s (id: %s)",
+            'Unexpected type of `used_in` in "%s": %s (id: %s)',
             config.name,
             type(used_in.generated),
             used_in.generated.get_id(),
@@ -52,8 +52,9 @@ def _configs_as_dict(configs):
             "description": config.description,
             "generatorName": config.generatorName,
             "content": config.distribution.contentUrl,
-            "used_in": _config_usage_as_list(config)
-        } for config in configs
+            "used_in": _config_usage_as_list(config),
+        }
+        for config in configs
     }
 
 
@@ -66,22 +67,22 @@ def model_building_config_as_dict(model_config):
     return {
         "name": model_config.name,
         "description": model_config.description,
-        "configs": _configs_as_dict(_iter_configs(model_config.configs))
+        "configs": _configs_as_dict(_iter_configs(model_config.configs)),
     }
 
 
 def _get_key(config, key):
-    return config.get(f'@{key}') or config.get(key)
+    return config.get(f"@{key}") or config.get(key)
 
 
 def _get_ids_from_dict(config):
     ids = set()
     if isinstance(config, dict):
-        id_ = _get_key(config, 'id')
-        type_ = _get_key(config, 'type')
+        id_ = _get_key(config, "id")
+        type_ = _get_key(config, "type")
         if id_ and type_:
-            if rev := (_get_key(config, '_rev') or _get_key(config, 'rev')):
-                id_ = f'{id_}?rev={rev}'
+            if rev := (_get_key(config, "_rev") or _get_key(config, "rev")):
+                id_ = f"{id_}?rev={rev}"
             ids.add(id_)
         for key, item in config.items():
             if key not in UNALLOWED_ID_KEYS:
@@ -91,15 +92,15 @@ def _get_ids_from_dict(config):
 
 
 def _get_timestamp(entity):
-    return re.sub(':', '-', entity.get('_createdAt', ''))
+    return re.sub(":", "-", entity.get("_createdAt", ""))
 
 
 def _get_type(entity):
-    types_list = entity['@type']
+    types_list = entity["@type"]
 
     if not isinstance(types_list, list):
         return types_list
-    elif len(types := set(types_list) - {'Entity', 'Dataset'}) > 0:
+    elif len(types := set(types_list) - {"Entity", "Dataset"}) > 0:
         return list(types)[0]
 
     return types_list[0]
@@ -116,18 +117,18 @@ def _get_distribution_filename(entity, distribution_item):
 def download_and_get_ids_from_distribution(entity, path, mapping):
     """Download the distribution files and get ids from them (if JSON)."""
     ids = set()
-    distribution = entity.get('distribution', [])
+    distribution = entity.get("distribution", [])
 
     if not isinstance(distribution, list):
         distribution = [distribution]
 
     for d_item in distribution:
-        if url := d_item.get('contentUrl'):
+        if url := d_item.get("contentUrl"):
             filename = _get_distribution_filename(entity, d_item)
             print(f"    {filename}")
             download_file(url, path, file_name=filename)
             mapping[url] = filename
-            if d_item.get('encodingFormat', '') == 'application/json':
+            if d_item.get("encodingFormat", "") == "application/json":
                 content = file_as_dict(url)
                 ids |= _get_ids_from_dict(content)
 
@@ -152,7 +153,7 @@ def _download_entity_get_ids(id_, path, mapping):
     _write_json(entity, path, filename)
     mapping[id_] = filename
 
-    entity.pop('@id', None)
+    entity.pop("@id", None)
     ids = _get_ids_from_dict(entity)
     ids |= download_and_get_ids_from_distribution(entity, path, mapping)
 
