@@ -19,7 +19,7 @@ def _write_json(dict_, dir_, filename):
         json.dump(dict_, fd, indent=2)
 
 
-def _used_in_as_dict(used_in, config):
+def _used_in_as_dict(used_in, config):  # pragma: no cover
     result = {"id": used_in.generated.get_id()}
 
     if isinstance(used_in.generated, DetailedCircuit):
