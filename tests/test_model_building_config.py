@@ -15,10 +15,6 @@ def test__write_json(tmp_path):
     assert test_dict == res_dict
 
 
-def test__used_in_as_dict():
-    pass
-
-
 @patch.object(test_module, "_used_in_as_dict")
 def test__config_usage_as_list(mock_used_dict):
     config = Mock(used_in=[f"item_{i}" for i in range(5)])
@@ -67,7 +63,6 @@ def model_building_config_as_dict(model_config):
         "description": model_config.description,
         "configs": _configs_as_dict(_iter_configs(model_config.configs)),
     }
-    pass
 
 
 def test__get_key():
