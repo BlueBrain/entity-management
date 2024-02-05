@@ -360,8 +360,8 @@ class Activity(Identifiable):
         if (
             attr_value is not NotInstantiated  # skip lazy loaded entities
             and self._id is None
-            and self.startedAtTime is None
-        ):  # pylint: disable=no-member
+            and self.startedAtTime is None  # pylint: disable=no-member
+        ):
             self._force_attr("startedAtTime", datetime.utcnow())
 
     def publish(
