@@ -4,12 +4,11 @@
     on how to use the objects
 
 """
-from entity_management.base import (
-    attributes, _NexusBySparqlIterator, Frozen)
-from entity_management.workflow import GeneratorTaskActivity
-from entity_management.util import AttrOf
+
+from entity_management.base import Frozen, _NexusBySparqlIterator, attributes
 from entity_management.core import EntityMixin, Identifiable
-from entity_management.workflow import BbpWorkflowConfig
+from entity_management.util import AttrOf
+from entity_management.workflow import BbpWorkflowConfig, GeneratorTaskActivity
 
 
 @attributes(
@@ -84,25 +83,29 @@ class MEModelConfig(_SubConfig):
     """MEModelConfig"""
 
 
-@attributes({
-    "brainRegionSelectorConfig": AttrOf(BrainRegionSelectorConfig, default=None),
-    "cellCompositionConfig": AttrOf(CellCompositionConfig),
-    "cellPositionConfig": AttrOf(CellPositionConfig),
-    "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig),
-    "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig, default=None),
-    "macroConnectomeConfig": AttrOf(MacroConnectomeConfig),
-    "microConnectomeConfig": AttrOf(MicroConnectomeConfig),
-    "synapseConfig": AttrOf(SynapseConfig),
-    "meModelConfig": AttrOf(MEModelConfig, default=None),
-})
+@attributes(
+    {
+        "brainRegionSelectorConfig": AttrOf(BrainRegionSelectorConfig, default=None),
+        "cellCompositionConfig": AttrOf(CellCompositionConfig),
+        "cellPositionConfig": AttrOf(CellPositionConfig),
+        "morphologyAssignmentConfig": AttrOf(MorphologyAssignmentConfig),
+        "eModelAssignmentConfig": AttrOf(EModelAssignmentConfig, default=None),
+        "macroConnectomeConfig": AttrOf(MacroConnectomeConfig),
+        "microConnectomeConfig": AttrOf(MicroConnectomeConfig),
+        "synapseConfig": AttrOf(SynapseConfig),
+        "meModelConfig": AttrOf(MEModelConfig, default=None),
+    }
+)
 class Configs(Frozen):
     """Sub configs of ModelBuildingConfig."""
 
 
-@attributes({
-    'name': AttrOf(str),
-    'description': AttrOf(str, default=None),
-    "configs": AttrOf(Configs),
-})
+@attributes(
+    {
+        "name": AttrOf(str),
+        "description": AttrOf(str, default=None),
+        "configs": AttrOf(Configs),
+    }
+)
 class ModelBuildingConfig(EntityMixin, Identifiable):
     """ModelBuildingConfig"""

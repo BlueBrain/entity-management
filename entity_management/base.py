@@ -1,63 +1,69 @@
-'''
+"""
 Base simulation entities
 
 .. inheritance-diagram:: entity_management.base
    :parts: 2
-'''
-from __future__ import print_function
-import types
+"""
+
 import logging
+import types
 import typing
-from datetime import datetime
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from pprint import pformat
-from dateutil.parser import parse
 
 import attr
-from rdflib.graph import Graph, BNode
+from dateutil.parser import parse
+from rdflib.graph import BNode, Graph
 
 from entity_management import nexus
-from entity_management.state import get_org, get_proj, get_base_resources, get_base_url
-from entity_management.settings import (JSLD_ID, JSLD_TYPE, JSLD_LINK_REV, JSLD_CTX,
-                                        RDF, NXV, NSG, DASH)
-from entity_management.util import (AttrOf, NotInstantiated, _clean_up_dict,
-                                    quote)
-
+from entity_management.settings import (
+    DASH,
+    JSLD_CTX,
+    JSLD_ID,
+    JSLD_LINK_REV,
+    JSLD_TYPE,
+    NSG,
+    NXV,
+    RDF,
+)
+from entity_management.state import get_base_resources, get_base_url, get_org, get_proj
+from entity_management.util import AttrOf, NotInstantiated, _clean_up_dict, quote
 
 L = logging.getLogger(__name__)
 
 SYS_ATTRS = {
-    '_id',
-    '_type',
-    '_context',
-    '_constrainedBy',
-    '_createdAt',
-    '_createdBy',
-    '_deprecated',
-    '_project',
-    '_rev',
-    '_self',
-    '_updatedAt',
-    '_updatedBy'
+    "_id",
+    "_type",
+    "_context",
+    "_constrainedBy",
+    "_createdAt",
+    "_createdBy",
+    "_deprecated",
+    "_project",
+    "_rev",
+    "_self",
+    "_updatedAt",
+    "_updatedBy",
 }
 
 
 def _copy_sys_meta(src, dest):
-    '''Copy system metadata from source to destination entity.'''
+    """Copy system metadata from source to destination entity."""
     for attribute in SYS_ATTRS:
         if hasattr(src, attribute):
             dest._force_attr(attribute, getattr(src, attribute))
 
 
 def _type_class(type_):
-    '''Get type class. First try if it's `typing` type class then fallback to regular type.'''
+    """Get type class. First try if it's `typing` type class then fallback to regular type."""
     return typing.get_origin(type_) or type_
 
 
 def custom_getattr(obj, name):
-    '''Overload of __getattribute__ to trigger instantiation of Nexus object
-    if the attribute is NotInstantiated'''
-    if name == '__class__' or not isinstance(obj, Identifiable):
+    """Overload of __getattribute__ to trigger instantiation of Nexus object
+    if the attribute is NotInstantiated"""
+    if name == "__class__" or not isinstance(obj, Identifiable):
         return object.__getattribute__(obj, name)
 
     value = object.__getattribute__(obj, name)
@@ -69,7 +75,7 @@ def custom_getattr(obj, name):
 
 
 def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
-    '''decorator to simplify creation of classes that have args and kwargs'''
+    """decorator to simplify creation of classes that have args and kwargs"""
     if attr_dict is None:
         attr_dict = {}  # just inherit attributes from parent class
 
@@ -77,8 +83,9 @@ def attributes(attr_dict=None, repr=True):  # pylint: disable=redefined-builtin
 
 
 @attr.s
-class _NexusBySchemaIterator():
-    '''Nexus paginated list iterator.'''
+class _NexusBySchemaIterator:
+    """Nexus paginated list iterator."""
+
     cls = attr.ib()
     total_items = attr.ib(type=int, default=None)
     page_from = attr.ib(type=int, default=0)
@@ -95,20 +102,24 @@ class _NexusBySchemaIterator():
         return self
 
     def __next__(self):
-        '''Return next entity from the paginated result set, fetch next page if required'''
+        """Return next entity from the paginated result set, fetch next page if required"""
         # fetch next page if needed
         if self.total_items is None or self.page_from + self.page_size == self._item_index:
             self.page_from = self._item_index
             data = nexus.load_by_url(
                 self.cls.get_constrained_url(base=self.base, org=self.org, proj=self.proj),
                 stream=True,
-                params={'from': self.page_from,
-                        'size': self.page_size,
-                        'deprecated': self.deprecated},
-                token=self.use_auth)
-            graph = Graph().parse(data=data, format='json-ld')
-            self.total_items = [o for s, o in graph.subject_objects(NXV.total)
-                                if isinstance(s, BNode)][0].value
+                params={
+                    "from": self.page_from,
+                    "size": self.page_size,
+                    "deprecated": self.deprecated,
+                },
+                token=self.use_auth,
+            )
+            graph = Graph().parse(data=data, format="json-ld")
+            self.total_items = [
+                o for s, o in graph.subject_objects(NXV.total) if isinstance(s, BNode)
+            ][0].value
             self._page = [str(subj) for subj in graph.subjects(RDF.type, self.cls._nsg_type)]
 
         if self._item_index >= self.total_items:
@@ -120,8 +131,9 @@ class _NexusBySchemaIterator():
 
 
 @attr.s
-class _NexusBySparqlIterator():
-    '''Nexus paginated list iterator.'''
+class _NexusBySparqlIterator:
+    """Nexus paginated list iterator."""
+
     cls = attr.ib()
     query = attr.ib(type=str)
     base = attr.ib(type=str, default=None)
@@ -135,15 +147,13 @@ class _NexusBySparqlIterator():
         return self
 
     def __next__(self):
-        '''Return next entity from the paginated result set, fetch next page if required'''
+        """Return next entity from the paginated result set, fetch next page if required"""
         # fetch next page if needed
         if self._page is None:
-            json = nexus.sparql_query(self.query,
-                                      base=self.base,
-                                      org=self.org,
-                                      proj=self.proj,
-                                      token=self.use_auth)
-            self._page = [i['entity']['value'] for i in json['results']['bindings']]
+            json = nexus.sparql_query(
+                self.query, base=self.base, org=self.org, proj=self.proj, token=self.use_auth
+            )
+            self._page = [i["entity"]["value"] for i in json["results"]["bindings"]]
 
         if self._item_index >= len(self._page):
             raise StopIteration()
@@ -154,38 +164,38 @@ class _NexusBySparqlIterator():
 
 
 @attr.s(frozen=True)
-class Frozen():
-    '''Utility class making derived classed immutable. Use `evolve` method to introduce changes.'''
+class Frozen:
+    """Utility class making derived classed immutable. Use `evolve` method to introduce changes."""
 
     def _force_attr(self, attribute, value):
-        '''Helper method to enforce attribute value on frozen instance'''
+        """Helper method to enforce attribute value on frozen instance"""
         object.__setattr__(self, attribute, value)
 
     def evolve(self, **changes):
-        '''Create new instance of the frozen(immutable) object with *changes* applied.
+        """Create new instance of the frozen(immutable) object with *changes* applied.
 
         Args:
             changes: Keyword changes in the new copy, should be a subset of class
                 constructor(__init__) keyword arguments.
         Returns:
             New instance of the same class with changes applied.
-        '''
+        """
 
         obj = attr.evolve(self, **changes)
         return obj
 
 
 class BlankNode(Frozen):
-    '''Blank node.'''
+    """Blank node."""
 
     def __attrs_post_init__(self):
-        self._force_attr('_type', type(self).__name__)
+        self._force_attr("_type", type(self).__name__)
 
 
 def _serialize_obj(value, include_rev=False):
-    '''Serialize object'''
+    """Serialize object"""
     if isinstance(value, OntologyTerm):
-        return {JSLD_ID: value.url, 'label': value.label}
+        return {JSLD_ID: value.url, "label": value.label}
 
     if isinstance(value, Identifiable):
         if include_rev:
@@ -205,11 +215,10 @@ def _serialize_obj(value, include_rev=False):
                 if isinstance(attr_value, (tuple, list, set)):
                     rv[attr_name] = [_serialize_obj(i) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    rv[attr_name] = dict((kk, _serialize_obj(vv))
-                                         for kk, vv in attr_value.items())
+                    rv[attr_name] = {kk: _serialize_obj(vv) for kk, vv in attr_value.items()}
                 else:
                     rv[attr_name] = _serialize_obj(attr_value)
-        if hasattr(value, '_type'):  # BlankNode have types
+        if hasattr(value, "_type"):  # BlankNode have types
             rv[JSLD_TYPE] = value._type
         return rv
 
@@ -217,7 +226,7 @@ def _serialize_obj(value, include_rev=False):
 
 
 def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token=None):
-    '''Deserialize list of json elements'''
+    """Deserialize list of json elements"""
     # Enforce a list of a single element if data_raw is not a sequence
     if not _is_data_sequence(data_raw):
         data_raw = [data_raw]
@@ -231,8 +240,9 @@ def _deserialize_list(data_type, data_raw, base=None, org=None, proj=None, token
 
     result_list = []
     for data_element in data_raw:
-        data = _deserialize_json_to_datatype(list_element_type, data_element,
-                                             base, org, proj, token)
+        data = _deserialize_json_to_datatype(
+            list_element_type, data_element, base, org, proj, token
+        )
         if data is not None:
             result_list.append(data)
 
@@ -269,7 +279,7 @@ def _deserialize_dict(data_type, data_raw, base, org, proj, token):
 
 
 def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj=None, token=None):
-    '''Deserialize raw data json to data_type'''
+    """Deserialize raw data json to data_type"""
     # pylint: disable=too-many-return-statements
     if data_raw is None:
         return None
@@ -293,7 +303,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
 
         if issubclass(type_class, OntologyTerm):
-            return data_type(url=data_raw[JSLD_ID], label=data_raw['label'])
+            return data_type(url=data_raw[JSLD_ID], label=data_raw["label"])
 
         if issubclass(type_class, Frozen):
             return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
@@ -305,7 +315,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
         return data_type(**_clean_up_dict(data_raw))
 
     except Exception:
-        L.error('Error deserializing type: %s for raw data:\n%s', data_type, pformat(data_raw))
+        L.error("Error deserializing type: %s for raw data:\n%s", data_type, pformat(data_raw))
         raise
 
 
@@ -320,8 +330,9 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
 
         # otherwise get the class type from the id
         if not data_type:
-            data_type = nexus.get_type_from_id(data_raw[JSLD_ID], base, org, proj,
-                                               token=token, cross_bucket=True)
+            data_type = nexus.get_type_from_id(
+                data_raw[JSLD_ID], base, org, proj, token=token, cross_bucket=True
+            )
 
         return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
 
@@ -340,8 +351,9 @@ def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
 
     # if generic Identifiable class is declared get the more specific type from the id
     if data_type is Identifiable:
-        data_type = nexus.get_type_from_id(resource_id, base, org, proj,
-                                           token=token, cross_bucket=True)
+        data_type = nexus.get_type_from_id(
+            resource_id, base, org, proj, token=token, cross_bucket=True
+        )
 
     return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
 
@@ -358,7 +370,7 @@ def _deserialize_frozen(data_type, data_raw, base, org, proj, token):
         }
     )
     if issubclass(data_type, BlankNode):
-        data._force_attr('_type', data_raw[JSLD_TYPE])
+        data._force_attr("_type", data_raw[JSLD_TYPE])
     return data
 
 
@@ -379,7 +391,7 @@ def _is_type_union(data_type):
 
 
 def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=None):
-    '''Build class instance from json.'''
+    """Build class instance from json."""
     if cls == Unconstrained:
         instance = Unconstrained(json=json_ld)
     else:
@@ -389,14 +401,15 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
             raw = json_ld.get(field.name)
             if field.init and raw is not None:
                 type_ = field.type
-                init_args[field.name] = _deserialize_json_to_datatype(type_, raw,
-                                                                      base, org, proj, token)
+                init_args[field.name] = _deserialize_json_to_datatype(
+                    type_, raw, base, org, proj, token
+                )
         instance = cls(**init_args)
 
     # augment instance with extra params present in the response
-    instance._force_attr('_id', json_ld.get(JSLD_ID))
-    instance._force_attr('_type', json_ld.get(JSLD_TYPE))
-    instance._force_attr('_context', json_ld.get(JSLD_CTX))
+    instance._force_attr("_id", json_ld.get(JSLD_ID))
+    instance._force_attr("_type", json_ld.get(JSLD_TYPE))
+    instance._force_attr("_context", json_ld.get(JSLD_CTX))
     for key, value in json_ld.items():
         if key in SYS_ATTRS:
             instance._force_attr(key, value)
@@ -412,7 +425,7 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
 
 
 class _IdentifiableMeta(type):
-    '''Initialize class variables.'''
+    """Initialize class variables."""
 
     def __init__(cls, name, bases, attrs):
         # Always register constrained type hint, so we can recover in a unique way class from
@@ -425,15 +438,16 @@ class _IdentifiableMeta(type):
         cls._nsg_type = NSG[name]
         cls.__getattribute__ = custom_getattr
 
-        super(_IdentifiableMeta, cls).__init__(name, bases, attrs)
+        super().__init__(name, bases, attrs)
 
 
 @attr.s
 class Identifiable(Frozen, metaclass=_IdentifiableMeta):
-    '''Represents collapsed/lazy loaded entity having type and id.
+    """Represents collapsed/lazy loaded entity having type and id.
     Access to any attributes will load the actual entity from nexus and forward property
     requests to that entity.
-    '''
+    """
+
     _id = None
     _self = NotInstantiated
     _type = NotInstantiated
@@ -448,30 +462,40 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     _updatedBy = NotInstantiated
 
     @classmethod
-    def _lazy_init(cls, resource_id, type_=NotInstantiated, rev=NotInstantiated,
-                   base=None, org=None, proj=None):
-        '''Instantiate an object and put all its attributes to NotInstantiated.'''
+    def _lazy_init(
+        cls, resource_id, type_=NotInstantiated, rev=NotInstantiated, base=None, org=None, proj=None
+    ):
+        """Instantiate an object and put all its attributes to NotInstantiated."""
         # Running the validator has the side effect of instantiating
         # the object, which we do not want
         attr.set_run_validators(False)
         obj = cls(**{arg.name: NotInstantiated for arg in attr.fields(cls)})
-        obj._force_attr('_id', resource_id)
-        obj._force_attr('_type', type_)
-        obj._force_attr('_rev', rev)
-        obj._force_attr('_lazy_meta_', (base, org, proj))
+        obj._force_attr("_id", resource_id)
+        obj._force_attr("_type", type_)
+        obj._force_attr("_rev", rev)
+        obj._force_attr("_lazy_meta_", (base, org, proj))
         attr.set_run_validators(True)
         return obj
 
     @classmethod
     def get_constrained_url(cls, base=None, org=None, proj=None):
-        '''Get schema constrained url.'''
+        """Get schema constrained url."""
         constrained_by = str(DASH[cls.__name__.lower()])
-        return f'{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/{quote(constrained_by)}'
+        return f"{get_base_resources(base)}/{get_org(org)}/{get_proj(proj)}/{quote(constrained_by)}"
 
     @classmethod
-    def from_id(cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None,
-                cross_bucket=False, **kwargs):
-        '''
+    def from_id(
+        cls,
+        resource_id,
+        on_no_result=None,
+        base=None,
+        org=None,
+        proj=None,
+        use_auth=None,
+        cross_bucket=False,
+        **kwargs,
+    ):
+        """
         Load entity from resource id.
 
         Args:
@@ -481,7 +505,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             kwargs: Keyword arguments which will be forwarded to ``on_no_result`` function.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
-        '''
+        """
         json_ld = nexus.load_by_id(
             resource_id=resource_id,
             cross_bucket=cross_bucket,
@@ -492,64 +516,67 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         )
 
         if json_ld is not None:
-            return _deserialize_resource(json_ld, cls,
-                                         base=base, org=org, proj=proj, token=use_auth)
+            return _deserialize_resource(
+                json_ld, cls, base=base, org=org, proj=proj, token=use_auth
+            )
         elif on_no_result is not None:
-            return on_no_result(resource_id,
-                                base=base, org=org, proj=proj, use_auth=use_auth, **kwargs)
+            return on_no_result(
+                resource_id, base=base, org=org, proj=proj, use_auth=use_auth, **kwargs
+            )
         else:
             return None
 
     @classmethod
     def from_url(cls, url, base=None, org=None, proj=None, use_auth=None):
-        '''
+        """
         Load entity from url.
 
         Args:
             url (str): Full url to the entity in nexus. ``_self`` content is a valid full URL.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
-        '''
+        """
         json_ld = nexus.load_by_url(url, token=use_auth)
 
         if json_ld is not None:
-            return _deserialize_resource(json_ld, cls,
-                                         base=base, org=org, proj=proj, token=use_auth)
+            return _deserialize_resource(
+                json_ld, cls, base=base, org=org, proj=proj, token=use_auth
+            )
         else:
             return None
 
     @classmethod
     def list_by_schema(cls, **kwargs):
-        '''List all instances belonging to the schema this type defines.
+        """List all instances belonging to the schema this type defines.
 
         Args:
             changes: Keyword changes in the new copy, should be a subset of class
                 constructor(__init__) keyword arguments.
         Returns:
             New instance of the same class with changes applied.
-        '''
+        """
         return _NexusBySchemaIterator(cls, **kwargs)
 
     def get_id(self):
-        '''Retrieve _id property.'''
+        """Retrieve _id property."""
         return self._id
 
     def get_rev(self):
-        '''Retrieve _rev property.'''
+        """Retrieve _rev property."""
         return self._rev
 
     def get_url(self):
-        '''Retrieve URL of the nexus entity.
+        """Retrieve URL of the nexus entity.
 
         Returns:
             Content of the ``_self`` property.
-        '''
+        """
         return self._self
 
     def as_json_ld(self, include_rev=False):
-        '''Get json-ld representation of the Entity
+        """Get json-ld representation of the Entity
         Return json with added json-ld properties such as @context and @type
-        '''
+        """
         if isinstance(self, Unconstrained):
             return self.json  # pylint: disable=no-member
 
@@ -561,14 +588,15 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 if isinstance(attr_value, (tuple, list, set)):
                     json_ld[attr_name] = [_serialize_obj(i, include_rev) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    json_ld[attr_name] = dict((kk, _serialize_obj(vv, include_rev))
-                                              for kk, vv in attr_value.items())
+                    json_ld[attr_name] = {
+                        kk: _serialize_obj(vv, include_rev) for kk, vv in attr_value.items()
+                    }
                 else:
                     json_ld[attr_name] = _serialize_obj(attr_value, include_rev)
-        if hasattr(self, '_context') and self._context is not NotInstantiated:
+        if hasattr(self, "_context") and self._context is not NotInstantiated:
             json_ld[JSLD_CTX] = self._context
         else:
-            json_ld[JSLD_CTX] = ['https://bbp.neuroshapes.org']
+            json_ld[JSLD_CTX] = ["https://bbp.neuroshapes.org"]
             # json_ld[JSLD_CTX] = ['https://bluebrainnexus.io/contexts/shacl-20170720.json',
             #                      'https://bluebrainnexus.io/contexts/resource.json',
             #                      'https://incf.github.io/neuroshapes/contexts/data.json']
@@ -581,9 +609,17 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             json_ld[JSLD_TYPE] = type(self).__name__
         return json_ld
 
-    def publish(self, resource_id=None,
-                sync_index=False, base=None, org=None, proj=None, use_auth=None, include_rev=False):
-        '''Create or update entity in nexus. Makes a remote call to nexus instance to persist
+    def publish(
+        self,
+        resource_id=None,
+        sync_index=False,
+        base=None,
+        org=None,
+        proj=None,
+        use_auth=None,
+        include_rev=False,
+    ):
+        """Create or update entity in nexus. Makes a remote call to nexus instance to persist
         entity attributes.
 
         Args:
@@ -593,15 +629,23 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             include_rev (bool): Whether to include _rev in the linked entities or not.
         Returns:
             New instance of the same class with revision updated.
-        '''
+        """
         if self._id:
-            json_ld = nexus.update(self._self, self._rev, self.as_json_ld(include_rev),
-                                   sync_index=sync_index, token=use_auth)
+            json_ld = nexus.update(
+                self._self,
+                self._rev,
+                self.as_json_ld(include_rev),
+                sync_index=sync_index,
+                token=use_auth,
+            )
         else:
-            json_ld = nexus.create(get_base_url(base, org, proj),
-                                   self.as_json_ld(include_rev),
-                                   resource_id,
-                                   sync_index=sync_index, token=use_auth)
+            json_ld = nexus.create(
+                get_base_url(base, org, proj),
+                self.as_json_ld(include_rev),
+                resource_id,
+                sync_index=sync_index,
+                token=use_auth,
+            )
         self._process_response(json_ld)
         return self
 
@@ -609,13 +653,13 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         for sys_attr in SYS_ATTRS:
             if sys_attr in json_ld:
                 self._force_attr(sys_attr, json_ld[sys_attr])
-        self._force_attr('_id', json_ld.get(JSLD_ID))
-        self._force_attr('_type', json_ld.get(JSLD_TYPE))
+        self._force_attr("_id", json_ld.get(JSLD_ID))
+        self._force_attr("_type", json_ld.get(JSLD_TYPE))
 
     def _instantiate(self):
-        '''Fetch nexus object with id=self._id if it was not initialized before.'''
-        if hasattr(self, '_lazy_meta_'):
-            base, org, proj = getattr(self, '_lazy_meta_')
+        """Fetch nexus object with id=self._id if it was not initialized before."""
+        if hasattr(self, "_lazy_meta_"):
+            base, org, proj = getattr(self, "_lazy_meta_")
         else:
             base, org, proj = (None, None, None)
 
@@ -623,57 +667,63 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         rev = object.__getattribute__(self, "_rev")
         resource_id = self._id if rev is NotInstantiated else f"{self._id}?rev={rev}"
 
-        fetched_instance = type(self).from_id(resource_id, base=base, org=org, proj=proj,
-                                              cross_bucket=True)
+        fetched_instance = type(self).from_id(
+            resource_id, base=base, org=org, proj=proj, cross_bucket=True
+        )
 
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)
 
     def deprecate(self, sync_index=False, use_auth=None):
-        '''Mark entity as deprecated.
+        """Mark entity as deprecated.
         Deprecated entities are not possible to retrieve by name.
 
         Args:
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
-        '''
+        """
         nexus.deprecate(self._self, self._rev, sync_index=sync_index, token=use_auth)
         return self
 
     def evolve(self, **changes):
-        '''Create new instance of the frozen(immutable) object with *changes* applied.
+        """Create new instance of the frozen(immutable) object with *changes* applied.
 
         Args:
             changes: Keyword changes in the new copy, should be a subset of class
                 constructor(__init__) keyword arguments.
         Returns:
             New instance of the same class with changes applied.
-        '''
+        """
         obj = attr.evolve(self, **changes)
         _copy_sys_meta(self, obj)
         return obj
 
 
-@attributes({
-    'json': AttrOf(dict),
-})
+@attributes(
+    {
+        "json": AttrOf(dict),
+    }
+)
 class Unconstrained(Identifiable):
-    '''Shapeless data.
+    """Shapeless data.
 
     Args:
         json (dict): python dictionary which will be seralized into json.
-    '''
-    _url_schema = '_'
+    """
+
+    _url_schema = "_"
 
 
-@attributes({
-    'value': AttrOf(str),
-    'unitText': AttrOf(str, default=None),
-    'unitCode': AttrOf(str, default=None),
-})
+@attributes(
+    {
+        "value": AttrOf(str),
+        "unitText": AttrOf(str, default=None),
+        "unitCode": AttrOf(str, default=None),
+    }
+)
 class QuantitativeValue(Frozen):
-    '''External resource representations,
+    """External resource representations,
     this can be a file or a folder on gpfs
 
     Args:
@@ -682,33 +732,37 @@ class QuantitativeValue(Frozen):
         unitCode (str): The unit of measurement given using the UN/CEFACT Common Code (3 characters)
             or a URL. Other codes than the UN/CEFACT Common Code may be used with a prefix followed
             by a colon.
-    '''
+    """
 
 
-@attributes({
-    'url': AttrOf(str),
-    'label': AttrOf(str, default=None),
-})
+@attributes(
+    {
+        "url": AttrOf(str),
+        "label": AttrOf(str, default=None),
+    }
+)
 class OntologyTerm(Frozen):
-    '''Ontology term such as brain region or species
+    """Ontology term such as brain region or species
 
     Args:
         url (str): Ontology term url identifier.
         label (str): Label for the ontology term.
-    '''
+    """
 
 
-@attributes({'brainRegion': AttrOf(OntologyTerm)})
+@attributes({"brainRegion": AttrOf(OntologyTerm)})
 class BrainLocation(Frozen):
-    '''Brain location.
+    """Brain location.
 
     Args:
         brainRegion (OntologyTerm): Brain region ontology term.
-    '''
+    """
 
 
-@attributes({
-    'entity': AttrOf(Identifiable),
-})
+@attributes(
+    {
+        "entity": AttrOf(Identifiable),
+    }
+)
 class Derivation(Frozen):
-    '''Derivation.'''
+    """Derivation."""

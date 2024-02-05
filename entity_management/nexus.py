@@ -1,76 +1,81 @@
-'''New nexus access layer'''
-from __future__ import print_function
+"""New nexus access layer"""
 
-import re
+import json as js
 import logging
 import os
+import re
 import sys
 from email.header import decode_header
 from functools import wraps
-import json as js
 
 import requests
+from SPARQLWrapper import JSON, POST, POSTDIRECTLY, SPARQLWrapper
 
-from SPARQLWrapper import SPARQLWrapper, JSON, POST, POSTDIRECTLY
-
-from entity_management.util import quote, PP, split_url_from_revision_query, unquote_uri_path
-from entity_management.state import (get_base_files, get_org, get_proj,
-                                     get_token, refresh_token, has_offline_token, get_sparql_url,
-                                     get_base_url)
-from entity_management.settings import USERINFO, DASH, NSG, JSLD_TYPE
+from entity_management.settings import DASH, JSLD_TYPE, NSG, USERINFO
+from entity_management.state import (
+    get_base_files,
+    get_base_url,
+    get_org,
+    get_proj,
+    get_sparql_url,
+    get_token,
+    has_offline_token,
+    refresh_token,
+)
+from entity_management.util import PP, quote, split_url_from_revision_query, unquote_uri_path
 
 L = logging.getLogger(__name__)
 
 _HINT_TO_CLS_MAP = {}
-_UNCONSTRAINED = 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
+_UNCONSTRAINED = "https://bluebrain.github.io/nexus/schemas/unconstrained.json"
 
 
 def register_type(key, cls):
-    '''Store type corresponding type hint.
+    """Store type corresponding type hint.
 
     Args:
         hint (str): Type hint. In general can be any string such as id of the schema which
             constraines the type or @type name in the case of unconstrained type.
         cls (type): Entity python class which maps to this hint.
-    '''
+    """
     _HINT_TO_CLS_MAP[key] = cls
 
 
 def _find_type(types):
-    '''Get type from the json-ld @types. It can be a list of types or a single string.'''
+    """Get type from the json-ld @types. It can be a list of types or a single string."""
     if isinstance(types, str):
         return types
     else:
         return types[0]  # just return the first one from the list for now.
 
 
-def _get_headers(token=None, accept='application/ld+json'):
-    '''Get headers with additional authorization header if token is not None'''
+def _get_headers(token=None, accept="application/ld+json"):
+    """Get headers with additional authorization header if token is not None"""
     headers = {}
     if token is not None:
-        headers['authorization'] = 'Bearer ' + token
+        headers["authorization"] = "Bearer " + token
     if accept is not None:
-        headers['accept'] = accept
+        headers["accept"] = accept
     return headers
 
 
 def _print_violation_summary(data):
-    '''Add colors, remove hashes and other superfluous things from error message'''
-    print('\nNEXUS ERROR SUMMARY:\n', file=sys.stderr)
+    """Add colors, remove hashes and other superfluous things from error message"""
+    print("\nNEXUS ERROR SUMMARY:\n", file=sys.stderr)
 
-    for error in data['violations']:
-        no_hash = re.sub(r',? *(Constraint|Node)(:|\() ?_:\w{32}\)?', '', error)
-        no_hash = re.sub(r'^Error: Violation Error\((.*?)\). ', r'Violation(\g<1>):\n', no_hash)
-        if no_hash.startswith('Violation'):
-            color = '\033[92m'
-            end_color = '\033[0m'
-            color_url = re.sub(r'<(.*?)>', color + r'<\g<1>>' + end_color, no_hash)
+    for error in data["violations"]:
+        no_hash = re.sub(r",? *(Constraint|Node)(:|\() ?_:\w{32}\)?", "", error)
+        no_hash = re.sub(r"^Error: Violation Error\((.*?)\). ", r"Violation(\g<1>):\n", no_hash)
+        if no_hash.startswith("Violation"):
+            color = "\033[92m"
+            end_color = "\033[0m"
+            color_url = re.sub(r"<(.*?)>", color + r"<\g<1>>" + end_color, no_hash)
 
-        print(color_url + '\n', file=sys.stderr)
+        print(color_url + "\n", file=sys.stderr)
 
 
 def _print_nexus_error(http_error):
-    '''Helper function to log nexus error response.'''
+    """Helper function to log nexus error response."""
     request = http_error.response.request
     response = http_error.response
     try:
@@ -81,41 +86,54 @@ def _print_nexus_error(http_error):
         response_data = response.json()
     except ValueError:
         response_data = response.text
-    L.error('Nexus error!\nmethod = %s\nurl = %s\npayload = %s\nstatus = %s\nresponse = %s',
-            PP(request.method), PP(request.url), PP(request_data),
-            PP(response.status_code), PP(response_data))
+    L.error(
+        "Nexus error!\nmethod = %s\nurl = %s\npayload = %s\nstatus = %s\nresponse = %s",
+        PP(request.method),
+        PP(request.url),
+        PP(request_data),
+        PP(response.status_code),
+        PP(response_data),
+    )
 
 
 def _to_json(response, payload=None):
-    '''Convert response to json and log if necessary.'''
+    """Convert response to json and log if necessary."""
     json = response.json()
-    L.debug('Nexus request\nmethod = %s\nurl = %s\npayload = %s\nresponse = %s',
-            PP(response.request.method), PP(response.request.url), PP(payload), PP(json))
+    L.debug(
+        "Nexus request\nmethod = %s\nurl = %s\npayload = %s\nresponse = %s",
+        PP(response.request.method),
+        PP(response.request.url),
+        PP(payload),
+        PP(json),
+    )
     return json
 
 
 def _nexus_wrapper(func):
-    '''Pretty print nexus error responses, inject token if set in env'''
+    """Pretty print nexus error responses, inject token if set in env"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
-        '''decorator function'''
+        """decorator function"""
 
-        if 'NEXUS_DRY_RUN' in os.environ and func.__name__ in ['create', 'update', 'deprecate']:
+        if "NEXUS_DRY_RUN" in os.environ and func.__name__ in ["create", "update", "deprecate"]:
             return None
 
-        token_argument = kwargs.get('token', None)
+        token_argument = kwargs.get("token", None)
         if token_argument is None:
-            kwargs['token'] = get_token()
+            kwargs["token"] = get_token()
 
         try:
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as http_error:
             # retry function call only when got Unauthorized, we have offline token to produce the
             # new access token and token was not explicitly provided
-            if (http_error.response.status_code == 401
-                    and has_offline_token()
-                    and token_argument is None):
-                kwargs['token'] = refresh_token()
+            if (
+                http_error.response.status_code == 401
+                and has_offline_token()
+                and token_argument is None
+            ):
+                kwargs["token"] = refresh_token()
                 try:
                     return func(*args, **kwargs)
                 except requests.exceptions.HTTPError as http_error_nested:
@@ -123,6 +141,7 @@ def _nexus_wrapper(func):
                     raise
             _print_nexus_error(http_error)
             raise
+
     return wrapper
 
 
@@ -133,23 +152,23 @@ def get_type_from_name(name):
 
 @_nexus_wrapper
 def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cross_bucket=False):
-    '''Get type which corresponds to the id_url'''
+    """Get type which corresponds to the id_url"""
     base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
     url = f"{base_url}/{quote(resource_id)}"
     response = requests.get(url, headers=_get_headers(token), timeout=10)
     response.raise_for_status()
     response_json = response.json()
-    constrained_by = response_json['_constrainedBy']
+    constrained_by = response_json["_constrainedBy"]
     if constrained_by == _UNCONSTRAINED:
         return _HINT_TO_CLS_MAP[_find_type(response_json[JSLD_TYPE])]
     else:
-        constrained_by = constrained_by.replace('dash:', str(DASH)).replace('nsg:', str(NSG))
+        constrained_by = constrained_by.replace("dash:", str(DASH)).replace("nsg:", str(NSG))
         return _HINT_TO_CLS_MAP[constrained_by]
 
 
 @_nexus_wrapper
 def create(base_url, payload, resource_id=None, sync_index=False, token=None):
-    '''Create entity, return json response
+    """Create entity, return json response
 
     Args:
         base_url (str): Base url of the entity which will be saved.
@@ -158,31 +177,27 @@ def create(base_url, payload, resource_id=None, sync_index=False, token=None):
 
     Returns:
         Json response.
-    '''
+    """
     if sync_index:
-        params = {'indexing': 'sync'}
+        params = {"indexing": "sync"}
     else:
         params = {}
     if resource_id:
-        url = f'{base_url}/{resource_id}'
-        response = requests.put(url,
-                                headers=_get_headers(token),
-                                params=params,
-                                json=payload,
-                                timeout=10)
+        url = f"{base_url}/{resource_id}"
+        response = requests.put(
+            url, headers=_get_headers(token), params=params, json=payload, timeout=10
+        )
     else:
-        response = requests.post(base_url,
-                                 headers=_get_headers(token),
-                                 params=params,
-                                 json=payload,
-                                 timeout=10)
+        response = requests.post(
+            base_url, headers=_get_headers(token), params=params, json=payload, timeout=10
+        )
     response.raise_for_status()
     return _to_json(response, payload)
 
 
 @_nexus_wrapper
 def update(id_url, rev, payload, sync_index=False, token=None):
-    '''Update entity, return json response
+    """Update entity, return json response
 
     Args:
         id_url (str): Url of the entity which will be updated.
@@ -192,40 +207,35 @@ def update(id_url, rev, payload, sync_index=False, token=None):
 
     Returns:
         Json response.
-    '''
+    """
     assert id_url is not None
     assert rev > 0
-    params = {'rev': rev}
+    params = {"rev": rev}
     if sync_index:
-        params |= {'indexing': 'sync'}
-    response = requests.put(id_url,
-                            headers=_get_headers(token),
-                            params=params,
-                            json=payload,
-                            timeout=10)
+        params |= {"indexing": "sync"}
+    response = requests.put(
+        id_url, headers=_get_headers(token), params=params, json=payload, timeout=10
+    )
     response.raise_for_status()
     return _to_json(response, payload)
 
 
 @_nexus_wrapper
 def deprecate(id_url, rev, sync_index=False, token=None):
-    '''Mark entity as deprecated, return json response'''
+    """Mark entity as deprecated, return json response"""
     assert id_url is not None
     assert rev > 0
-    params = {'rev': rev}
+    params = {"rev": rev}
     if sync_index:
-        params |= {'indexing': 'sync'}
-    response = requests.delete(id_url,
-                               headers=_get_headers(token),
-                               params=params,
-                               timeout=10)
+        params |= {"indexing": "sync"}
+    response = requests.delete(id_url, headers=_get_headers(token), params=params, timeout=10)
     response.raise_for_status()
     return _to_json(response)
 
 
 @_nexus_wrapper
 def load_by_url(url, params=None, stream=False, token=None):
-    '''Load json-ld from url
+    """Load json-ld from url
 
     Args:
         url (str): Url of the entity which will be loaded.
@@ -236,7 +246,7 @@ def load_by_url(url, params=None, stream=False, token=None):
     Returns:
         if stream is true then response stream content is returned otherwise
         json response.
-    '''
+    """
     response = requests.get(url, headers=_get_headers(token), params=params, timeout=10)
 
     # if not found then return None
@@ -250,8 +260,16 @@ def load_by_url(url, params=None, stream=False, token=None):
         return _to_json(response)
 
 
-def load_by_id(resource_id, cross_bucket=False, params=None, stream=False,
-               base=None, org=None, proj=None, token=None):
+def load_by_id(
+    resource_id,
+    cross_bucket=False,
+    params=None,
+    stream=False,
+    base=None,
+    org=None,
+    proj=None,
+    token=None,
+):
     """Load json-ld from id.
 
     Args:
@@ -276,40 +294,42 @@ def load_by_id(resource_id, cross_bucket=False, params=None, stream=False,
         params = {}
     params |= revision_query
 
-    url = f'{base_url}/{quote(resource_id)}'
+    url = f"{base_url}/{quote(resource_id)}"
     return load_by_url(url=url, params=params, stream=stream, token=token)
 
 
 @_nexus_wrapper
 def get_current_agent(token=None):
-    '''Get user info'''
+    """Get user info"""
     if token is None:
         return None
 
-    response = requests.get(USERINFO, headers={'accept': 'application/json',
-                                               'authorization': 'Bearer ' + token}, timeout=10)
+    response = requests.get(
+        USERINFO,
+        headers={"accept": "application/json", "authorization": "Bearer " + token},
+        timeout=10,
+    )
     response.raise_for_status()
     return _to_json(response)
 
 
 def _get_files_endpoint():
-    return ''
+    return ""
 
 
 @_nexus_wrapper
 def _get_file_metadata(url, tag=None, token=None):
-    '''Helper function'''
-    response = requests.get(url,
-                            headers=_get_headers(token),
-                            params={'tag': tag if tag else None},
-                            timeout=10)
+    """Helper function"""
+    response = requests.get(
+        url, headers=_get_headers(token), params={"tag": tag if tag else None}, timeout=10
+    )
 
     response.raise_for_status()
     return _to_json(response)
 
 
 def get_file_rev(url, tag=None, token=None):
-    '''Get file rev.
+    """Get file rev.
 
     Args:
         resource_id (str): Nexus ID of the file.
@@ -318,12 +338,12 @@ def get_file_rev(url, tag=None, token=None):
 
     Returns:
         File revision.
-    '''
-    return _get_file_metadata(url, tag=tag, token=token)['_rev']
+    """
+    return _get_file_metadata(url, tag=tag, token=token)["_rev"]
 
 
 def get_file_location(url, tag=None, token=None):
-    '''Get file location.
+    """Get file location.
 
     Args:
         resource_id (str): Nexus ID of the file.
@@ -332,8 +352,8 @@ def get_file_location(url, tag=None, token=None):
 
     Returns:
         File revision.
-    '''
-    return _get_file_metadata(url, tag=tag, token=token).get('_location')
+    """
+    return _get_file_metadata(url, tag=tag, token=token).get("_location")
 
 
 def get_unquoted_uri_path(url, tag=None, token=None):
@@ -349,7 +369,7 @@ def get_unquoted_uri_path(url, tag=None, token=None):
 
 
 def get_file_name(url, tag=None, token=None):
-    '''Get file rev.
+    """Get file rev.
 
     Args:
         resource_id (str): Nexus ID of the file.
@@ -358,14 +378,24 @@ def get_file_name(url, tag=None, token=None):
 
     Returns:
         File name.
-    '''
-    return _get_file_metadata(url, tag=tag, token=token)['_filename']
+    """
+    return _get_file_metadata(url, tag=tag, token=token)["_filename"]
 
 
 @_nexus_wrapper
-def upload_file(name, data, content_type, resource_id=None, storage_id=None, rev=None,
-                base=None, org=None, proj=None, token=None):
-    '''Upload file.
+def upload_file(
+    name,
+    data,
+    content_type,
+    resource_id=None,
+    storage_id=None,
+    rev=None,
+    base=None,
+    org=None,
+    proj=None,
+    token=None,
+):
+    """Upload file.
 
     Args:
         name (str): File name.
@@ -382,31 +412,43 @@ def upload_file(name, data, content_type, resource_id=None, storage_id=None, rev
 
     Returns:
         Identifier of the uploaded file.
-    '''
+    """
     if resource_id:
-        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}'
-        response = requests.put(url,
-                                headers=_get_headers(token),
-                                params={'rev': rev if rev else None,
-                                        'storage': storage_id if storage_id else None},
-                                files={'file': (name, data, content_type)},
-                                timeout=10)
+        url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}"
+        response = requests.put(
+            url,
+            headers=_get_headers(token),
+            params={"rev": rev if rev else None, "storage": storage_id if storage_id else None},
+            files={"file": (name, data, content_type)},
+            timeout=10,
+        )
     else:
-        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}'
-        response = requests.post(url,
-                                 headers=_get_headers(token),
-                                 params={'storage': storage_id if storage_id else None},
-                                 files={'file': (name, data, content_type)},
-                                 timeout=10)
+        url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}"
+        response = requests.post(
+            url,
+            headers=_get_headers(token),
+            params={"storage": storage_id if storage_id else None},
+            files={"file": (name, data, content_type)},
+            timeout=10,
+        )
 
     response.raise_for_status()
     return _to_json(response)
 
 
 @_nexus_wrapper
-def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
-              base=None, org=None, proj=None, token=None):
-    '''Link file.
+def link_file(
+    name,
+    file_path,
+    content_type,
+    resource_id=None,
+    storage_id=None,
+    base=None,
+    org=None,
+    proj=None,
+    token=None,
+):
+    """Link file.
 
     Args:
         name (str): File name.
@@ -422,23 +464,19 @@ def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
 
     Returns:
         Identifier of the uploaded file.
-    '''
-    params = {'storage': storage_id if storage_id else None}
-    json = {'filename': name, 'path': file_path, 'mediaType': content_type}
+    """
+    params = {"storage": storage_id if storage_id else None}
+    json = {"filename": name, "path": file_path, "mediaType": content_type}
     if resource_id:
-        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}'
-        response = requests.put(url,
-                                headers=_get_headers(token),
-                                params=params,
-                                json=json,
-                                timeout=10)
+        url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}"
+        response = requests.put(
+            url, headers=_get_headers(token), params=params, json=json, timeout=10
+        )
     else:
-        url = f'{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}'
-        response = requests.post(url,
-                                 headers=_get_headers(token),
-                                 params=params,
-                                 json=json,
-                                 timeout=10)
+        url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}"
+        response = requests.post(
+            url, headers=_get_headers(token), params=params, json=json, timeout=10
+        )
 
     response.raise_for_status()
     return _to_json(response)
@@ -446,7 +484,7 @@ def link_file(name, file_path, content_type, resource_id=None, storage_id=None,
 
 @_nexus_wrapper
 def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
-    '''Download file.
+    """Download file.
 
     Args:
         url (str): Nexus url of the file.
@@ -458,24 +496,28 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
 
     Returns:
         str: Path to the downloaded file.
-    '''
-    response = requests.get(url,
-                            headers=_get_headers(token, accept=None),
-                            params={'tag': tag if tag else None,
-                                    'rev': rev if rev else None},
-                            stream=True,
-                            timeout=10)
+    """
+    response = requests.get(
+        url,
+        headers=_get_headers(token, accept=None),
+        params={"tag": tag if tag else None, "rev": rev if rev else None},
+        stream=True,
+        timeout=10,
+    )
     try:
         response.raise_for_status()
-        L.debug('Nexus request\nmethod = %s\nurl = %s',
-                PP(response.request.method), PP(response.request.url))
+        L.debug(
+            "Nexus request\nmethod = %s\nurl = %s",
+            PP(response.request.method),
+            PP(response.request.url),
+        )
         if file_name is None:
-            content_disposition = response.headers.get('content-disposition')
+            content_disposition = response.headers.get("content-disposition")
             match = re.findall('filename="(.+)"', content_disposition)[0]
             encoded_file_name, encoding = decode_header(match)[0]
             file_name = encoded_file_name.decode(encoding)
         file_ = os.path.join(path, file_name)
-        with open(file_, 'wb') as f:
+        with open(file_, "wb") as f:
             for chunk in response.iter_content(chunk_size=1024):
                 f.write(chunk)
     finally:
@@ -486,7 +528,7 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
 
 @_nexus_wrapper
 def file_as_dict(url, tag=None, rev=None, token=None):
-    '''Stream file.
+    """Stream file.
 
     Args:
         url (str): Nexus url of the file.
@@ -496,13 +538,14 @@ def file_as_dict(url, tag=None, rev=None, token=None):
 
     Returns:
         Raw response.
-    '''
-    response = requests.get(url,
-                            headers=_get_headers(token, accept=None),
-                            params={'tag': tag if tag else None,
-                                    'rev': rev if rev else None},
-                            stream=True,
-                            timeout=10)
+    """
+    response = requests.get(
+        url,
+        headers=_get_headers(token, accept=None),
+        params={"tag": tag if tag else None, "rev": rev if rev else None},
+        stream=True,
+        timeout=10,
+    )
     try:
         response.raise_for_status()
         response.raw.decode_content = True
@@ -513,7 +556,7 @@ def file_as_dict(url, tag=None, rev=None, token=None):
 
 @_nexus_wrapper
 def sparql_query(query, base=None, org=None, proj=None, token=None):
-    '''Execute SPARQL query.
+    """Execute SPARQL query.
 
     Args:
         query (str): SPARQL query.
@@ -524,9 +567,9 @@ def sparql_query(query, base=None, org=None, proj=None, token=None):
 
     Returns:
         Json response.
-    '''
+    """
     endpoint = SPARQLWrapper(get_sparql_url(base, org, proj))
-    endpoint.addCustomHttpHeader('authorization', f'bearer {token}')
+    endpoint.addCustomHttpHeader("authorization", f"bearer {token}")
     endpoint.setMethod(POST)
     endpoint.setReturnFormat(JSON)
     endpoint.setRequestMethod(POSTDIRECTLY)

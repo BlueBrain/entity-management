@@ -1,75 +1,100 @@
-'''Simulation domain entities.'''
+"""Simulation domain entities."""
 
-from typing import List, Union
 from datetime import datetime
+from typing import Union
 
 from attr.validators import in_
 
 from entity_management import morphology
-from entity_management.state import get_base_url
-from entity_management.base import (Identifiable, attributes, Frozen, OntologyTerm,
-                                    QuantitativeValue, BrainLocation, _NexusBySparqlIterator)
-from entity_management.core import (Entity, Activity, Agent, EntityMixin,
-                                    SoftwareAgent, DataDownload, Subject, DistributionMixin)
-from entity_management.electrophysiology import Trace
 from entity_management.atlas import AtlasRelease
-from entity_management.workflow import BbpWorkflowActivity, BbpWorkflowConfig
+from entity_management.base import (
+    BrainLocation,
+    Frozen,
+    Identifiable,
+    OntologyTerm,
+    QuantitativeValue,
+    _NexusBySparqlIterator,
+    attributes,
+)
+from entity_management.core import (
+    Activity,
+    Agent,
+    DataDownload,
+    DistributionMixin,
+    Entity,
+    EntityMixin,
+    SoftwareAgent,
+    Subject,
+)
+from entity_management.electrophysiology import Trace
+from entity_management.state import get_base_url
 from entity_management.util import AttrOf
+from entity_management.workflow import BbpWorkflowActivity, BbpWorkflowConfig
 
 
-@attributes({
-    'name': AttrOf(str, default=None),
-    'description': AttrOf(str, default=None),
-    'distribution': AttrOf(DataDownload, default=None),
-})
+@attributes(
+    {
+        "name": AttrOf(str, default=None),
+        "description": AttrOf(str, default=None),
+        "distribution": AttrOf(DataDownload, default=None),
+    }
+)
 class _Entity(EntityMixin, Identifiable):
-    '''Base abstract class for many things having `name` and `description`
+    """Base abstract class for many things having `name` and `description`
 
     Args:
         name (str): Entity name.
         description (str): Short description of the entity.
         distribution (DataDownload): Data download.
         wasDerivedFrom (List[Identifiable]): List of associated provenance entities.
-    '''
+    """
 
 
-@attributes({
-    'modelOf': AttrOf(str, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'subject': AttrOf(Subject, default=None),
-})
+@attributes(
+    {
+        "modelOf": AttrOf(str, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "subject": AttrOf(Subject, default=None),
+    }
+)
 class ModelInstance(_Entity):
-    '''Abstract model instance.
+    """Abstract model instance.
 
     Args:
         modelOf (str): Specifies the model.
         brainLocation (BrainLocation): Brain location.
         subject (Subject): Species ontology term.
-    '''
+    """
 
 
-@attributes({
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'subject': AttrOf(Subject, default=None),
-})
+@attributes(
+    {
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "subject": AttrOf(Subject, default=None),
+    }
+)
 class ModelRelease(_Entity):
-    '''Release base entity'''
+    """Release base entity"""
 
 
 @attributes()
 class ModelScript(_Entity):
-    '''Base entity for the scripts attached to the model.'''
+    """Base entity for the scripts attached to the model."""
 
 
 @attributes()
 class ModelReleaseIndex(_Entity):
-    '''Index files attached to release entities'''
+    """Index files attached to release entities"""
 
 
-@attributes({'distribution': AttrOf(DataDownload),
-             'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+        "morphologyIndex": AttrOf(ModelReleaseIndex, default=None),
+    }
+)
 class MorphologyRelease(ModelRelease):
-    '''Morphology release can be located at the external location or constituted from individual
+    """Morphology release can be located at the external location or constituted from individual
     :class:`Morphology` entities.
 
     .. deprecated:: 1.0.19
@@ -81,12 +106,12 @@ class MorphologyRelease(ModelRelease):
         morphologyIndex (ModelReleaseIndex): Morphology index is a compact representation of the
             morphology properties (MType, region ids) for the performance purposes. This attribute
             should provide a path to locate this file(such as neurondb.dat).
-    '''
+    """
 
 
-@attributes({'morphologyIndex': AttrOf(ModelReleaseIndex, default=None)})
+@attributes({"morphologyIndex": AttrOf(ModelReleaseIndex, default=None)})
 class ReconstructedCellCollection(ModelRelease):
-    '''Reconstructed cell collection produced by the morphology release.
+    """Reconstructed cell collection produced by the morphology release.
 
     Args:
         distribution (DataDownload): Data download url should point to the ``v1`` folder with
@@ -94,64 +119,73 @@ class ReconstructedCellCollection(ModelRelease):
         morphologyIndex (ModelReleaseIndex): Morphology index is a compact representation of the
             morphology properties (MType, region ids) for the performance purposes. This attribute
             should provide a path to locate this file(such as neurondb.dat).
-    '''
+    """
 
 
 @attributes()
 class IonChannelMechanismRelease(ModelRelease):
-    '''Ion channel models release represents a collection of mod files.
-    '''
+    """Ion channel models release represents a collection of mod files."""
 
 
-@attributes({'distribution': AttrOf(DataDownload)})
+@attributes({"distribution": AttrOf(DataDownload)})
 class SynapseRelease(ModelRelease):
-    '''Synapse release represents a collection of mod files.
+    """Synapse release represents a collection of mod files.
 
     Args:
         distribution(DataDownload): Location of the synapse release/mod files.
-    '''
+    """
 
 
 @attributes()
 class Configuration(_Entity):
-    '''Configuration file'''
+    """Configuration file"""
 
 
-@attributes({
-    'distribution': AttrOf(DataDownload, default=None),
-    'emodelIndex': AttrOf(ModelReleaseIndex, default=None),
-    'isPartOf': AttrOf(Identifiable, default=None)
-})
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload, default=None),
+        "emodelIndex": AttrOf(ModelReleaseIndex, default=None),
+        "isPartOf": AttrOf(Identifiable, default=None),
+    }
+)
 class EModelRelease(ModelRelease):
-    '''Electrical model release
+    """Electrical model release
 
     Args:
         distribution (DataDownload): EModel release location provides a path to ``hoc`` files.
         emodelIndex (ModelReleaseIndex): EModel release index file.
         isPartOf (Identifiable): Dataset this release is part of.
-    '''
+    """
 
 
-@attributes({'emodelRelease': AttrOf(EModelRelease),
-             'morphologyRelease': AttrOf(MorphologyRelease),
-             'memodelIndex': AttrOf(ModelReleaseIndex, default=None)})
+@attributes(
+    {
+        "emodelRelease": AttrOf(EModelRelease),
+        "morphologyRelease": AttrOf(MorphologyRelease),
+        "memodelIndex": AttrOf(ModelReleaseIndex, default=None),
+    }
+)
 class MEModelRelease(ModelRelease):
-    '''MorphoElectrical model release
+    """MorphoElectrical model release
 
     Args:
         emodelRelease(EModelRelease): electrical model release
         morphologyRelease(MorphologyRelease): morphology model release
         memodelIndex(ModelReleaseIndex): optional morpho-electrical model index
-    '''
+    """
 
 
-@attributes({'distribution': AttrOf(DataDownload, default=None),
-             'mType': AttrOf(OntologyTerm, default=None),
-             'isPartOf': AttrOf(MorphologyRelease, default=None),
-             'view2d': AttrOf(Identifiable, default=None),
-             'view3d': AttrOf(Identifiable, default=None)})
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload, default=None),
+        "mType": AttrOf(OntologyTerm, default=None),
+        "isPartOf": AttrOf(MorphologyRelease, default=None),
+        "view2d": AttrOf(Identifiable, default=None),
+        "view3d": AttrOf(Identifiable, default=None),
+    }
+)
 class Morphology(ModelInstance):
-    '''Neuron morphology.
+    """Neuron morphology.
     Actual morphology file can be stored as the attachment of this entity or stored at the location
     provided in the distribution attribute.
 
@@ -162,62 +196,71 @@ class Morphology(ModelInstance):
         isPartOf (MorphologyRelease): Release this morphology is part of.
         view2d (Identifiable): Morphology view in 2D.
         view3d (Identifiable): Morphology view in 3D.
-    '''
+    """
 
 
 @attributes()
 class SubCellularModelScript(ModelScript):
-    '''Scripts attached to the model: ``mod`` file.
+    """Scripts attached to the model: ``mod`` file.
 
     Args:
         distribution (DataDownload): Distribution should provide the path to the model script.
-    '''
+    """
 
 
 @attributes()
 class EModelScript(ModelScript):
-    '''Scripts attached to the model: ``hoc``, ``neuroml`` file.
+    """Scripts attached to the model: ``hoc``, ``neuroml`` file.
 
     Args:
         distribution (DataDownload): Provides path to get the relevant scripts.
-    '''
+    """
 
 
-@attributes({'modelScript': AttrOf(SubCellularModelScript),
-             'isPartOf': AttrOf(List[Union[IonChannelMechanismRelease, SynapseRelease]],
-                                default=None)})
+@attributes(
+    {
+        "modelScript": AttrOf(SubCellularModelScript),
+        "isPartOf": AttrOf(list[Union[IonChannelMechanismRelease, SynapseRelease]], default=None),
+    }
+)
 class SubCellularModel(ModelInstance):
-    '''SubCellular model
+    """SubCellular model
 
     Args:
         modelScript(SubCellularModelScript): SubCellular model script such as mod file
         isPartOf(List[Union[IonChannelMechanismRelease, SynapseRelease]]): Optional list of synapse
             releases or ion channel releases this model is part of.
-    '''
+    """
 
 
-@attributes({
-    'subCellularMechanism': AttrOf(List[SubCellularModel], default=None),
-    'modelScript': AttrOf(List[EModelScript], default=None),
-    'isPartOf': AttrOf(EModelRelease, default=None),
-})
+@attributes(
+    {
+        "subCellularMechanism": AttrOf(list[SubCellularModel], default=None),
+        "modelScript": AttrOf(list[EModelScript], default=None),
+        "isPartOf": AttrOf(EModelRelease, default=None),
+    }
+)
 class EModel(ModelInstance):
-    '''Electrical model
+    """Electrical model
 
     Args:
         subCellularMechanism(List[SubCellularModel]): SubCellular mechanism collection.
         modelScript(List[EModelScript]): Model script collection. Scripts defining neuron model,
             e.g. a ``hoc`` files.
         isPartOf (EModelRelease): EModel release this emodel is part of.
-    '''
+    """
 
 
-@attributes({'used': AttrOf(morphology.ReconstructedCell),
-             'generated': AttrOf(EModel, default=None),
-             'wasAssociatedWith': AttrOf(List[Union[Agent, SoftwareAgent]], default=None),
-             'bestScore': AttrOf(QuantitativeValue, default=None)})
+@attributes(
+    {
+        "used": AttrOf(morphology.ReconstructedCell),
+        "generated": AttrOf(EModel, default=None),
+        "wasAssociatedWith": AttrOf(list[Union[Agent, SoftwareAgent]], default=None),
+        "bestScore": AttrOf(QuantitativeValue, default=None),
+    }
+)
 class EModelBuilding(Activity):
-    '''EModel building activity.
+    """EModel building activity.
 
     Args:
         bestScore(QuantitativeValue): Best score.
@@ -225,83 +268,95 @@ class EModelBuilding(Activity):
         generated(EModel): EModel which was produced.
         wasAssociatedWith(List[SoftwareAgent]): Agents associated with
             this activity.
-    '''
+    """
 
 
-@attributes({
-    'description': AttrOf(str, default=None),
-})
+@attributes(
+    {
+        "description": AttrOf(str, default=None),
+    }
+)
 class SingleCellTraceGeneration(Activity):
-    '''Single cell simulation trace genaration activity'''
+    """Single cell simulation trace genaration activity"""
 
 
 @attributes()
 class SingleCellSimulationTrace(_Entity):
-    '''Single cell simulation trace file'''
+    """Single cell simulation trace file"""
 
 
-@attributes({'hadMember': AttrOf(List[Trace], default=None)})
+@attributes({"hadMember": AttrOf(list[Trace], default=None)})
 class TraceCollection(_Entity):
-    '''Collection of traces
+    """Collection of traces
 
     Args:
         hadMember(List[Trace]): List of traces.
-    '''
+    """
 
 
-@attributes({'hadMember': AttrOf(List[Trace], default=None)})
+@attributes({"hadMember": AttrOf(list[Trace], default=None)})
 class CoreTraceCollection(_Entity):
-    '''Collection of traces
+    """Collection of traces
 
     Args:
         hadMember(List[Trace]): List of traces.
-    '''
+    """
 
 
-@attributes({
-    'name': AttrOf(str),
-    'channel': AttrOf(int),
-    'description': AttrOf(str, default=None),
-})
+@attributes(
+    {
+        "name": AttrOf(str),
+        "channel": AttrOf(int),
+        "description": AttrOf(str, default=None),
+    }
+)
 class ExperimentalCell(Frozen):
-    '''Experimental cell.
+    """Experimental cell.
 
     Args:
         name(str): TODO.
         channel(int): TODO.
         description(str): TODO.
-    '''
+    """
 
 
-@attributes({
-    'features': AttrOf(Entity),
-    'hadProtocol': AttrOf(Entity),
-    'eType': AttrOf(str),
-    'hypampThreshold': AttrOf(Entity, default=None),
-    'isPartOf': AttrOf(EModelRelease, default=None),
-})
+@attributes(
+    {
+        "features": AttrOf(Entity),
+        "hadProtocol": AttrOf(Entity),
+        "eType": AttrOf(str),
+        "hypampThreshold": AttrOf(Entity, default=None),
+        "isPartOf": AttrOf(EModelRelease, default=None),
+    }
+)
 class BluePyEfeFeatures(_Entity):
-    '''BluePyEfe configuration entity'''
+    """BluePyEfe configuration entity"""
 
 
-@attributes({
-    'brainLocation': AttrOf(BrainLocation),
-    'subject': AttrOf(Subject, default=None),
-    'mType': AttrOf(OntologyTerm),
-    'eType': AttrOf(OntologyTerm),
-    'experimentalCell': AttrOf(List[ExperimentalCell]),
-    'featureExtractionConfiguration': AttrOf(dict),
-    'stimuliToExperimentMap': AttrOf(dict, default=None),
-})
+@attributes(
+    {
+        "brainLocation": AttrOf(BrainLocation),
+        "subject": AttrOf(Subject, default=None),
+        "mType": AttrOf(OntologyTerm),
+        "eType": AttrOf(OntologyTerm),
+        "experimentalCell": AttrOf(list[ExperimentalCell]),
+        "featureExtractionConfiguration": AttrOf(dict),
+        "stimuliToExperimentMap": AttrOf(dict, default=None),
+    }
+)
 class BluePyEfeConfiguration(_Entity):
-    '''BluePyEfe configuration entity'''
+    """BluePyEfe configuration entity"""
 
 
-@attributes({'eModel': AttrOf(EModel),
-             'morphology': AttrOf(Morphology),
-             'mainModelScript': AttrOf(EModelScript)})
+@attributes(
+    {
+        "eModel": AttrOf(EModel),
+        "morphology": AttrOf(Morphology),
+        "mainModelScript": AttrOf(EModelScript),
+    }
+)
 class MEModel(ModelInstance):
-    '''Detailed Neuron model with morphology and electrical models.
+    """Detailed Neuron model with morphology and electrical models.
 
     Args:
         eModel(EModel): Electrical model.
@@ -311,60 +366,67 @@ class MEModel(ModelInstance):
             first argument being the folder where neuron morphology is located. Template is
             responsible for loading that morphology from the folder specified in the first
             template argument.
-    '''
+    """
 
 
-@attributes({'distribution': AttrOf(DataDownload)})
+@attributes({"distribution": AttrOf(DataDownload)})
 class CircuitCellProperties(_Entity):
-    '''Cell properties provides locationd of the MVD3 file with cell properties.
+    """Cell properties provides locationd of the MVD3 file with cell properties.
 
     Args:
         distribution (DataDownload): Location of the cell placement file.
-    '''
+    """
 
 
-@attributes({'memodelRelease': AttrOf(MEModelRelease),
-             'circuitCellProperties': AttrOf(CircuitCellProperties)})
+@attributes(
+    {
+        "memodelRelease": AttrOf(MEModelRelease),
+        "circuitCellProperties": AttrOf(CircuitCellProperties),
+    }
+)
 class NodeCollection(_Entity):
-    '''Node collection represents circuit nodes(positions, orientations)
+    """Node collection represents circuit nodes(positions, orientations)
 
     Args:
         memodelRelease(MEModelRelease): MEModel release this node collection is using.
         circuitCellProperties(CircuitCellProperties): Cell properties which are used in this node
                                                       collection.
-    '''
+    """
 
 
-@attributes({'edgePopulation': AttrOf(Entity),
-             'synapseRelease': AttrOf(SynapseRelease)})
+@attributes({"edgePopulation": AttrOf(Entity), "synapseRelease": AttrOf(SynapseRelease)})
 class EdgeCollection(_Entity):
-    '''Edge collection represents circuit connectivity(synapses, projections)
+    """Edge collection represents circuit connectivity(synapses, projections)
 
     Args:
         edgePopulation(core.Entity): DataDownload providing path to the collection of nrn
             files or syn2.
         synapseRelease(SynapseRelease): Synapse release used for this edge collection.
-    '''
+    """
 
 
-@attributes({'distribution': AttrOf(DataDownload)})
+@attributes({"distribution": AttrOf(DataDownload)})
 class Target(_Entity):
-    '''Location of the text file defining cell targets (i.e. named collections of cell GIDs)
+    """Location of the text file defining cell targets (i.e. named collections of cell GIDs)
 
     Args:
         distribution (DataDownload): Location of the target file.
-    '''
+    """
 
 
-@attributes({'circuitBase': AttrOf(DataDownload, default=None),
-             'circuitConfigPath': AttrOf(DataDownload, default=None),
-             'circuitType': AttrOf(str, default=None),
-             'nodeCollection': AttrOf(NodeCollection, default=None),
-             'edgeCollection': AttrOf(EdgeCollection, default=None),
-             'target': AttrOf(Target, default=None),
-             'atlasRelease': AttrOf(AtlasRelease, default=None)})
+@attributes(
+    {
+        "circuitBase": AttrOf(DataDownload, default=None),
+        "circuitConfigPath": AttrOf(DataDownload, default=None),
+        "circuitType": AttrOf(str, default=None),
+        "nodeCollection": AttrOf(NodeCollection, default=None),
+        "edgeCollection": AttrOf(EdgeCollection, default=None),
+        "target": AttrOf(Target, default=None),
+        "atlasRelease": AttrOf(AtlasRelease, default=None),
+    }
+)
 class DetailedCircuit(ModelInstance):
-    '''Detailed circuit.
+    """Detailed circuit.
 
     Args:
         circuitBase (DataDownload): Path to the CircuitConfig.
@@ -382,101 +444,110 @@ class DetailedCircuit(ModelInstance):
         edgeCollection (EdgeCollection): Edge collection.
         target (Target): Target.
         atlasRelease (AtlasRelease): AtlasRelease associated with the circuit.
-    '''
+    """
 
 
-@attributes({'gitHash': AttrOf(str),
-             'inputMechanisms': AttrOf(IonChannelMechanismRelease),
-             'bluePyOptParameters': AttrOf(Configuration, default=None),
-             'bluePyOptProtocol': AttrOf(Configuration, default=None),
-             'bluePyOptRecipe': AttrOf(Configuration, default=None),
-             'experimentalFeatures': AttrOf(BluePyEfeFeatures, default=None),
-             'morphology': AttrOf(morphology.Entity, default=None),
-             'hasOutput': AttrOf(EModelRelease, default=None)})
+@attributes(
+    {
+        "gitHash": AttrOf(str),
+        "inputMechanisms": AttrOf(IonChannelMechanismRelease),
+        "bluePyOptParameters": AttrOf(Configuration, default=None),
+        "bluePyOptProtocol": AttrOf(Configuration, default=None),
+        "bluePyOptRecipe": AttrOf(Configuration, default=None),
+        "experimentalFeatures": AttrOf(BluePyEfeFeatures, default=None),
+        "morphology": AttrOf(morphology.Entity, default=None),
+        "hasOutput": AttrOf(EModelRelease, default=None),
+    }
+)
 class BluePyOptRun(_Entity):
-    '''Release base entity'''
+    """Release base entity"""
 
 
 @attributes()
 class ETypeFeatureProtocol(_Entity):
-    '''Trace protocol.'''
+    """Trace protocol."""
 
 
 @attributes()
 class TraceFeature(_Entity):
-    '''Trace feature.'''
+    """Trace feature."""
 
 
 @attributes()
 class Threshold(_Entity):
-    '''Threshold.'''
+    """Threshold."""
 
 
-@attributes({'activity': AttrOf(Activity)})
+@attributes({"activity": AttrOf(Activity)})
 class EModelGenerationShape(_Entity):
-    '''EModel generation.'''
+    """EModel generation."""
 
 
-@attributes({
-    'used': AttrOf(List[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
-    'generated': AttrOf(BluePyEfeFeatures, default=None),
-})
+@attributes(
+    {
+        "used": AttrOf(list[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
+        "generated": AttrOf(BluePyEfeFeatures, default=None),
+    }
+)
 class TraceFeatureExtraction(Activity):
-    '''Trace feature extraction activity.
+    """Trace feature extraction activity.
 
     Args:
         used (List[Union[CoreTraceCollection, BluePyEfeConfiguration]]): Used resources.
         generated (BluePyEfeFeatures): Extracted features.
-    '''
+    """
 
 
 @attributes()
 class Report(_Entity):
-    '''Generic report.'''
+    """Generic report."""
 
 
-@attributes({
-    'distribution': AttrOf(DataDownload),
-})
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
 class SpikeReport(Report):
-    '''Spike report.
+    """Spike report.
 
     Args:
         distribution (DataDownload): Spike report file ``out.dat``.
-    '''
+    """
 
 
-@attributes({
-    'variable': AttrOf(str, validators=in_(['voltage', 'curent'])),
-    'target': AttrOf(str, validators=in_(['compartment',
-                                          'soma',
-                                          'summation',
-                                          'extra cellular recording'])),
-})
+@attributes(
+    {
+        "variable": AttrOf(str, validators=in_(["voltage", "curent"])),
+        "target": AttrOf(
+            str, validators=in_(["compartment", "soma", "summation", "extra cellular recording"])
+        ),
+    }
+)
 class VariableReport(Report):
-    '''Variable report.
+    """Variable report.
 
     Args:
         variable (str): Variable shape(voltage, curent).
         target (str): The variable report target
             (compartment, soma, summation, extra cellular recording).
-    '''
+    """
 
 
-@attributes({
-    'parameter': AttrOf(dict),
-    'startedAtTime': AttrOf(datetime, default=None),
-    'endedAtTime': AttrOf(datetime, default=None),
-    'status': AttrOf(str, default=None, validators=in_([None,
-                                                        'Pending',
-                                                        'Running',
-                                                        'Done',
-                                                        'Failed'])),
-    'log_url': AttrOf(str, default=None),
-    'config_file': AttrOf(str, default=None),
-})
+@attributes(
+    {
+        "parameter": AttrOf(dict),
+        "startedAtTime": AttrOf(datetime, default=None),
+        "endedAtTime": AttrOf(datetime, default=None),
+        "status": AttrOf(
+            str, default=None, validators=in_([None, "Pending", "Running", "Done", "Failed"])
+        ),
+        "log_url": AttrOf(str, default=None),
+        "config_file": AttrOf(str, default=None),
+    }
+)
 class Simulation(Entity):
-    '''Simulation of the campaign entity.
+    """Simulation of the campaign entity.
 
     Args:
         parameter (dict): Dictionary of specific coords within the campaign.
@@ -485,86 +556,98 @@ class Simulation(Entity):
         status (str): Status of the simulation.
         log_url (str): URL at which log file can be viewed.
         config_file (): Full path to the simulation configuration file.
-    '''
+    """
 
 
-@attributes({
-    'circuit': AttrOf(DetailedCircuit, default=None),
-})
+@attributes(
+    {
+        "circuit": AttrOf(DetailedCircuit, default=None),
+    }
+)
 class SimulationConfiguration(_Entity):
-    '''Simulation configuration in terms of BlueConfig.
+    """Simulation configuration in terms of BlueConfig.
 
     Args:
         circuit (DetailedCircuit): reference to the detailed circuit.
-    '''
+    """
 
 
-@attributes({
-    'configuration': AttrOf(DataDownload),
-    'template': AttrOf(DataDownload),
-    'target': AttrOf(DataDownload, default=None),
-})
+@attributes(
+    {
+        "configuration": AttrOf(DataDownload),
+        "template": AttrOf(DataDownload),
+        "target": AttrOf(DataDownload, default=None),
+    }
+)
 class SimulationCampaignConfiguration(_Entity):
-    '''Simulation campaign configuration entity.
+    """Simulation campaign configuration entity.
 
     Args:
         configuration (DataDownload): Dictionary of the parameters for the simulation campaign
             stored in a json file.
         template (DataDownload): BlueConfig template file.
         target (DataDownload): Optional user target file to include with the simulations.
-    '''
+    """
 
 
-@attributes({
-    'used': AttrOf(DetailedCircuit, default=None),
-    'generated': AttrOf(SimulationCampaignConfiguration, default=None),
-    'used_config': AttrOf(BbpWorkflowConfig, default=None),  # FIXME default=None
-    'used_rev': AttrOf(int, default=None),  # FIXME same default to support old use cases(non OBP)
-})
+@attributes(
+    {
+        "used": AttrOf(DetailedCircuit, default=None),
+        "generated": AttrOf(SimulationCampaignConfiguration, default=None),
+        "used_config": AttrOf(BbpWorkflowConfig, default=None),  # FIXME default=None
+        "used_rev": AttrOf(
+            int, default=None
+        ),  # FIXME same default to support old use cases(non OBP)
+    }
+)
 class SimulationCampaignGeneration(BbpWorkflowActivity):
-    '''Simulation campaign generation activity.
+    """Simulation campaign generation activity.
 
     Args:
         used (DetailedCircuit): Detailed circuit used for the simulation campaign.
         generated (SimulationCampaignConfiguration): Configuration of the simulation campaign that
             is produced as a result of running this activity.
-    '''
+    """
 
     @classmethod
     def used(cls, detailed_circuit, **kwargs):
-        '''List all sim campaign generation activities which used the specified detailed circuit.
+        """List all sim campaign generation activities which used the specified detailed circuit.
 
         Args:
             detailed_circuit: Detailed circuit that was used in the simulation campaign.
 
         Returns:
             Iterator through the found resources.
-        '''
-        type_ = f'{get_base_url()}/{cls.__name__}'
+        """
+        type_ = f"{get_base_url()}/{cls.__name__}"
         # pylint: disable=consider-using-f-string
-        query = '''
+        query = """
             PREFIX prov: <http://www.w3.org/ns/prov#>
             SELECT ?entity
-            WHERE {
-                ?entity a <%s> ;
-                prov:used <%s> .
-            }
-        ''' % (type_, detailed_circuit.get_id())
+            WHERE {{
+                ?entity a <{}> ;
+                prov:used <{}> .
+            }}
+        """.format(
+            type_, detailed_circuit.get_id()
+        )
 
         return _NexusBySparqlIterator(cls, query, **kwargs)
 
 
-@attributes({
-    'hadMember': AttrOf(List[Report], default=None),
-})
+@attributes(
+    {
+        "hadMember": AttrOf(list[Report], default=None),
+    }
+)
 class SimulationCampaignReportCollection(_Entity):
-    '''Simulation campaign.
+    """Simulation campaign.
 
     Groups multiple simulations when same circuit is tested under different conditions.
 
     Args:
         hadMember (List[Report]): Collection of simulation reports(spikes, soma voltage report).
-    '''
+    """
 
 
 # @attributes({
@@ -582,88 +665,98 @@ class SimulationCampaignReportCollection(_Entity):
 #     '''
 
 
-@attributes({
-    'distribution': AttrOf(DataDownload),
-    'image': AttrOf(DataDownload, default=None),
-})
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+        "image": AttrOf(DataDownload, default=None),
+    }
+)
 class AnalysisReport(_Entity):
-    '''Analysis report.
+    """Analysis report.
 
     Args:
         distribution (DataDownload): Generated report.
         image (DataDownload): Generated report image preview when applicable.
-    '''
+    """
 
 
-@attributes({
-    'distribution': AttrOf(DataDownload),
-})
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
 class AnalysisConfiguration(_Entity):
-    '''Simulation analysis configuration.
+    """Simulation analysis configuration.
 
     Args:
         distribution (DataDownload): Json representation of the configuration.
-    '''
+    """
 
 
-@attributes({
-    'used': AttrOf(List[Identifiable], default=None),
-})
+@attributes(
+    {
+        "used": AttrOf(list[Identifiable], default=None),
+    }
+)
 class Analysis(Activity):
-    '''Simulation analysis activity.
+    """Simulation analysis activity.
 
     Args:
         used (Identifiable): Used variable report/analysis configuration.
-    '''
+    """
 
 
-@attributes({
-    'used': AttrOf(List[VariableReport], default=None),
-    'generated': AttrOf(AnalysisReport, default=None),
-    # 'wasInformedBy': AttrOf(SimulationCampaign, default=None),
-})
+@attributes(
+    {
+        "used": AttrOf(list[VariableReport], default=None),
+        "generated": AttrOf(AnalysisReport, default=None),
+        # 'wasInformedBy': AttrOf(SimulationCampaign, default=None),
+    }
+)
 class CampaignAnalysis(Activity):
-    '''Simulation campaign analysis activity.
+    """Simulation campaign analysis activity.
 
     Args:
         used (List[VariableReport]): Used simulation campaign variable reports.
         generated (AnalysisReport): Generated analysis report.
         wasInformedBy (entity_management.simulation.SimulationCampaign): Links to the simulation
             campaign which generated simulations used for the analysis.
-    '''
+    """
 
 
 @attributes()
 class DetailedCircuitValidation(Activity):
-    '''Detailed circuit validation activity.'''
+    """Detailed circuit validation activity."""
 
 
 @attributes()
 class DetailedCircuitValidationReport(AnalysisReport):
-    '''Detailed circuit validation report.'''
+    """Detailed circuit validation report."""
 
 
 @attributes()
 class PlotCollection(DistributionMixin, _Entity):
-    '''Collection of plots.'''
+    """Collection of plots."""
 
 
-@attributes({
-    'simulations': AttrOf(DataDownload),
-    'parameter': AttrOf(dict, default={}),
-})
+@attributes(
+    {
+        "simulations": AttrOf(DataDownload),
+        "parameter": AttrOf(dict, default={}),
+    }
+)
 class SimulationCampaign(Entity):
-    '''Simulation campaign entity that was executed.
+    """Simulation campaign entity that was executed.
 
     Args:
         simulations (DataDownload): serialized simulations xarray.
         parameter (dict): Parameters corresponding to the specific simulation.
-    '''
+    """
 
 
 class SimulationCampaignExecution(BbpWorkflowActivity):
-    '''Simulation campagn execution activity.'''
+    """Simulation campagn execution activity."""
 
 
 class SimulationCampaignAnalysis(BbpWorkflowActivity):
-    '''Simulation campaign analysis entity.'''
+    """Simulation campaign analysis entity."""

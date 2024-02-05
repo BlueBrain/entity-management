@@ -1,11 +1,15 @@
 """Command line interface for Model Building Config."""
+
 import logging
 from pprint import pprint
+
+from entity_management.atlas import CellComposition
 from entity_management.config import (
-    MacroConnectomeConfig, ModelBuildingConfig, BrainRegionSelectorConfig
+    BrainRegionSelectorConfig,
+    MacroConnectomeConfig,
+    ModelBuildingConfig,
 )
 from entity_management.simulation import DetailedCircuit
-from entity_management.atlas import CellComposition
 
 
 def get_model_building_config(nexus_url, nexus_id):
@@ -56,25 +60,21 @@ def get_model_building_config(nexus_url, nexus_id):
                 "id": used_in.generated.get_id(),
             }
             if isinstance(used_in.generated, DetailedCircuit):
-                used_in_result[
-                    "atlas_release_id"
-                ] = used_in.generated.atlasRelease.get_id()
+                used_in_result["atlas_release_id"] = used_in.generated.atlasRelease.get_id()
                 used_in_result["circuit_url"] = used_in.generated.circuitConfigPath.url
             elif isinstance(used_in.generated, CellComposition):
-                used_in_result[
-                    "atlas_release_id"
-                ] = used_in.generated.atlasRelease.get_id()
-                used_in_result[
-                    "cell_composition_summary"
-                ] = used_in.generated.cellCompositionSummary.get_id()
-                used_in_result[
-                    "cell_composition_volume"
-                ] = used_in.generated.cellCompositionVolume.get_id()
+                used_in_result["atlas_release_id"] = used_in.generated.atlasRelease.get_id()
+                used_in_result["cell_composition_summary"] = (
+                    used_in.generated.cellCompositionSummary.get_id()
+                )
+                used_in_result["cell_composition_volume"] = (
+                    used_in.generated.cellCompositionVolume.get_id()
+                )
             elif isinstance(used_in.generated, (MacroConnectomeConfig, BrainRegionSelectorConfig)):
                 pass  # the `generated` points to a clone of the MacroConnectomeConfig
             else:
                 logging.warning(
-                    "Unexpected type of `used_in` in \"%s\": %s (id: %s)",
+                    'Unexpected type of `used_in` in "%s": %s (id: %s)',
                     config.name,
                     type(used_in.generated),
                     used_in.generated.get_id(),
