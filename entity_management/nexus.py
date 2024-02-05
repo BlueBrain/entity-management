@@ -46,7 +46,10 @@ def _find_type(types):
     if isinstance(types, str):
         return types
     else:
-        return types[0]  # just return the first one from the list for now.
+        # filter out the most common non-leaf types and if there are types remaining get
+        # the first one from the filtered, otherwise from the types
+        filtered_types = [t for t in types if t not in {"Entity", "Dataset"}]
+        return filtered_types[0] if filtered_types else types[0]
 
 
 def _get_headers(token=None, accept="application/ld+json"):
