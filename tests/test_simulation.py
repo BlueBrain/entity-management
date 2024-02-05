@@ -12,36 +12,43 @@ from entity_management.state import get_base_url
 from entity_management.settings import NSG, JSLD_CTX
 from entity_management.core import DataDownload
 from entity_management.util import quote
-from entity_management.simulation import (ModelReleaseIndex, EModelRelease, MorphologyRelease,
-                                          Morphology, MEModel, IonChannelMechanismRelease,
-                                          Configuration, SimulationCampaignConfiguration,
-                                          DetailedCircuit)
+from entity_management.simulation import (
+    ModelReleaseIndex,
+    EModelRelease,
+    MorphologyRelease,
+    Morphology,
+    MEModel,
+    IonChannelMechanismRelease,
+    Configuration,
+    SimulationCampaignConfiguration,
+    DetailedCircuit,
+)
 
 DATA_DIR = Path(__file__).parent / "data"
 
-UUID = '0c7d5e80-c275-4187-897e-946da433b642'
-DUMMY_PERSON = core.Person(email='dummy_email')
-DUMMY_PERSON1 = core.Person(email='dummy_email1')
-DUMMY_PERSON2 = core.Person(email='dummy_email2')
+UUID = "0c7d5e80-c275-4187-897e-946da433b642"
+DUMMY_PERSON = core.Person(email="dummy_email")
+DUMMY_PERSON1 = core.Person(email="dummy_email1")
+DUMMY_PERSON2 = core.Person(email="dummy_email2")
 
-CFG_NAME = 'myid'
+CFG_NAME = "myid"
 CFG_ID = NSG[CFG_NAME]
 
 CFG_JSLD = {
     "@context": [
         "https://bbp.neuroshapes.org",
-        "https://bluebrain.github.io/nexus/contexts/resource.json"
+        "https://bluebrain.github.io/nexus/contexts/resource.json",
     ],
     "@id": CFG_ID,
     "@type": "Configuration",
     "distribution": {
         "@type": "DataDownload",
-        "url": "/gpfs/bbp.cscs.ch/project/proj/name/file.json"
+        "url": "/gpfs/bbp.cscs.ch/project/proj/name/file.json",
     },
     "wasAttributedTo": {
         "@id": "https://bbp.epfl.ch/nexus/v1/resources/myorg/myproj/_/"
         "bd8de6b8-3e81-40ed-8119-67d20a97b837",
-        "@type": "WorkflowExecution"
+        "@type": "WorkflowExecution",
     },
     "_self": "https://bbp.epfl.ch/nexus/v1/resources/nse/test/_/%s" % quote(CFG_ID),
     "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
@@ -49,9 +56,9 @@ CFG_JSLD = {
     "_rev": 1,
     "_deprecated": False,
     "_createdAt": "2019-07-02T07:27:14.162Z",
-    '_createdBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous',
+    "_createdBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous",
     "_updatedAt": "2019-07-02T07:27:14.162Z",
-    '_updatedBy': 'https://bbp-nexus.epfl.ch/staging/v1/anonymous'
+    "_updatedBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous",
 }
 
 
@@ -59,18 +66,15 @@ MORPHOLOGY_RELEASE_JSLD = {
     "@context": [
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/core/entity/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
-        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     ],
-    "@id": '%s/%s' % (get_base_url(), UUID),
-    "@type": [
-        "nsg:Entity",
-        "nsg:MorphologyRelease"
-    ],
+    "@id": "%s/%s" % (get_base_url(), UUID),
+    "@type": ["nsg:Entity", "nsg:MorphologyRelease"],
     "description": "test description",
     "distribution": [
         {
             "downloadURL": "file:///distribution/url",
-            "mediaType": "application/swc,application/neurolucida,application/h5,application/neuroml"
+            "mediaType": "application/swc,application/neurolucida,application/h5,application/neuroml",
         }
     ],
     "links": {
@@ -78,245 +82,257 @@ MORPHOLOGY_RELEASE_JSLD = {
         "incoming": "%s/%s/incoming" % (get_base_url(), UUID),
         "outgoing": "%s/%s/outgoing" % (get_base_url(), UUID),
         "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.1",
-        "self": "%s/%s" % (get_base_url(), UUID)
+        "self": "%s/%s" % (get_base_url(), UUID),
     },
     "morphologyIndex": {
-        '@id': '%s/%s' % (get_base_url(), UUID),
-        '@type': ['nsg:ModelReleaseIndex']
+        "@id": "%s/%s" % (get_base_url(), UUID),
+        "@type": ["nsg:ModelReleaseIndex"],
     },
     "name": "Morphology Release",
     "nxv:deprecated": False,
     "nxv:rev": 1,
-    }
+}
 
 MORPHOLOGY_RELEASE_JSLD_UPDATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     "@id": "%s/%s" % (get_base_url(), UUID),
-    "nxv:rev": 2
-    }
+    "nxv:rev": 2,
+}
 
 MORPHOLOGY_RELEASE_JSLD_DELETE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     "@id": "%s/%s" % (get_base_url(), UUID),
-    "nxv:rev": 2
-    }
+    "nxv:rev": 2,
+}
 
 MORPHOLOGY_RELEASE_JSLD_FILTER = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/search/v0.1.0",
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1?filter=%7B%22op%22%3A%22and%22%2C%22value%22%3A%5B%7B%22op%22%3A%22eq%22%2C%22path%22%3A%22nxv%3Adeprecated%22%2C%22value%22%3Afalse%7D%2C%7B%22op%22%3A%22eq%22%2C%22path%22%3A%22schema%3Aname%22%2C%22value%22%3A%22test+name%22%7D%5D%7D"
+        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1?filter=%7B%22op%22%3A%22and%22%2C%22value%22%3A%5B%7B%22op%22%3A%22eq%22%2C%22path%22%3A%22nxv%3Adeprecated%22%2C%22value%22%3Afalse%7D%2C%7B%22op%22%3A%22eq%22%2C%22path%22%3A%22schema%3Aname%22%2C%22value%22%3A%22test+name%22%7D%5D%7D",
     },
     "results": [
         {
-            "resultId": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID,
+            "resultId": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/"
+            + UUID,
             "source": {
-                "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID,
+                "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/"
+                + UUID,
                 "links": {
                     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-                    "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID + "/incoming",
-                    "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID + "/outgoing",
+                    "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/"
+                    + UUID
+                    + "/incoming",
+                    "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/"
+                    + UUID
+                    + "/outgoing",
                     "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/morphologyrelease/v0.1.1",
-                    "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/" + UUID
-                }
-            }
+                    "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphologyrelease/v0.1.1/"
+                    + UUID,
+                },
+            },
         }
     ],
-    "total": 1
+    "total": 1,
 }
 
 MORPHOLOGY_DIVERSIFICATION_JSLD_CREATE = {
     "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     "@id": "%s/%s" % (get_base_url(), UUID),
-    "nxv:rev": 1
-    }
+    "nxv:rev": 1,
+}
 
 EMODEL_RELEASE_JSLD_CREATE = {
-    '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0',
-    'nxv:rev': 1,
-    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/' + UUID
+    "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
+    "nxv:rev": 1,
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/"
+    + UUID,
 }
 
 MODEL_RELEASE_INDEX_JSLD_CREATE = {
-    '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0',
-    'nxv:rev': 1,
-    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.0/' + UUID
+    "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
+    "nxv:rev": 1,
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/v0.1.0/"
+    + UUID,
 }
 
 EMODEL_RELEASE_JSLD = {
     "@context": [
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/core/entity/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
-        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     ],
     "@id": "%s/%s" % (get_base_url(), UUID),
-    "@type": [
-        "nsg:Entity",
-        "nsg:EModelRelease"
-    ],
+    "@type": ["nsg:Entity", "nsg:EModelRelease"],
     "distribution": [
         {
             "downloadURL": "file:///Emodel/release/distribution",
-            "mediaType": "application/swc,application/neurolucida,application/h5,application/neuroml"
+            "mediaType": "application/swc,application/neurolucida,application/h5,application/neuroml",
         }
     ],
     "emodelIndex": {
-        '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/_/' + UUID,
-        '@type': ['nsg:ModelReleaseIndex']
+        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/modelreleaseindex/_/"
+        + UUID,
+        "@type": ["nsg:ModelReleaseIndex"],
     },
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/" + UUID + "/incoming",
-        "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/" + UUID + "/outgoing",
+        "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/"
+        + UUID
+        + "/incoming",
+        "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/"
+        + UUID
+        + "/outgoing",
         "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/emodelrelease/v0.1.0",
-        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/" + UUID
+        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelrelease/v0.1.0/"
+        + UUID,
     },
     "name": "EModel Release",
     "nxv:deprecated": False,
-    "nxv:rev": 1
+    "nxv:rev": 1,
 }
 
 MEMODEL_RELEASE_JSLD = {
     "@context": [
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/core/entity/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/neurosciencegraph/core/v0.1.0",
-        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     ],
-    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID,
-    "@type": [
-        "nsg:Entity",
-        "nsg:MEModelRelease"
-    ],
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/"
+    + UUID,
+    "@type": ["nsg:Entity", "nsg:MEModelRelease"],
     "emodelRelease": {
         "@id": "%s/%s" % (get_base_url(), UUID),
-        "@type": [
-            "nsg:Entity",
-            "nsg:EModelRelease"
-        ]
+        "@type": ["nsg:Entity", "nsg:EModelRelease"],
     },
     "links": {
         "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/links/v0.2.0",
-        "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID + "/incoming",
-        "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID + "/outgoing",
+        "incoming": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/"
+        + UUID
+        + "/incoming",
+        "outgoing": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/"
+        + UUID
+        + "/outgoing",
         "schema": "https://bbp-nexus.epfl.ch/staging/v0/schemas/neurosciencegraph/simulation/memodelrelease/v0.1.0",
-        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/" + UUID
+        "self": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodelrelease/v0.1.0/"
+        + UUID,
     },
-    "memodelIndex": {
-        '@id': '%s/%s' % (get_base_url(), UUID),
-        '@type': ['nsg:ModelReleaseIndex']
-    },
+    "memodelIndex": {"@id": "%s/%s" % (get_base_url(), UUID), "@type": ["nsg:ModelReleaseIndex"]},
     "morphologyRelease": {
         "@id": "%s/%s" % (get_base_url(), UUID),
-        "@type": [
-            "nsg:Entity",
-            "nsg:MorphologyRelease"
-        ]
+        "@type": ["nsg:Entity", "nsg:MorphologyRelease"],
     },
     "name": "MEModel Release",
     "nxv:deprecated": False,
-    "nxv:rev": 1
+    "nxv:rev": 1,
 }
 
 MORPHOLOGY_JSLD = {
     "@context": [
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/bbp/core/entity/v0.1.0",
         "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
-        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0"
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
     ],
     "@id": "%s/%s" % (get_base_url(), UUID),
-    "@type": [
-        "nsg:Entity",
-        "nsg:Morphology"
-    ],
+    "@type": ["nsg:Entity", "nsg:Morphology"],
     "name": "Morphology",
     "nxv:deprecated": False,
-    "nxv:rev": 1
+    "nxv:rev": 1,
 }
 
 MORPHOLOGY_PUT_JSLD = {
-    '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0',
-    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID,
-    'distribution': [{
-        '@context': 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/distribution/v0.1.0',
-        'contentSize': {
-            'unit': 'byte',
-            'value': 121440
-        },
-        'digest': {
-            'algorithm': 'SHA-256',
-            'value': 'c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb'
-        },
-        'downloadURL': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/' + UUID + '/attachment',
-        'mediaType': 'text/plain',
-        'originalFileName': 'file_name'}],
-    'nxv:rev': 2
+    "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/"
+    + UUID,
+    "distribution": [
+        {
+            "@context": "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/distribution/v0.1.0",
+            "contentSize": {"unit": "byte", "value": 121440},
+            "digest": {
+                "algorithm": "SHA-256",
+                "value": "c56a9037f0d0af13a0cffdba4fe974f5e7c342a0a045b2ae4b0831f7d5186feb",
+            },
+            "downloadURL": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/v0.1.0/"
+            + UUID
+            + "/attachment",
+            "mediaType": "text/plain",
+            "originalFileName": "file_name",
+        }
+    ],
+    "nxv:rev": 2,
 }
 
 MEMODEL_JSLD = {
-    '@context': ['https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0',
-                 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0'],
-    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodel/v0.1.2/' + UUID,
-    '@type': ['nsg:Entity', 'nsg:MEModel'],
-    'brainRegion': {'@id': 'http://uri.interlex.org/paxinos/uris/rat/labels/322',
-                    'label': 'field CA1 of the hippocampus'},
-    'species': {'@id': 'http://purl.obolibrary.org/obo/NCBITaxon_10116',
-                'label': 'Rattus norvegicus'},
-    'distribution': [None],
-    'eModel': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodel/v0.1.1/9b8e44fa-664c-4490-97bd-91ae19ce596e',
-               '@type': ['nsg:Entity', 'nsg:EModel'],
-               'name': 'dummy'},
-    'mainModelScript': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelscript/v0.1.0/baeda23e-b868-4bae-a48d-98ff069b3a70',
-                        '@type': ['nsg:Entity', 'nsg:EModelScript'],
-                        'name': 'dummy'},
-    'morphology': {'@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/_/baeda23e-b868-4bae-a48d-98ff069b3a70',
-                   '@type': ['nsg:Entity', 'nsg:Morphology'],
-                   'name': 'dummy'},
-    'name': 'name',
-    'nxv:deprecated': False,
-    'nxv:rev': 1
+    "@context": [
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
+    ],
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/memodel/v0.1.2/"
+    + UUID,
+    "@type": ["nsg:Entity", "nsg:MEModel"],
+    "brainRegion": {
+        "@id": "http://uri.interlex.org/paxinos/uris/rat/labels/322",
+        "label": "field CA1 of the hippocampus",
+    },
+    "species": {
+        "@id": "http://purl.obolibrary.org/obo/NCBITaxon_10116",
+        "label": "Rattus norvegicus",
+    },
+    "distribution": [None],
+    "eModel": {
+        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodel/v0.1.1/9b8e44fa-664c-4490-97bd-91ae19ce596e",
+        "@type": ["nsg:Entity", "nsg:EModel"],
+        "name": "dummy",
+    },
+    "mainModelScript": {
+        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/emodelscript/v0.1.0/baeda23e-b868-4bae-a48d-98ff069b3a70",
+        "@type": ["nsg:Entity", "nsg:EModelScript"],
+        "name": "dummy",
+    },
+    "morphology": {
+        "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/simulation/morphology/_/baeda23e-b868-4bae-a48d-98ff069b3a70",
+        "@type": ["nsg:Entity", "nsg:Morphology"],
+        "name": "dummy",
+    },
+    "name": "name",
+    "nxv:deprecated": False,
+    "nxv:rev": 1,
 }
 
 ACTIVITY_JSLD = {
-    '@context': ['https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0',
-                 'https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0'],
-    '@id': 'https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/core/activity/v0.1.0/' + UUID,
-    '@type': ['nsg:Activity', 'prov:Activity'],
-    'nxv:deprecated': False,
-    'nxv:rev': 1,
-    'name': 'test activity',
-    'startedAtTime': '2018-03-27T16:04:35.886105',
-    'used': {
-        '@id': '%s/%s' % (get_base_url(), UUID),
-        '@type': ['nsg:MEModel', 'prov:Entity']
-    },
-    'wasStartedBy': {
-        '@id': '%s/%s' % (get_base_url(), UUID),
-        '@type': ['nsg:Agent', 'prov:Agent']
-    }
+    "@context": [
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/neurosciencegraph/core/data/v0.1.0",
+        "https://bbp-nexus.epfl.ch/staging/v0/contexts/nexus/core/resource/v0.3.0",
+    ],
+    "@id": "https://bbp-nexus.epfl.ch/staging/v0/data/neurosciencegraph/core/activity/v0.1.0/"
+    + UUID,
+    "@type": ["nsg:Activity", "prov:Activity"],
+    "nxv:deprecated": False,
+    "nxv:rev": 1,
+    "name": "test activity",
+    "startedAtTime": "2018-03-27T16:04:35.886105",
+    "used": {"@id": "%s/%s" % (get_base_url(), UUID), "@type": ["nsg:MEModel", "prov:Entity"]},
+    "wasStartedBy": {"@id": "%s/%s" % (get_base_url(), UUID), "@type": ["nsg:Agent", "prov:Agent"]},
 }
 
 
 @responses.activate
 def test_get_configuration():
-    responses.add(
-        responses.GET,
-        '%s/%s' % (get_base_url(), quote(CFG_ID)),
-        json=CFG_JSLD)
+    responses.add(responses.GET, "%s/%s" % (get_base_url(), quote(CFG_ID)), json=CFG_JSLD)
 
     cfg = Configuration.from_id(CFG_ID)
     assert cfg._id == str(CFG_ID)
 
 
 def test_configuration_serialization():
-    cfg = Configuration(distribution=DataDownload(url='test_url'))
-    assert cfg.as_json_ld()['distribution']['url'] == 'test_url'
+    cfg = Configuration(distribution=DataDownload(url="test_url"))
+    assert cfg.as_json_ld()["distribution"]["url"] == "test_url"
 
 
 def test_sim_campaign_config_serialization():
     cfg = SimulationCampaignConfiguration(
-        name='test',
-        configuration=DataDownload(url='json'),
-        template=DataDownload(url='test'))
+        name="test", configuration=DataDownload(url="json"), template=DataDownload(url="test")
+    )
     json_ld = cfg.as_json_ld()
     assert json_ld[JSLD_CTX][0]
 
@@ -344,15 +360,15 @@ def test_detailed_circuit__as_json_ld__include_revision(monkeypatch, detailed_ci
 
     assert "_rev" not in res["brainLocation"]
     assert "_rev" not in res["subject"]
-    assert "_rev" not in res['circuitConfigPath']
-    assert "_rev" not in res['atlasRelease']
+    assert "_rev" not in res["circuitConfigPath"]
+    assert "_rev" not in res["atlasRelease"]
 
     res = circuit.as_json_ld(include_rev=True)
 
     assert "_rev" not in res["brainLocation"]
     assert res["subject"]["_rev"] == 1
-    assert "_rev" not in res['circuitConfigPath']
-    assert res['atlasRelease']["_rev"] == 5
+    assert "_rev" not in res["circuitConfigPath"]
+    assert res["atlasRelease"]["_rev"] == 5
 
 
 def test_detailed_circuit__publish__wout_revision(monkeypatch, detailed_circuit_metadata):
@@ -366,8 +382,8 @@ def test_detailed_circuit__publish__wout_revision(monkeypatch, detailed_circuit_
         payload = patched.call_args[0][1]
         assert "_rev" not in payload["brainLocation"]
         assert "_rev" not in payload["subject"]
-        assert "_rev" not in payload['circuitConfigPath']
-        assert "_rev" not in payload['atlasRelease']
+        assert "_rev" not in payload["circuitConfigPath"]
+        assert "_rev" not in payload["atlasRelease"]
 
 
 def test_detailed_circuit__publish__with_revision(monkeypatch, detailed_circuit_metadata):
@@ -381,8 +397,8 @@ def test_detailed_circuit__publish__with_revision(monkeypatch, detailed_circuit_
         payload = patched.call_args[0][1]
         assert "_rev" not in payload["brainLocation"]
         assert payload["subject"]["_rev"] == 1
-        assert "_rev" not in payload['circuitConfigPath']
-        assert payload['atlasRelease']["_rev"] == 5
+        assert "_rev" not in payload["circuitConfigPath"]
+        assert payload["atlasRelease"]["_rev"] == 5
 
 
 # @responses.activate

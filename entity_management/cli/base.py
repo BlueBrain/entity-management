@@ -1,8 +1,11 @@
 """Command line interface."""
+
 import logging
+
 import click
-from entity_management.nexus import load_by_id, load_by_url
+
 from entity_management.cli.model_building_config import get_model_building_config
+from entity_management.nexus import load_by_id, load_by_url
 
 
 @click.group()
@@ -18,11 +21,11 @@ def cli(verbose):
 
 
 @cli.command()
-@click.argument('identifier', type=str, nargs=1)
-@click.option("--url", "url_hint", is_flag=True, default=False,
-              help="Force identifier as nexus id.")
-@click.option("--id", "id_hint", is_flag=True, default=False,
-              help="Force identifier as nexus url.")
+@click.argument("identifier", type=str, nargs=1)
+@click.option(
+    "--url", "url_hint", is_flag=True, default=False, help="Force identifier as nexus id."
+)
+@click.option("--id", "id_hint", is_flag=True, default=False, help="Force identifier as nexus url.")
 def get(identifier, url_hint, id_hint):
     """Get object instance from Nexus by URL or ID.
 
@@ -31,7 +34,7 @@ def get(identifier, url_hint, id_hint):
         url_hint (bool): Force identifier as nexus id
         id_hint (bool): Force identifier as nexus url
     """
-    if (url_hint and id_hint):
+    if url_hint and id_hint:
         raise ValueError("At most one of `url` or `id` cat be set at a time.")
 
     nexus_id = None

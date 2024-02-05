@@ -1,8 +1,7 @@
 """Atlas related entities."""
-from typing import List
 
-from entity_management.base import Identifiable, attributes, BrainLocation, Derivation
-from entity_management.core import Entity, DataDownload, Contribution
+from entity_management.base import BrainLocation, Derivation, Identifiable, attributes
+from entity_management.core import Contribution, DataDownload, Entity
 from entity_management.util import AttrOf
 
 
@@ -23,8 +22,15 @@ class AtlasBrainRegion(Identifiable):
 
     @classmethod
     def from_id(
-        cls, resource_id, on_no_result=None, base=None, org=None, proj=None, use_auth=None,
-        cross_bucket=False, **kwargs
+        cls,
+        resource_id,
+        on_no_result=None,
+        base=None,
+        org=None,
+        proj=None,
+        use_auth=None,
+        cross_bucket=False,
+        **kwargs,
     ):
         """
         Load entity from resource id.
@@ -40,9 +46,7 @@ class AtlasBrainRegion(Identifiable):
         if proj is None and org is None:
             proj, org = cls._ontology_location()
 
-        return super(AtlasBrainRegion, cls).from_id(
-            resource_id, on_no_result, base, proj, org, use_auth, **kwargs
-        )
+        return super().from_id(resource_id, on_no_result, base, proj, org, use_auth, **kwargs)
 
     @classmethod
     def from_url(cls, url, base=None, org=None, proj=None, use_auth=None):
@@ -56,7 +60,7 @@ class AtlasBrainRegion(Identifiable):
         """
         if proj is None and org is None:
             proj, org = cls._ontology_location()
-        return super(AtlasBrainRegion, cls).from_url(url, base, org, proj, use_auth)
+        return super().from_url(url, base, org, proj, use_auth)
 
 
 @attributes(
@@ -65,7 +69,7 @@ class AtlasBrainRegion(Identifiable):
     }
 )
 class BrainTemplateDataLayer(Entity):
-    '''Raster volume of the brain template.'''
+    """Raster volume of the brain template."""
 
 
 @attributes(
@@ -74,16 +78,16 @@ class BrainTemplateDataLayer(Entity):
     }
 )
 class HemisphereAnnotationDataLayer(Entity):
-    '''Hemisphere annotation from Allen ccfv3 volume at 25 microns.'''
+    """Hemisphere annotation from Allen ccfv3 volume at 25 microns."""
 
 
 @attributes(
     {
-        "distribution": AttrOf(List[DataDownload]),
+        "distribution": AttrOf(list[DataDownload]),
     }
 )
 class ParcellationOntology(Entity):
-    '''Raster volume of the brain template. This originaly comes from AIBS CCF (25µm)'''
+    """Raster volume of the brain template. This originaly comes from AIBS CCF (25µm)"""
 
 
 @attributes(
@@ -92,7 +96,7 @@ class ParcellationOntology(Entity):
     }
 )
 class BrainParcellationDataLayer(Entity):
-    '''Brain region annotation as IDs, including the separation of cortical layers 2 and 3.'''
+    """Brain region annotation as IDs, including the separation of cortical layers 2 and 3."""
 
 
 @attributes(
@@ -101,10 +105,10 @@ class BrainParcellationDataLayer(Entity):
     }
 )
 class AtlasSpatialReferenceSystem(Entity):
-    '''This spatial reference system describes the space used by Allen Institute.
+    """This spatial reference system describes the space used by Allen Institute.
 
     It is shared across CCFv1, CCFv2 and CCFv3 in world coordinates.
-    It uses micrometer as a spatial unit.'''
+    It uses micrometer as a spatial unit."""
 
 
 @attributes(
@@ -113,7 +117,7 @@ class AtlasSpatialReferenceSystem(Entity):
     }
 )
 class CellOrientationField(Entity):
-    '''Raster volume with cell orientation field as quaternions.'''
+    """Raster volume with cell orientation field as quaternions."""
 
 
 @attributes(
@@ -138,43 +142,49 @@ class PlacementHintsDataCatalog(Entity):
     }
 )
 class AtlasRelease(Entity):
-    '''AtlasRelease resource representation.'''
+    """AtlasRelease resource representation."""
 
 
-@attributes({
-    'atlasRelease': AttrOf(AtlasRelease, default=None),
-    'about': AttrOf(List[str], default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(List[Contribution], default=None),
-    'derivation': AttrOf(Derivation, default=None),
-    'distribution': AttrOf(DataDownload),
-    'subject': AttrOf(dict, default=None),
-})
+@attributes(
+    {
+        "atlasRelease": AttrOf(AtlasRelease, default=None),
+        "about": AttrOf(list[str], default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
+        "derivation": AttrOf(Derivation, default=None),
+        "distribution": AttrOf(DataDownload),
+        "subject": AttrOf(dict, default=None),
+    }
+)
 class CellCompositionSummary(Entity):
     """CellCompositionSummary"""
 
 
-@attributes({
-    'about': AttrOf(List[str], default=None),
-    'atlasRelease': AttrOf(AtlasRelease, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'contribution': AttrOf(List[Contribution], default=None),
-    'derivation': AttrOf(Derivation, default=None),
-    'distribution': AttrOf(DataDownload),
-    'subject': AttrOf(dict, default=None),
-})
+@attributes(
+    {
+        "about": AttrOf(list[str], default=None),
+        "atlasRelease": AttrOf(AtlasRelease, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
+        "derivation": AttrOf(Derivation, default=None),
+        "distribution": AttrOf(DataDownload),
+        "subject": AttrOf(dict, default=None),
+    }
+)
 class CellCompositionVolume(Entity):
     """CellCompositionVolume"""
 
 
-@attributes({
-    'about': AttrOf(List[str], default=None),
-    'atlasRelease': AttrOf(AtlasRelease),
-    'atlasSpatialReferenceSystem': AttrOf(AtlasSpatialReferenceSystem, default=None),
-    'brainLocation': AttrOf(BrainLocation, default=None),
-    'cellCompositionSummary': AttrOf(CellCompositionSummary),
-    'cellCompositionVolume': AttrOf(CellCompositionVolume),
-    'contribution': AttrOf(List[Contribution], default=None),
-})
+@attributes(
+    {
+        "about": AttrOf(list[str], default=None),
+        "atlasRelease": AttrOf(AtlasRelease),
+        "atlasSpatialReferenceSystem": AttrOf(AtlasSpatialReferenceSystem, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "cellCompositionSummary": AttrOf(CellCompositionSummary),
+        "cellCompositionVolume": AttrOf(CellCompositionVolume),
+        "contribution": AttrOf(list[Contribution], default=None),
+    }
+)
 class CellComposition(Entity):
     """CellComposition"""

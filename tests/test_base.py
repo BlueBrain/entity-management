@@ -13,33 +13,44 @@ from SPARQLWrapper import Wrapper
 
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE, JSLD_LINK_REV
 from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
-from entity_management.base import (Identifiable, OntologyTerm,
-                                    _deserialize_list, _deserialize_json_to_datatype, _serialize_obj, Unconstrained, NotInstantiated, Frozen, attributes, AttrOf)
+from entity_management.base import (
+    Identifiable,
+    OntologyTerm,
+    _deserialize_list,
+    _deserialize_json_to_datatype,
+    _serialize_obj,
+    Unconstrained,
+    NotInstantiated,
+    Frozen,
+    attributes,
+    AttrOf,
+)
 from entity_management import state
 from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
 from entity_management.morphology import ReconstructedPatchedCell
 import entity_management.nexus as nexus
 
-state.ACCESS_TOKEN = 'foo'
+state.ACCESS_TOKEN = "foo"
 
 
 def test_id_type(monkeypatch):
     class Dummy(Identifiable):
-        '''A dummy class'''
+        """A dummy class"""
+
     dummy = Dummy()
-    monkeypatch.setattr(nexus, 'create', lambda *args, **kwargs: {JSLD_ID: 'id',
-                                                                  JSLD_REV: 1,
-                                                                  JSLD_TYPE: 'Dummy'})
+    monkeypatch.setattr(
+        nexus, "create", lambda *args, **kwargs: {JSLD_ID: "id", JSLD_REV: 1, JSLD_TYPE: "Dummy"}
+    )
     dummy = dummy.publish()
-    assert dummy._id == 'id'
-    assert dummy._type == 'Dummy'
+    assert dummy._id == "id"
+    assert dummy._type == "Dummy"
 
 
 def test_serialize():
-    assert _serialize_obj(datetime(2018, 12, 23)) == '2018-12-23T00:00:00'
+    assert _serialize_obj(datetime(2018, 12, 23)) == "2018-12-23T00:00:00"
 
-    assert _serialize_obj(OntologyTerm(url='A', label='B')) == {'@id': 'A', 'label': 'B'}
+    assert _serialize_obj(OntologyTerm(url="A", label="B")) == {"@id": "A", "label": "B"}
 
     @attr.s
     class Dummy(object):
@@ -47,10 +58,10 @@ def test_serialize():
         b = attr.ib(default=None)
 
     dummy = Dummy(a=33, b=Dummy(a=12))
-    assert _serialize_obj(dummy) == {'a': 33, 'b': {'a': 12}}
+    assert _serialize_obj(dummy) == {"a": 33, "b": {"a": 12}}
 
-    dummy = Dummy(a={1: 2}, b=[OntologyTerm(url='A', label='B')])
-    assert _serialize_obj(dummy) == {'a': {1: 2}, 'b': [{'@id': 'A', 'label': 'B'}]}
+    dummy = Dummy(a={1: 2}, b=[OntologyTerm(url="A", label="B")])
+    assert _serialize_obj(dummy) == {"a": {1: 2}, "b": [{"@id": "A", "label": "B"}]}
 
     assert _serialize_obj(42) == 42
 
@@ -91,59 +102,64 @@ class Dummy:
     b = attr.ib(default=None)
 
 
-@attributes({
-    "a": AttrOf(int, default=42),
-    "b": AttrOf(str, default=None),
-})
+@attributes(
+    {
+        "a": AttrOf(int, default=42),
+        "b": AttrOf(str, default=None),
+    }
+)
 class FrozenDummy(Frozen):
     pass
 
 
-@pytest.mark.parametrize("data_type, data_raw, expected", [
-    (str, None, None),
-    (list, [], None),
-    (dict, {}, None),
-    (datetime, "2024-01-22T10:07:16.052123Z", parse("2024-01-22T10:07:16.052123Z")),
-    (dict, {"a": "b"}, {"a": "b"}),
-    (Dict, {"a": "b"}, {"a": "b"}),
-    (dict, [{"a": "b"}], {"a": "b"}),
-    (Dict, [{"a": "b"}], {"a": "b"}),
-    (list, [{"a": "b"}], [{"a": "b"}]),
-    (List, [{"a": "b"}], [{"a": "b"}]),
-    (list[dict], [{"a": "b"}], [{"a": "b"}]),
-    (list[dict], [], None),
-    (List[dict], [{"a": "b"}], [{"a": "b"}]),
-    (list[dict], {"a": "b"}, [{"a": "b"}]),
-    (List[str], "Ringo", ["Ringo"]),
-    (list[str], "Ringo", ["Ringo"]),
-    (list[str], [], None),
-    (list[str], ["a", "b"], ["a", "b"]),
-    (List[int], 2, [2]),
-    (list[int], 2, [2]),
-    (List[float], 2., [2.]),
-    (list[float], 2., [2.]),
-    (List[bool], True, [True]),
-    (list[bool], False, [False]),
-    (Dummy, {'a': 1, 'b': 2}, Dummy(a=1, b=2)),
-    (List[Dummy], [{'a': 1, 'b': 2}], [Dummy(a=1, b=2)]),
-    (list[Dummy], [{'a': 1, 'b': 2}], [Dummy(a=1, b=2)]),
-    (list[Dummy], [], None),
-    (List[Dummy], {'a': 1, 'b': 2}, [Dummy(a=1, b=2)]),
-    (list[Dummy], {'a': 1, 'b': 2}, [Dummy(a=1, b=2)]),
-    (list[Dummy], [{'a': 1, 'b': 2}, {'a': 2, 'b': 3}], [Dummy(a=1, b=2), Dummy(a=2, b=3)]),
-    (FrozenDummy, {'a': 1, 'b': "2"}, FrozenDummy(a=1, b="2")),
-    (List[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
-    (list[FrozenDummy], {'a': 1, 'b': "2"}, [FrozenDummy(a=1, b="2")]),
-    (list[FrozenDummy], [], None),
-    (dict[str, Dummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': Dummy(a=1, b="2")}),
-    (dict[str, FrozenDummy], {'foo': {'a': 1, 'b': "2"}}, {'foo': FrozenDummy(a=1, b="2")}),
-    (dict[str, list[Dummy]], {'foo': {'a': 1, 'b': "2"}}, {'foo': [Dummy(a=1, b="2")]}),
-    (
-        OntologyTerm,
-        {"@id": "foo", "label": "bar", "@type": "zee"},
-        OntologyTerm(url="foo", label="bar"),
-    )
-])
+@pytest.mark.parametrize(
+    "data_type, data_raw, expected",
+    [
+        (str, None, None),
+        (list, [], None),
+        (dict, {}, None),
+        (datetime, "2024-01-22T10:07:16.052123Z", parse("2024-01-22T10:07:16.052123Z")),
+        (dict, {"a": "b"}, {"a": "b"}),
+        (Dict, {"a": "b"}, {"a": "b"}),
+        (dict, [{"a": "b"}], {"a": "b"}),
+        (Dict, [{"a": "b"}], {"a": "b"}),
+        (list, [{"a": "b"}], [{"a": "b"}]),
+        (List, [{"a": "b"}], [{"a": "b"}]),
+        (list[dict], [{"a": "b"}], [{"a": "b"}]),
+        (list[dict], [], None),
+        (List[dict], [{"a": "b"}], [{"a": "b"}]),
+        (list[dict], {"a": "b"}, [{"a": "b"}]),
+        (List[str], "Ringo", ["Ringo"]),
+        (list[str], "Ringo", ["Ringo"]),
+        (list[str], [], None),
+        (list[str], ["a", "b"], ["a", "b"]),
+        (List[int], 2, [2]),
+        (list[int], 2, [2]),
+        (List[float], 2.0, [2.0]),
+        (list[float], 2.0, [2.0]),
+        (List[bool], True, [True]),
+        (list[bool], False, [False]),
+        (Dummy, {"a": 1, "b": 2}, Dummy(a=1, b=2)),
+        (List[Dummy], [{"a": 1, "b": 2}], [Dummy(a=1, b=2)]),
+        (list[Dummy], [{"a": 1, "b": 2}], [Dummy(a=1, b=2)]),
+        (list[Dummy], [], None),
+        (List[Dummy], {"a": 1, "b": 2}, [Dummy(a=1, b=2)]),
+        (list[Dummy], {"a": 1, "b": 2}, [Dummy(a=1, b=2)]),
+        (list[Dummy], [{"a": 1, "b": 2}, {"a": 2, "b": 3}], [Dummy(a=1, b=2), Dummy(a=2, b=3)]),
+        (FrozenDummy, {"a": 1, "b": "2"}, FrozenDummy(a=1, b="2")),
+        (List[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
+        (list[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
+        (list[FrozenDummy], [], None),
+        (dict[str, Dummy], {"foo": {"a": 1, "b": "2"}}, {"foo": Dummy(a=1, b="2")}),
+        (dict[str, FrozenDummy], {"foo": {"a": 1, "b": "2"}}, {"foo": FrozenDummy(a=1, b="2")}),
+        (dict[str, list[Dummy]], {"foo": {"a": 1, "b": "2"}}, {"foo": [Dummy(a=1, b="2")]}),
+        (
+            OntologyTerm,
+            {"@id": "foo", "label": "bar", "@type": "zee"},
+            OntologyTerm(url="foo", label="bar"),
+        ),
+    ],
+)
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
     assert _deserialize_json_to_datatype(data_type, data_raw) == expected
 
@@ -152,11 +168,11 @@ def _make_valid_resp(data):
     essentials = {
         "@context": [
             "https://bluebrain.github.io/nexus/contexts/metadata.json",
-            "https://bbp.neuroshapes.org"
-        ], 
+            "https://bbp.neuroshapes.org",
+        ],
         "_rev": 1,
         "_project": "my-project",
-        "_self":  "my-self",
+        "_self": "my-self",
         "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
         "_createdAt": "2024-01-22T10:07:16.052123Z",
         "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
@@ -169,39 +185,46 @@ def _make_valid_resp(data):
 
 def test_deserialize_json_to_datatype__union(monkeypatch):
 
-    @attributes({
-        "a": AttrOf(int, default=42),
-        "b": AttrOf(str, default=None),
-    })
+    @attributes(
+        {
+            "a": AttrOf(int, default=42),
+            "b": AttrOf(str, default=None),
+        }
+    )
     class T1(Identifiable):
         pass
 
-
-    @attributes({
-        "c": AttrOf(int, default=42),
-        "d": AttrOf(str, default=None),
-    })
+    @attributes(
+        {
+            "c": AttrOf(int, default=42),
+            "d": AttrOf(str, default=None),
+        }
+    )
     class T2(Identifiable):
         pass
 
-    data_raw_t1 = _make_valid_resp({
-        "@id": "t1-id",
-        "@type": "T1",
-        "a": 1,
-        "b": "2",
-    })
+    data_raw_t1 = _make_valid_resp(
+        {
+            "@id": "t1-id",
+            "@type": "T1",
+            "a": 1,
+            "b": "2",
+        }
+    )
 
     monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t1)
 
     res = _deserialize_json_to_datatype(T1 | T2, data_raw_t1)
     assert res == T1(a=1, b="2")
 
-    data_raw_t2 = _make_valid_resp({
-        "@id": "t2-id",
-        "@type": "T2",
-        "c": 1,
-        "d": "2",
-    })
+    data_raw_t2 = _make_valid_resp(
+        {
+            "@id": "t2-id",
+            "@type": "T2",
+            "c": 1,
+            "d": "2",
+        }
+    )
 
     monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t2)
 
@@ -211,39 +234,49 @@ def test_deserialize_json_to_datatype__union(monkeypatch):
 
 def test_deserialize_json_to_datatype__list_union(monkeypatch):
 
-    @attributes({
-        "a": AttrOf(int, default=42),
-        "b": AttrOf(str, default=None),
-    })
+    @attributes(
+        {
+            "a": AttrOf(int, default=42),
+            "b": AttrOf(str, default=None),
+        }
+    )
     class T1(Identifiable):
         pass
 
-    @attributes({
-        "c": AttrOf(int, default=42),
-        "d": AttrOf(str, default=None),
-    })
+    @attributes(
+        {
+            "c": AttrOf(int, default=42),
+            "d": AttrOf(str, default=None),
+        }
+    )
     class T2(Identifiable):
         pass
 
-    @attributes({
-        "e": AttrOf(int, default=42),
-        "f": AttrOf(str, default=None),
-    })
+    @attributes(
+        {
+            "e": AttrOf(int, default=42),
+            "f": AttrOf(str, default=None),
+        }
+    )
     class T3(Identifiable):
         pass
 
-    data_raw_t1= _make_valid_resp({
-        "@id": "t1-id",
-        "@type": "T1",
-        "a": 2,
-        "b": "3",
-    })
-    data_raw_t3 = _make_valid_resp({
-        "@id": "t3-id",
-        "@type": "T3",
-        "e": 4,
-        "f": "5",
-    })
+    data_raw_t1 = _make_valid_resp(
+        {
+            "@id": "t1-id",
+            "@type": "T1",
+            "a": 2,
+            "b": "3",
+        }
+    )
+    data_raw_t3 = _make_valid_resp(
+        {
+            "@id": "t3-id",
+            "@type": "T3",
+            "e": 4,
+            "f": "5",
+        }
+    )
 
     def mock_load_by_id(resource_id, *args, **kwargs):
         if resource_id == "t1-id?rev=1":
@@ -257,87 +290,93 @@ def test_deserialize_json_to_datatype__list_union(monkeypatch):
     assert res == [T3(e=4, f="5"), T1(a=2, b="3")]
 
 
-@pytest.fixture(name='unconstrained_resp', scope='session')
+@pytest.fixture(name="unconstrained_resp", scope="session")
 def fixture_unconstrained():
-    with open('tests/data/unconstrained_resp.json') as f:
+    with open("tests/data/unconstrained_resp.json") as f:
         return json.load(f)
 
 
 def test_unconstrained(monkeypatch, unconstrained_resp):
-    monkeypatch.setattr(nexus, 'create', lambda *args, **kwargs: unconstrained_resp)
-    obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    assert get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
+    monkeypatch.setattr(nexus, "create", lambda *args, **kwargs: unconstrained_resp)
+    obj = Unconstrained(json=dict(key1="value1", key2="value2"))
+    assert get_base_url() == "%s/%s/%s/_" % (get_base_resources(), get_org(), get_proj())
     obj = obj.publish()
-    assert obj._constrainedBy == 'https://bluebrain.github.io/nexus/schemas/unconstrained.json'
-    assert obj.json['key1'] == 'value1'
-    assert obj.json['key2'] == 'value2'
+    assert obj._constrainedBy == "https://bluebrain.github.io/nexus/schemas/unconstrained.json"
+    assert obj.json["key1"] == "value1"
+    assert obj.json["key2"] == "value2"
 
 
 def test_project_change():
-    obj = Unconstrained(json=dict(key1='value1', key2='value2'))
-    assert get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), get_proj())
-    set_proj('test')
-    assert get_base_url() == '%s/%s/%s/_' % (get_base_resources(), get_org(), 'test')
+    obj = Unconstrained(json=dict(key1="value1", key2="value2"))
+    assert get_base_url() == "%s/%s/%s/_" % (get_base_resources(), get_org(), get_proj())
+    set_proj("test")
+    assert get_base_url() == "%s/%s/%s/_" % (get_base_resources(), get_org(), "test")
 
 
 def test_env_change():
-    assert get_base_resources() == 'https://bbp.epfl.ch/nexus/v1/resources'
-    set_base('https://dev.nexus.ocp.bbp.epfl.ch/v1')
-    assert get_base_resources() == 'https://dev.nexus.ocp.bbp.epfl.ch/v1/resources'
+    assert get_base_resources() == "https://bbp.epfl.ch/nexus/v1/resources"
+    set_base("https://dev.nexus.ocp.bbp.epfl.ch/v1")
+    assert get_base_resources() == "https://dev.nexus.ocp.bbp.epfl.ch/v1/resources"
 
 
-@pytest.fixture(name='cells_page1_resp', scope='session')
+@pytest.fixture(name="cells_page1_resp", scope="session")
 def fixture_reconstructed_patched_cells_page1():
-    with open('tests/data/cells_page1_resp.json') as f:
+    with open("tests/data/cells_page1_resp.json") as f:
         return f.read()
 
 
-@pytest.fixture(name='cells_page2_resp', scope='session')
+@pytest.fixture(name="cells_page2_resp", scope="session")
 def fixture_reconstructed_patched_cells_page2():
-    with open('tests/data/cells_page2_resp.json') as f:
+    with open("tests/data/cells_page2_resp.json") as f:
         return f.read()
 
 
 def test_list_by_schema(monkeypatch, cells_page1_resp, cells_page2_resp):
-    class MockResponsePage1():
+    class MockResponsePage1:
         status_code = 200
         content = cells_page1_resp
+
         @staticmethod
         def raise_for_status():
             pass
 
-    class MockResponsePage2():
+    class MockResponsePage2:
         status_code = 200
         content = cells_page2_resp
+
         @staticmethod
         def raise_for_status():
             pass
 
     with monkeypatch.context() as m:
-        m.setattr(requests, 'get', lambda *args, **kwargs: MockResponsePage1)
+        m.setattr(requests, "get", lambda *args, **kwargs: MockResponsePage1)
         cells = ReconstructedPatchedCell.list_by_schema(page_size=2)
         cell = next(cells)
         assert cells.total_items == 3
-        ids = ['https://bbp.epfl.ch/neurosciencegraph/data/0d3f11ac-2c85-43d5-becd-4a248a7010da',
-               'https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52']
+        ids = [
+            "https://bbp.epfl.ch/neurosciencegraph/data/0d3f11ac-2c85-43d5-becd-4a248a7010da",
+            "https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52",
+        ]
         assert cell.get_id() in ids
         assert next(cells).get_id() in ids
 
     with monkeypatch.context() as m:
-        m.setattr(requests, 'get', lambda *args, **kwargs: MockResponsePage2)
-        assert (next(cells).get_id() ==
-                'https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed')
+        m.setattr(requests, "get", lambda *args, **kwargs: MockResponsePage2)
+        assert (
+            next(cells).get_id()
+            == "https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed"
+        )
 
 
 def test_list_by_sparql(monkeypatch):
 
     with monkeypatch.context() as m:
-        m.setattr(Wrapper,
-                  'urlopener',
-                  lambda *args, **kwargs: io.FileIO('tests/data/sparql_resp.json'))
-        params = ModelRuntimeParameters.list_by_model('dummy_model_resource_id')
+        m.setattr(
+            Wrapper, "urlopener", lambda *args, **kwargs: io.FileIO("tests/data/sparql_resp.json")
+        )
+        params = ModelRuntimeParameters.list_by_model("dummy_model_resource_id")
         param = next(params)
-        assert param.get_id().endswith('org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38')
+        assert param.get_id().endswith("org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38")
 
 
 def test_instantiate__wout_rev(monkeypatch):
