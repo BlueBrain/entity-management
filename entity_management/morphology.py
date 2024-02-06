@@ -21,6 +21,14 @@ class NeuronMorphology(Entity):
     """A Neuron Morphology."""
 
 
+class SynthesizedNeuronMorphology(NeuronMorphology):
+    """A synthesized neuron morphology."""
+
+
+class ReconstructedNeuronMorphology(NeuronMorphology):
+    """A reconstruced neuron morphology."""
+
+
 @attributes({"name": AttrOf(str), "brainLocation": AttrOf(BrainLocation)})
 class ReconstructedCell(DistributionMixin, Identifiable, EntityMixin):
     """Reconstructed cell.
