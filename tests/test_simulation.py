@@ -14,10 +14,8 @@ from entity_management.core import DataDownload
 from entity_management.util import quote
 from entity_management.simulation import (
     ModelReleaseIndex,
-    EModelRelease,
     MorphologyRelease,
     Morphology,
-    MEModel,
     IonChannelMechanismRelease,
     Configuration,
     SimulationCampaignConfiguration,

@@ -12,17 +12,14 @@ from entity_management.base import (
     Frozen,
     Identifiable,
     OntologyTerm,
-    QuantitativeValue,
     _NexusBySparqlIterator,
     attributes,
 )
 from entity_management.core import (
     Activity,
-    Agent,
     DataDownload,
     DistributionMixin,
     Entity,
-    SoftwareAgent,
     Subject,
 )
 from entity_management.electrophysiology import Trace
@@ -125,40 +122,6 @@ class Configuration(Entity):
 @attributes(
     {
         "distribution": AttrOf(DataDownload, default=None),
-        "emodelIndex": AttrOf(ModelReleaseIndex, default=None),
-        "isPartOf": AttrOf(Identifiable, default=None),
-    }
-)
-class EModelRelease(ModelRelease):
-    """Electrical model release
-
-    Args:
-        distribution (DataDownload): EModel release location provides a path to ``hoc`` files.
-        emodelIndex (ModelReleaseIndex): EModel release index file.
-        isPartOf (Identifiable): Dataset this release is part of.
-    """
-
-
-@attributes(
-    {
-        "emodelRelease": AttrOf(EModelRelease),
-        "morphologyRelease": AttrOf(MorphologyRelease),
-        "memodelIndex": AttrOf(ModelReleaseIndex, default=None),
-    }
-)
-class MEModelRelease(ModelRelease):
-    """MorphoElectrical model release
-
-    Args:
-        emodelRelease(EModelRelease): electrical model release
-        morphologyRelease(MorphologyRelease): morphology model release
-        memodelIndex(ModelReleaseIndex): optional morpho-electrical model index
-    """
-
-
-@attributes(
-    {
-        "distribution": AttrOf(DataDownload, default=None),
         "mType": AttrOf(OntologyTerm, default=None),
         "isPartOf": AttrOf(MorphologyRelease, default=None),
         "view2d": AttrOf(Identifiable, default=None),
@@ -177,78 +140,6 @@ class Morphology(ModelInstance):
         isPartOf (MorphologyRelease): Release this morphology is part of.
         view2d (Identifiable): Morphology view in 2D.
         view3d (Identifiable): Morphology view in 3D.
-    """
-
-
-@attributes()
-class SubCellularModelScript(ModelScript):
-    """Scripts attached to the model: ``mod`` file.
-
-    Args:
-        distribution (DataDownload): Distribution should provide the path to the model script.
-    """
-
-
-@attributes()
-class EModelScript(ModelScript):
-    """Scripts attached to the model: ``hoc``, ``neuroml`` file.
-
-    Args:
-        distribution (DataDownload): Provides path to get the relevant scripts.
-    """
-
-
-@attributes(
-    {
-        "modelScript": AttrOf(SubCellularModelScript),
-        "isPartOf": AttrOf(list[Union[IonChannelMechanismRelease, SynapseRelease]], default=None),
-    }
-)
-class SubCellularModel(ModelInstance):
-    """SubCellular model
-
-    Args:
-        modelScript(SubCellularModelScript): SubCellular model script such as mod file
-        isPartOf(List[Union[IonChannelMechanismRelease, SynapseRelease]]): Optional list of synapse
-            releases or ion channel releases this model is part of.
-    """
-
-
-@attributes(
-    {
-        "subCellularMechanism": AttrOf(list[SubCellularModel], default=None),
-        "modelScript": AttrOf(list[EModelScript], default=None),
-        "isPartOf": AttrOf(EModelRelease, default=None),
-    }
-)
-class EModel(ModelInstance):
-    """Electrical model
-
-    Args:
-        subCellularMechanism(List[SubCellularModel]): SubCellular mechanism collection.
-        modelScript(List[EModelScript]): Model script collection. Scripts defining neuron model,
-            e.g. a ``hoc`` files.
-        isPartOf (EModelRelease): EModel release this emodel is part of.
-    """
-
-
-@attributes(
-    {
-        "used": AttrOf(morphology.ReconstructedCell),
-        "generated": AttrOf(EModel, default=None),
-        "wasAssociatedWith": AttrOf(list[Union[Agent, SoftwareAgent]], default=None),
-        "bestScore": AttrOf(QuantitativeValue, default=None),
-    }
-)
-class EModelBuilding(Activity):
-    """EModel building activity.
-
-    Args:
-        bestScore(QuantitativeValue): Best score.
-        used(morphology.ReconstructedCell): Morphology which was used to generate the emodel.
-        generated(EModel): EModel which was produced.
-        wasAssociatedWith(List[SoftwareAgent]): Agents associated with
-            this activity.
     """
 
 
@@ -307,7 +198,6 @@ class ExperimentalCell(Frozen):
         "hadProtocol": AttrOf(Entity),
         "eType": AttrOf(str),
         "hypampThreshold": AttrOf(Entity, default=None),
-        "isPartOf": AttrOf(EModelRelease, default=None),
     }
 )
 class BluePyEfeFeatures(Entity):
@@ -329,27 +219,6 @@ class BluePyEfeConfiguration(Entity):
     """BluePyEfe configuration entity"""
 
 
-@attributes(
-    {
-        "eModel": AttrOf(EModel),
-        "morphology": AttrOf(Morphology),
-        "mainModelScript": AttrOf(EModelScript),
-    }
-)
-class MEModel(ModelInstance):
-    """Detailed Neuron model with morphology and electrical models.
-
-    Args:
-        eModel(EModel): Electrical model.
-        morphology(Morphology): Neuron morphology.
-        mainModelScript(EModelScript): Model script which instantiates neuron with specified
-            morphology and electrical model. Expected to have single NEURON template with the
-            first argument being the folder where neuron morphology is located. Template is
-            responsible for loading that morphology from the folder specified in the first
-            template argument.
-    """
-
-
 @attributes({"distribution": AttrOf(DataDownload)})
 class CircuitCellProperties(Entity):
     """Cell properties provides locationd of the MVD3 file with cell properties.
@@ -361,7 +230,6 @@ class CircuitCellProperties(Entity):
 
 @attributes(
     {
-        "memodelRelease": AttrOf(MEModelRelease),
         "circuitCellProperties": AttrOf(CircuitCellProperties),
     }
 )
@@ -369,7 +237,6 @@ class NodeCollection(Entity):
     """Node collection represents circuit nodes(positions, orientations)
 
     Args:
-        memodelRelease(MEModelRelease): MEModel release this node collection is using.
         circuitCellProperties(CircuitCellProperties): Cell properties which are used in this node
                                                       collection.
     """
@@ -437,7 +304,6 @@ class DetailedCircuit(ModelInstance):
         "bluePyOptRecipe": AttrOf(Configuration, default=None),
         "experimentalFeatures": AttrOf(BluePyEfeFeatures, default=None),
         "morphology": AttrOf(morphology.Entity, default=None),
-        "hasOutput": AttrOf(EModelRelease, default=None),
     }
 )
 class BluePyOptRun(Entity):

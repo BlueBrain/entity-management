@@ -152,6 +152,7 @@ class FrozenDummy(Frozen):
         (List[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
         (list[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
         (list[FrozenDummy], [], None),
+        (dict[str, str], {"foo": "bar"}, {"foo": "bar"}),
         (dict[str, Dummy], {"foo": {"a": 1, "b": "2"}}, {"foo": Dummy(a=1, b="2")}),
         (dict[str, FrozenDummy], {"foo": {"a": 1, "b": "2"}}, {"foo": FrozenDummy(a=1, b="2")}),
         (dict[str, list[Dummy]], {"foo": {"a": 1, "b": "2"}}, {"foo": [Dummy(a=1, b="2")]}),

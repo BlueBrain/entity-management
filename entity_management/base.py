@@ -349,12 +349,15 @@ def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
     type_ = data_raw[JSLD_TYPE]
     rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
 
-    # if generic Identifiable class is declared get the more specific type from the id
+    # if generic Identifiable class is declared find the more specific type
     if data_type is Identifiable:
-        data_type = nexus.get_type_from_id(
-            resource_id, base, org, proj, token=token, cross_bucket=True
-        )
-
+        # get type class by name from the global registry if present
+        data_type = nexus.get_type_from_name(type_)
+        if not data_type:
+            # otherwise get the class type from the id
+            data_type = nexus.get_type_from_id(
+                resource_id, base, org, proj, token=token, cross_bucket=True
+            )
     return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
 
 

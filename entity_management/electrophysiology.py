@@ -64,9 +64,9 @@ class TraceGeneration(_Entity):
 
 @attributes(
     {
-        "channel": AttrOf(int),
-        "qualifiedGeneration": AttrOf(TraceGeneration),
-        "wasGeneratedBy": AttrOf(StimulusExperiment),
+        "channel": AttrOf(int, default=None),
+        "qualifiedGeneration": AttrOf(TraceGeneration, default=None),
+        "wasGeneratedBy": AttrOf(StimulusExperiment, default=None),
         "projectName": AttrOf(str, default=None),
         "retrievalDate": AttrOf(datetime, default=None),
     }

@@ -1,21 +1,86 @@
+"""
+EModel related entities.
+"""
+
 from entity_management.atlas import AtlasRelease
-from entity_management.base import BrainLocation, Frozen, Identifiable
-from entity_management.core import Contribution, DataDownload, Entity, attributes, Subject
+from entity_management.base import BrainLocation, Frozen, Identifiable, OntologyTerm
+from entity_management.core import DataDownload, Entity, attributes
+from entity_management.electrophysiology import Trace
+from entity_management.morphology import NeuronMorphology
 from entity_management.util import AttrOf
 
 
-@attributes({
-    "contribution": AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    "generates": AttrOf(list[Identifiable], default=None),
-    "hasPart": AttrOf(list[Identifiable], default=None),
-    "iteration": AttrOf(str),
-    "name": AttrOf(str),
-    "emodel": AttrOf(str),
-    "etype": AttrOf(str),
-})
-class EModelWorkflow(Identifiable):
+@attributes(
+    {
+        "emodel": AttrOf(str),
+        "etype": AttrOf(str),
+        "iteration": AttrOf(str, default=None),
+        "score": AttrOf(float, default=None),
+        "seed": AttrOf(int, default=None),
+        "objectOfStudy": AttrOf(OntologyTerm, default=None),
+    }
+)
+class EModelPropertiesMixin:
+    """Mixin for common EModel properties."""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+        "uses": AttrOf(list[Trace]),
+    }
+)
+class ExtractionTargetsConfiguration(EModelPropertiesMixin, Entity):
+    """ExtractionTargetsConfiguration."""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+    }
+)
+class EModelPipelineSettings(EModelPropertiesMixin, Entity):
+    """EModelPipelineSettings."""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(list[DataDownload]),
+        "exposesParameter": AttrOf(dict, default=None),
+        "modelId": AttrOf(str, default=None),
+        "nmodlParameters": AttrOf(dict, default=None),
+        "origin": AttrOf(str, default=None),
+        "suffix": AttrOf(str, default=None),
+    }
+)
+class SubCellularModelScript(Entity):
+    """SubCellularModelScript,"""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+        "uses": AttrOf(list[NeuronMorphology | SubCellularModelScript], default=None),
+    }
+)
+class EModelConfiguration(EModelPropertiesMixin, Entity):
+    """EModelConfiguration."""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+        "generates": AttrOf(list[Identifiable], default=None),
+        "hasPart": AttrOf(
+            list[ExtractionTargetsConfiguration | EModelPipelineSettings | EModelConfiguration],
+            default=None,
+        ),
+        "state": AttrOf(str, default=None),
+    }
+)
+class EModelWorkflow(EModelPropertiesMixin, Entity):
     """EModelWorkflow."""
+
 
 @attributes({"followedWorkflow": AttrOf(EModelWorkflow)})
 class FollowedWorkflowActivity(Frozen):
@@ -27,91 +92,34 @@ class EModelGeneration(Frozen):
     """EModelGeneration."""
 
 
-@attributes({
-    "contribution": AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    "generation": AttrOf(EModelGeneration),
-    "emodel": AttrOf(str),
-    "etype": AttrOf(str),
-    "iteration": AttrOf(str),
-    "name": AttrOf(str),
-    "objectOfStudy": AttrOf(dict),
-})
-class FitnessCalculatorConfiguration(Entity):
+@attributes(
+    {
+        "distribution": AttrOf(DataDownload),
+        "generation": AttrOf(EModelGeneration),
+    }
+)
+class FitnessCalculatorConfiguration(EModelPropertiesMixin, Entity):
     """FitnessCalculatorConfiguration."""
-
-
-class Trace(Entity):
-    pass
-
-
-@attributes({
-    "contribution": AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    "generation": AttrOf(EModelGeneration),
-    "uses": AttrOf(list[Identifiable]),
-    "emodel": AttrOf(str),
-    "etype": AttrOf(str),
-    "iteration": AttrOf(str),
-    "objectOfStudy": AttrOf(dict),
-})
-class ExtractionTargetsConfiguration(Entity):
-    """ExtractionTargetsConfiguration."""
-
-
-@attributes({
-    "contribution": AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    "uses": AttrOf(list[Identifiable]),
-    "emodel": AttrOf(str),
-    "etype": AttrOf(str),
-    "iteration": AttrOf(str),
-    "objectOfStudy": AttrOf(dict),
-})
-class EModelPipelineSettings(Entity):
-    """EModelPipelineSettings."""
-
-
-class SubCellularModelScript(Entity):
-    """SubCellularModelScript,"""
-
-
-class NeuronMorphology(Entity):
-    """NeuronMorphology"""
-
-
-@attributes({
-    "contribution": AttrOf(Contribution, default=None),
-    "distribution": AttrOf(DataDownload),
-    "emodel": AttrOf(str),
-    "etype": AttrOf(str),
-    "iteration": AttrOf(str),
-    "name": AttrOf(str),
-    "uses": AttrOf(list[Identifiable]),
-})
-class EModelConfiguration(Entity):
-    """EModelConfiguration."""
-
-
-class EModelScript(Entity):
-    """EModelScript"""
 
 
 @attributes(
     {
         "distribution": AttrOf(list[DataDownload]),
         "generation": AttrOf(EModelGeneration),
-        "contribution": AttrOf(Contribution, default=None),
-        "emodel": AttrOf(str),
-        "etype": AttrOf(str),
-        "iteration": AttrOf(str),
-        "score": AttrOf(float),
-        "seed": AttrOf(int),
-        "name": AttrOf(str),
-        "about": AttrOf(str, default=None),
     }
 )
-class EModel(Identifiable):
+class EModelScript(EModelPropertiesMixin, Entity):
+    """EModelScript"""
+
+
+@attributes(
+    {
+        "about": AttrOf(str, default=None),
+        "generation": AttrOf(EModelGeneration),
+        "distribution": AttrOf(list[DataDownload]),
+    }
+)
+class EModel(EModelPropertiesMixin, Entity):
     """EModel definition."""
 
 
@@ -119,14 +127,12 @@ class EModel(Identifiable):
     {
         "hasPart": AttrOf(list[EModel]),
         "brainLocation": AttrOf(BrainLocation),
-        "contribution": AttrOf(Contribution, default=None),
         "distribution": AttrOf(DataDownload),
-        "hasPart": AttrOf(list[EModel]),
         "subject": AttrOf(dict, default=None),
     }
 )
 class EModelDataCatalog(Entity):
-    pass
+    """EModel Data Catalog."""
 
 
 @attributes(
@@ -134,9 +140,8 @@ class EModelDataCatalog(Entity):
         "eModelDataCatalog": AttrOf(EModelDataCatalog),
         "atlasRelease": AttrOf(AtlasRelease),
         "brainLocation": AttrOf(BrainLocation),
-        "contribution": AttrOf(Contribution, default=None),
         "releaseDate": AttrOf(dict),
     }
 )
 class EModelRelease(Entity):
-    pass
+    """EModel Release."""
