@@ -222,7 +222,7 @@ def get_entity(
             base=base,
             org=org,
             proj=proj,
-            token=token,
+            use_auth=token,
         )
     except Exception as e:
         raise EntityNotInstantiatedError(
