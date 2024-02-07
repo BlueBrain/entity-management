@@ -1,6 +1,9 @@
-import pytest
+from unittest.mock import patch
 
+import pytest
+from entity_management import exceptions
 from entity_management import util as test_module
+from entity_management.core import Entity
 
 
 @pytest.mark.parametrize(
@@ -20,3 +23,19 @@ from entity_management import util as test_module
 def test_unquote_uri_path(uri, expected_path):
     res = test_module.unquote_uri_path(uri)
     assert res == expected_path
+
+
+@patch("entity_management.nexus.load_by_id", return_value=None)
+def test_get_entity__raises_if_not_found(patched):
+    with pytest.raises(
+        exceptions.ResourceNotFoundError, match="Resource id my-id could not be retrieved"
+    ):
+        test_module.get_entity("my-id", cls=Entity)
+
+
+@patch("entity_management.nexus.load_by_id", return_value={})
+def test_get_entity__raises_if_not_instantiated(patched):
+    with pytest.raises(
+        exceptions.EntityNotInstantiatedError, match="failed to be instantiated from id my-id"
+    ):
+        test_module.get_entity("my-id", cls=Entity)
