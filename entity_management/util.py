@@ -195,7 +195,7 @@ def get_entity(
     base: str | None = None,
     org: str | None = None,
     proj: str | None = None,
-    use_auth: str | None = None,
+    token: str | None = None,
 ):
     """Instantiate an entity from a resource id.
 
@@ -203,6 +203,10 @@ def get_entity(
         resource_id: The string id of the KG resource.
         cls: entity-management class to instantiate.
         cross_bucket: Whether to use the resolvers to get the resource. Default is True.
+        base: Optional nexus base endpoint. Default is retrieved from global state.
+        org: Optional nexus organization. Default is retrieved from global state.
+        proj: Optional nexus project. Default is retrieved from global state.
+        token: Optional OAuth token. Default is retrieved from global state.
 
     Returns:
         Instantiated entity from given id.
@@ -218,7 +222,7 @@ def get_entity(
             base=base,
             org=org,
             proj=proj,
-            use_auth=use_auth,
+            token=token,
         )
     except Exception as e:
         raise EntityNotInstantiatedError(
