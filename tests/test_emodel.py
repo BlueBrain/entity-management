@@ -324,7 +324,9 @@ def _validate_emodel_workflow_hasPart(obj_list):
 def _validate_emodel_workflow_generates(obj_list):
     _nonempty_list(obj_list)
     _has_id(obj_list)
-
+    # due to the forward declaration of the EModel the definition was set to Identifiable
+    # so that the deserialization handles the correct class instantation using the global
+    # registry that has been populated with all classes during runtime.
     class_names = {type(o).__name__ for o in obj_list}
     assert class_names == {"EModel", "EModelScript", "FitnessCalculatorConfiguration"}
 
