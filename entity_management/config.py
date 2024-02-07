@@ -102,8 +102,6 @@ class Configs(Frozen):
 
 @attributes(
     {
-        "name": AttrOf(str),
-        "description": AttrOf(str, default=None),
         "configs": AttrOf(Configs),
     }
 )
