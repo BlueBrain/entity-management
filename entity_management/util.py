@@ -195,7 +195,7 @@ def get_entity(
     base: str | None = None,
     org: str | None = None,
     proj: str | None = None,
-    token: str | None = None,
+    use_auth: str | None = None,
 ):
     """Instantiate an entity from a resource id.
 
@@ -218,7 +218,7 @@ def get_entity(
             base=base,
             org=org,
             proj=proj,
-            use_auth=token,
+            use_auth=use_auth,
         )
     except Exception as e:
         raise EntityNotInstantiatedError(
