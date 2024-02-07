@@ -26,9 +26,11 @@ def test_unquote_uri_path(uri, expected_path):
     assert res == expected_path
 
 
-@attributes({
-    "name": AttrOf(str), 
-})
+@attributes(
+    {
+        "name": AttrOf(str),
+    }
+)
 class MyEntity(Entity):
     pass
 
