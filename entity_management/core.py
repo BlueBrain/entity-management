@@ -450,6 +450,8 @@ class WorkflowExecution(Activity):
 
 @attributes(
     {
+        "name": AttrOf(str, default=None),
+        "description": AttrOf(str, default=None),
         "wasAttributedTo": AttrOf(list[Agent], default=None),
         "wasGeneratedBy": AttrOf(Identifiable, default=None),
         "wasDerivedFrom": AttrOf(list[Identifiable], default=None),
@@ -559,8 +561,6 @@ class EntityMixin:
 
 @attributes(
     {
-        "name": AttrOf(str),
-        "description": AttrOf(str, default=None),
         "distribution": AttrOf(DataDownload, default=None),
     }
 )
@@ -570,7 +570,6 @@ class Entity(EntityMixin, Identifiable):
 
 @attributes(
     {
-        "name": AttrOf(str, default=None),
         "species": AttrOf(OntologyTerm, default=None),
         "strain": AttrOf(OntologyTerm, default=None),
     }
@@ -588,7 +587,6 @@ class Subject(EntityMixin, DistributionMixin, Identifiable):
 @attributes(
     {
         "model": AttrOf(Identifiable),
-        "name": AttrOf(str, default=None),
         "purpose": AttrOf(str, default=None, validators=in_([None, "sim", "viz"])),
         "modelBuildingSteps": AttrOf(int, default=None),
         "allocationPartition": AttrOf(str, default="prod"),

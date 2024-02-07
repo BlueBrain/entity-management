@@ -1,16 +1,10 @@
 """Bbp-workflow entities."""
 
 from entity_management.base import Identifiable, _NexusBySparqlIterator, attributes
-from entity_management.core import Activity, DataDownload, Entity
+from entity_management.core import Activity, Entity
 from entity_management.util import AttrOf
 
 
-@attributes(
-    {
-        "name": AttrOf(str, default=None),
-        "distribution": AttrOf(DataDownload, default=None),
-    }
-)
 class BbpWorkflowConfig(Entity):
     """BbpWorkflow generic task config.
 

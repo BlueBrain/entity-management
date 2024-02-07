@@ -22,7 +22,6 @@ from entity_management.core import (
     DataDownload,
     DistributionMixin,
     Entity,
-    EntityMixin,
     SoftwareAgent,
     Subject,
 )
@@ -34,30 +33,12 @@ from entity_management.workflow import BbpWorkflowActivity, BbpWorkflowConfig
 
 @attributes(
     {
-        "name": AttrOf(str, default=None),
-        "description": AttrOf(str, default=None),
-        "distribution": AttrOf(DataDownload, default=None),
-    }
-)
-class _Entity(EntityMixin, Identifiable):
-    """Base abstract class for many things having `name` and `description`
-
-    Args:
-        name (str): Entity name.
-        description (str): Short description of the entity.
-        distribution (DataDownload): Data download.
-        wasDerivedFrom (List[Identifiable]): List of associated provenance entities.
-    """
-
-
-@attributes(
-    {
         "modelOf": AttrOf(str, default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
         "subject": AttrOf(Subject, default=None),
     }
 )
-class ModelInstance(_Entity):
+class ModelInstance(Entity):
     """Abstract model instance.
 
     Args:
@@ -73,17 +54,17 @@ class ModelInstance(_Entity):
         "subject": AttrOf(Subject, default=None),
     }
 )
-class ModelRelease(_Entity):
+class ModelRelease(Entity):
     """Release base entity"""
 
 
 @attributes()
-class ModelScript(_Entity):
+class ModelScript(Entity):
     """Base entity for the scripts attached to the model."""
 
 
 @attributes()
-class ModelReleaseIndex(_Entity):
+class ModelReleaseIndex(Entity):
     """Index files attached to release entities"""
 
 
@@ -137,7 +118,7 @@ class SynapseRelease(ModelRelease):
 
 
 @attributes()
-class Configuration(_Entity):
+class Configuration(Entity):
     """Configuration file"""
 
 
@@ -281,12 +262,12 @@ class SingleCellTraceGeneration(Activity):
 
 
 @attributes()
-class SingleCellSimulationTrace(_Entity):
+class SingleCellSimulationTrace(Entity):
     """Single cell simulation trace file"""
 
 
 @attributes({"hadMember": AttrOf(list[Trace], default=None)})
-class TraceCollection(_Entity):
+class TraceCollection(Entity):
     """Collection of traces
 
     Args:
@@ -295,7 +276,7 @@ class TraceCollection(_Entity):
 
 
 @attributes({"hadMember": AttrOf(list[Trace], default=None)})
-class CoreTraceCollection(_Entity):
+class CoreTraceCollection(Entity):
     """Collection of traces
 
     Args:
@@ -329,7 +310,7 @@ class ExperimentalCell(Frozen):
         "isPartOf": AttrOf(EModelRelease, default=None),
     }
 )
-class BluePyEfeFeatures(_Entity):
+class BluePyEfeFeatures(Entity):
     """BluePyEfe configuration entity"""
 
 
@@ -344,7 +325,7 @@ class BluePyEfeFeatures(_Entity):
         "stimuliToExperimentMap": AttrOf(dict, default=None),
     }
 )
-class BluePyEfeConfiguration(_Entity):
+class BluePyEfeConfiguration(Entity):
     """BluePyEfe configuration entity"""
 
 
@@ -370,7 +351,7 @@ class MEModel(ModelInstance):
 
 
 @attributes({"distribution": AttrOf(DataDownload)})
-class CircuitCellProperties(_Entity):
+class CircuitCellProperties(Entity):
     """Cell properties provides locationd of the MVD3 file with cell properties.
 
     Args:
@@ -384,7 +365,7 @@ class CircuitCellProperties(_Entity):
         "circuitCellProperties": AttrOf(CircuitCellProperties),
     }
 )
-class NodeCollection(_Entity):
+class NodeCollection(Entity):
     """Node collection represents circuit nodes(positions, orientations)
 
     Args:
@@ -395,7 +376,7 @@ class NodeCollection(_Entity):
 
 
 @attributes({"edgePopulation": AttrOf(Entity), "synapseRelease": AttrOf(SynapseRelease)})
-class EdgeCollection(_Entity):
+class EdgeCollection(Entity):
     """Edge collection represents circuit connectivity(synapses, projections)
 
     Args:
@@ -406,7 +387,7 @@ class EdgeCollection(_Entity):
 
 
 @attributes({"distribution": AttrOf(DataDownload)})
-class Target(_Entity):
+class Target(Entity):
     """Location of the text file defining cell targets (i.e. named collections of cell GIDs)
 
     Args:
@@ -459,27 +440,27 @@ class DetailedCircuit(ModelInstance):
         "hasOutput": AttrOf(EModelRelease, default=None),
     }
 )
-class BluePyOptRun(_Entity):
+class BluePyOptRun(Entity):
     """Release base entity"""
 
 
 @attributes()
-class ETypeFeatureProtocol(_Entity):
+class ETypeFeatureProtocol(Entity):
     """Trace protocol."""
 
 
 @attributes()
-class TraceFeature(_Entity):
+class TraceFeature(Entity):
     """Trace feature."""
 
 
 @attributes()
-class Threshold(_Entity):
+class Threshold(Entity):
     """Threshold."""
 
 
 @attributes({"activity": AttrOf(Activity)})
-class EModelGenerationShape(_Entity):
+class EModelGenerationShape(Entity):
     """EModel generation."""
 
 
@@ -499,7 +480,7 @@ class TraceFeatureExtraction(Activity):
 
 
 @attributes()
-class Report(_Entity):
+class Report(Entity):
     """Generic report."""
 
 
@@ -564,7 +545,7 @@ class Simulation(Entity):
         "circuit": AttrOf(DetailedCircuit, default=None),
     }
 )
-class SimulationConfiguration(_Entity):
+class SimulationConfiguration(Entity):
     """Simulation configuration in terms of BlueConfig.
 
     Args:
@@ -579,7 +560,7 @@ class SimulationConfiguration(_Entity):
         "target": AttrOf(DataDownload, default=None),
     }
 )
-class SimulationCampaignConfiguration(_Entity):
+class SimulationCampaignConfiguration(Entity):
     """Simulation campaign configuration entity.
 
     Args:
@@ -640,7 +621,7 @@ class SimulationCampaignGeneration(BbpWorkflowActivity):
         "hadMember": AttrOf(list[Report], default=None),
     }
 )
-class SimulationCampaignReportCollection(_Entity):
+class SimulationCampaignReportCollection(Entity):
     """Simulation campaign.
 
     Groups multiple simulations when same circuit is tested under different conditions.
@@ -671,7 +652,7 @@ class SimulationCampaignReportCollection(_Entity):
         "image": AttrOf(DataDownload, default=None),
     }
 )
-class AnalysisReport(_Entity):
+class AnalysisReport(Entity):
     """Analysis report.
 
     Args:
@@ -685,7 +666,7 @@ class AnalysisReport(_Entity):
         "distribution": AttrOf(DataDownload),
     }
 )
-class AnalysisConfiguration(_Entity):
+class AnalysisConfiguration(Entity):
     """Simulation analysis configuration.
 
     Args:
@@ -735,7 +716,7 @@ class DetailedCircuitValidationReport(AnalysisReport):
 
 
 @attributes()
-class PlotCollection(DistributionMixin, _Entity):
+class PlotCollection(DistributionMixin, Entity):
     """Collection of plots."""
 
 
