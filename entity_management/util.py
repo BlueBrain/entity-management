@@ -10,7 +10,7 @@ from attr.validators import optional as optional_validator
 from devtools import pformat
 
 from entity_management import state
-from entity_management.exceptions import EntityNotInstantiatedError, ResourceNotFoundError
+from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError
 
 # copied from attrs, their standard way to make validators
 
