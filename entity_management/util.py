@@ -9,6 +9,9 @@ from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
 from devtools import pformat
 
+from entity_management import state
+from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError
+
 # copied from attrs, their standard way to make validators
 
 
@@ -182,3 +185,56 @@ def unquote_uri_path(uri):
         file:///%5BPH%5Dlayer_6.nrrd -> /[PH]layer_6.nrrd
     """
     return unquote(urlparse(uri).path)
+
+
+def get_entity(
+    resource_id: str,
+    *,
+    cls,
+    cross_bucket: bool = True,
+    base: str | None = None,
+    org: str | None = None,
+    proj: str | None = None,
+    token: str | None = None,
+):
+    """Instantiate an entity from a resource id.
+
+    Args:
+        resource_id: The string id of the KG resource.
+        cls: entity-management class to instantiate.
+        cross_bucket: Whether to use the resolvers to get the resource. Default is True.
+        base: Optional nexus base endpoint. Default is retrieved from global state.
+        org: Optional nexus organization. Default is retrieved from global state.
+        proj: Optional nexus project. Default is retrieved from global state.
+        token: Optional OAuth token. Default is retrieved from global state.
+
+    Returns:
+        Instantiated entity from given id.
+
+    Raises:
+        ResourceNotFoundError if entity is not found.
+        EntityNotInstantiatedError if entity fails to be instantiated.
+    """
+    try:
+        entity = cls.from_id(
+            resource_id,
+            cross_bucket=cross_bucket,
+            base=base,
+            org=org,
+            proj=proj,
+            use_auth=token,
+        )
+    except Exception as e:
+        raise EntityNotInstantiatedError(
+            f"Entity {cls} failed to be instantiated from id {resource_id}."
+        ) from e
+
+    if entity is None:
+        raise ResourceNotFoundError(
+            f"Resource id {resource_id} could not be retrieved.\n"
+            f"base         : {base or state.get_base()}\n"
+            f"org          : {org or state.get_org()}\n"
+            f"proj         : {proj or state.get_proj()}\n"
+            f"cross_bucket : {cross_bucket}"
+        )
+    return entity
