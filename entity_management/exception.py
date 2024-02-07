@@ -6,7 +6,7 @@ class EntityManagementError(Exception):
 
 
 class ResourceNotFoundError(EntityManagementError):
-    """sas"""
+    """Error related to failure in retrieving resources."""
 
 
 class EntityNotInstantiatedError(EntityManagementError):
