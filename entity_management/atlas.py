@@ -1,6 +1,6 @@
 """Atlas related entities."""
 
-from entity_management.base import BrainLocation, Derivation, Identifiable, attributes
+from entity_management.base import BrainLocation, Derivation, Identifiable, Subject, attributes
 from entity_management.core import Contribution, DataDownload, Entity
 from entity_management.util import AttrOf
 
@@ -138,7 +138,7 @@ class PlacementHintsDataCatalog(Entity):
         "hemisphereVolume": AttrOf(HemisphereAnnotationDataLayer, default=None),
         "placementHintsDataCatalog": AttrOf(PlacementHintsDataCatalog, default=None),
         "cellOrientationField": AttrOf(CellOrientationField, default=None),
-        "subject": AttrOf(dict),
+        "subject": AttrOf(Subject, default=None),
     }
 )
 class AtlasRelease(Entity):
@@ -153,7 +153,7 @@ class AtlasRelease(Entity):
         "contribution": AttrOf(list[Contribution], default=None),
         "derivation": AttrOf(Derivation, default=None),
         "distribution": AttrOf(DataDownload),
-        "subject": AttrOf(dict, default=None),
+        "subject": AttrOf(Subject, default=None),
     }
 )
 class CellCompositionSummary(Entity):
@@ -168,7 +168,7 @@ class CellCompositionSummary(Entity):
         "contribution": AttrOf(list[Contribution], default=None),
         "derivation": AttrOf(Derivation, default=None),
         "distribution": AttrOf(DataDownload),
-        "subject": AttrOf(dict, default=None),
+        "subject": AttrOf(Subject, default=None),
     }
 )
 class CellCompositionVolume(Entity):

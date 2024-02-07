@@ -359,14 +359,12 @@ def test_detailed_circuit__as_json_ld__include_revision(monkeypatch, detailed_ci
     res = circuit.as_json_ld(include_rev=False)
 
     assert "_rev" not in res["brainLocation"]
-    assert "_rev" not in res["subject"]
     assert "_rev" not in res["circuitConfigPath"]
     assert "_rev" not in res["atlasRelease"]
 
     res = circuit.as_json_ld(include_rev=True)
 
     assert "_rev" not in res["brainLocation"]
-    assert res["subject"]["_rev"] == 1
     assert "_rev" not in res["circuitConfigPath"]
     assert res["atlasRelease"]["_rev"] == 5
 
@@ -381,7 +379,6 @@ def test_detailed_circuit__publish__wout_revision(monkeypatch, detailed_circuit_
         circuit.publish()
         payload = patched.call_args[0][1]
         assert "_rev" not in payload["brainLocation"]
-        assert "_rev" not in payload["subject"]
         assert "_rev" not in payload["circuitConfigPath"]
         assert "_rev" not in payload["atlasRelease"]
 
@@ -396,7 +393,6 @@ def test_detailed_circuit__publish__with_revision(monkeypatch, detailed_circuit_
         circuit.publish(include_rev=True)
         payload = patched.call_args[0][1]
         assert "_rev" not in payload["brainLocation"]
-        assert payload["subject"]["_rev"] == 1
         assert "_rev" not in payload["circuitConfigPath"]
         assert payload["atlasRelease"]["_rev"] == 5
 

@@ -362,13 +362,17 @@ def _deserialize_frozen(data_type, data_raw, base, org, proj, token):
 
     attr_fields = attr.fields_dict(data_type)
 
-    data = data_type(
-        **{
-            k: _deserialize_json_to_datatype(attr_fields[k].type, v, base, org, proj, token)
-            for k, v in data_raw.items()
-            if k in attr_fields
-        }
-    )
+    # Blank node is represented as an Identifiable.
+    if JSLD_ID in data_raw:
+        data_raw = nexus.load_by_id(data_raw[JSLD_ID], base=base, org=org, proj=proj, token=token)
+
+    field_values = {
+        k: _deserialize_json_to_datatype(attr_fields[k].type, v, base, org, proj, token)
+        for k, v in data_raw.items()
+        if k in attr_fields
+    }
+    data = data_type(**field_values)
+
     if issubclass(data_type, BlankNode):
         data._force_attr("_type", data_raw[JSLD_TYPE])
     return data
@@ -766,3 +770,19 @@ class BrainLocation(Frozen):
 )
 class Derivation(Frozen):
     """Derivation."""
+
+
+@attributes(
+    {
+        "species": AttrOf(OntologyTerm),
+        "strain": AttrOf(OntologyTerm, default=None),
+    }
+)
+class Subject(Frozen):
+    """Subject.
+
+    Args:
+        name (str): Subject name.
+        species (OntologyTerm): Species ontology term.
+        strain (OntologyTerm): Strain ontology term.
+    """

@@ -17,13 +17,10 @@ import attr
 from attr.validators import in_
 
 from entity_management import nexus
-from entity_management.base import (
-    BlankNode,
-    Identifiable,
-    OntologyTerm,
-    _NexusBySparqlIterator,
-    attributes,
-)
+
+# Subject used to be in this core. It is imported for backward compatibility
+from entity_management.base import Subject  # noqa
+from entity_management.base import BlankNode, Identifiable, _NexusBySparqlIterator, attributes
 from entity_management.settings import WORKFLOW
 from entity_management.state import get_base_url
 from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
@@ -566,22 +563,6 @@ class EntityMixin:
 )
 class Entity(EntityMixin, Identifiable):
     """Generic class for core Entities."""
-
-
-@attributes(
-    {
-        "species": AttrOf(OntologyTerm, default=None),
-        "strain": AttrOf(OntologyTerm, default=None),
-    }
-)
-class Subject(EntityMixin, DistributionMixin, Identifiable):
-    """Subject.
-
-    Args:
-        name (str): Subject name.
-        species (OntologyTerm): Species ontology term.
-        strain (OntologyTerm): Strain ontology term.
-    """
 
 
 @attributes(
