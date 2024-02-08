@@ -486,7 +486,10 @@ def test_subject(payload):
             "t1-url",
             1,
             {
-                "subject": {"species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"}},
+                "subject": {
+                    "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+                    "@type": "Subject",
+                },
                 "@context": [
                     "https://bluebrain.github.io/nexus/contexts/metadata.json",
                     "https://bbp.neuroshapes.org",

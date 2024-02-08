@@ -781,7 +781,7 @@ class Derivation(Frozen):
         "strain": AttrOf(OntologyTerm, default=None),
     }
 )
-class Subject(Frozen):
+class Subject(BlankNode):
     """Subject.
 
     Args:

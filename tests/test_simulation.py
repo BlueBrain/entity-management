@@ -345,6 +345,7 @@ def _mock_circuit_load_by_id(resource_id, *args, **kwargs):
     if "b9641820-659b-455a-a0ae-98bf3f333805" in resource_id:
         return {
             "@id": "subject-id",
+            "@type": "Subject",
             "@context": [
                 "https://bluebrain.github.io/nexus/contexts/metadata.json",
                 "https://bbp.neuroshapes.org",
