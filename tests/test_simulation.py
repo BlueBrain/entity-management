@@ -337,24 +337,46 @@ def test_sim_campaign_config_serialization():
     assert json_ld[JSLD_CTX][0]
 
 
-@pytest.fixture
-def detailed_circuit_metadata():
-    return json.loads(Path(DATA_DIR, "detailed_circuit_resp.json").read_bytes())
+def _mock_circuit_load_by_id(resource_id, *args, **kwargs):
+    if resource_id == "circuit-id":
+        return json.loads(Path(DATA_DIR, "detailed_circuit_resp.json").read_bytes())
+
+    # Legacy Subject with @id
+    if "b9641820-659b-455a-a0ae-98bf3f333805" in resource_id:
+        return {
+            "@id": "subject-id",
+            "@context": [
+                "https://bluebrain.github.io/nexus/contexts/metadata.json",
+                "https://bbp.neuroshapes.org",
+            ],
+            "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+            "_rev": 1,
+            "_project": "my-project",
+            "_self": "my-self",
+            "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
+            "_createdAt": "2024-01-22T10:07:16.052123Z",
+            "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
+            "_deprecated": False,
+            "_updatedAt": "2024-01-22T10:07:16.052123Z",
+            "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
+        }
+
+    raise ValuError(resource_id)
 
 
-def test_detailed_circuit(monkeypatch, detailed_circuit_metadata):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
-    res = DetailedCircuit.from_url(None)
+def test_detailed_circuit(monkeypatch):
+    monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
+    res = DetailedCircuit.from_id("circuit-id")
     assert res.atlasRelease.get_id() is not None
 
     # revision exists in the linked metadata
     assert res.atlasRelease.get_rev() == 5
 
 
-def test_detailed_circuit__as_json_ld__include_revision(monkeypatch, detailed_circuit_metadata):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+def test_detailed_circuit__as_json_ld__include_revision(monkeypatch):
+    monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
 
-    circuit = DetailedCircuit.from_url(None)
+    circuit = DetailedCircuit.from_id("circuit-id")
 
     res = circuit.as_json_ld(include_rev=False)
 
@@ -369,10 +391,10 @@ def test_detailed_circuit__as_json_ld__include_revision(monkeypatch, detailed_ci
     assert res["atlasRelease"]["_rev"] == 5
 
 
-def test_detailed_circuit__publish__wout_revision(monkeypatch, detailed_circuit_metadata):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+def test_detailed_circuit__publish__wout_revision(monkeypatch):
+    monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
 
-    circuit = DetailedCircuit.from_url(None)
+    circuit = DetailedCircuit.from_id("circuit-id")
     circuit._force_attr("_id", None)
 
     with patch("entity_management.nexus.create") as patched:
@@ -383,10 +405,10 @@ def test_detailed_circuit__publish__wout_revision(monkeypatch, detailed_circuit_
         assert "_rev" not in payload["atlasRelease"]
 
 
-def test_detailed_circuit__publish__with_revision(monkeypatch, detailed_circuit_metadata):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: detailed_circuit_metadata)
+def test_detailed_circuit__publish__with_revision(monkeypatch):
+    monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
 
-    circuit = DetailedCircuit.from_url(None)
+    circuit = DetailedCircuit.from_id("circuit-id")
     circuit._force_attr("_id", None)
 
     with patch("entity_management.nexus.create") as patched:

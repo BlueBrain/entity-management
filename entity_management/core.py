@@ -19,7 +19,7 @@ from attr.validators import in_
 from entity_management import nexus
 
 # Subject used to be in this module. It is imported for backward compatibility
-from entity_management.base import Subject  # noqa
+from entity_management.base import Subject  # noqa pylint: disable=unused-import
 from entity_management.base import BlankNode, Identifiable, _NexusBySparqlIterator, attributes
 from entity_management.settings import WORKFLOW
 from entity_management.state import get_base_url
