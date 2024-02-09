@@ -37,7 +37,6 @@
   },
   "description": "A collection of Canonical EModels built using both, placeholder and detailed reconstructed morphologies.",
   "distribution": {
-    "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/686a9cce-3b85-462f-90d0-5dc8a507a9cf",
     "@type": "DataDownload",
     "atLocation": {
       "@type": "Location",
