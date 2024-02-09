@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from typing import List, Dict
 from dateutil.parser import parse
+from unittest.mock import patch
 
 import pytest
 
@@ -24,6 +25,7 @@ from entity_management.base import (
     Frozen,
     attributes,
     AttrOf,
+    Subject,
 )
 from entity_management import state
 from entity_management.state import get_org, get_proj
@@ -180,7 +182,7 @@ def _make_valid_resp(data):
         "_updatedAt": "2024-01-22T10:07:16.052123Z",
         "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
     }
-    return data | essentials
+    return essentials | data
 
 
 def test_deserialize_json_to_datatype__union(monkeypatch):
@@ -415,3 +417,85 @@ def test_instantiate__with_rev(monkeypatch):
     r._instantiate()
     # and that after instantiation the correct rev is fetched
     assert r.get_rev() == 3
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
+            "@id": "t1-id",
+            "_self": "t1-url",
+            "@type": "Test",
+            "subject": {
+                "@id": "subject-id",
+                "@type": "Subject",
+                "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+            },
+        },
+        {
+            "@id": "t1-id",
+            "_self": "t1-url",
+            "@type": "Test",
+            "subject": {
+                "@type": "Subject",
+                "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+            },
+        },
+        {
+            "@id": "t1-id",
+            "_self": "t1-url",
+            "@type": "Test",
+            "subject": {"@id": "subject-id", "@type": "https://neuroshapes.org/Subject"},
+        },
+    ],
+)
+def test_subject(payload):
+    """Test Subject loading and pyblishing with old and new metadata."""
+
+    def _mock_load_by_id(resource_id, *args, **kwargs):
+        if resource_id == "subject-id":
+            return _make_valid_resp(
+                {
+                    "@id": "subject-id",
+                    "@type": "Subject",
+                    "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+                }
+            )
+
+        if resource_id == "t1-id":
+            return _make_valid_resp(payload)
+
+        raise ValueError(resource_id)
+
+    @attributes({"subject": AttrOf(Subject)})
+    class Test(Identifiable):
+        pass
+
+    with patch("entity_management.nexus.load_by_id", side_effect=_mock_load_by_id):
+        res = Test.from_id("t1-id")
+
+    # Ensure that a Frozen structure is initialized with an ontology term in both cases.
+    assert isinstance(res.subject, Frozen)
+    assert res.subject.species.url == "NCBITaxon:10090"
+    assert res.subject.species.label == "Mus musculus"
+
+    # Ensure that we are writing the Subject without and @id in both cases.
+    with patch("entity_management.nexus.update") as patched:
+        res.publish()
+        patched.assert_called_once_with(
+            "t1-url",
+            1,
+            {
+                "subject": {
+                    "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+                    "@type": "Subject",
+                },
+                "@context": [
+                    "https://bluebrain.github.io/nexus/contexts/metadata.json",
+                    "https://bbp.neuroshapes.org",
+                ],
+                "@type": "Test",
+            },
+            sync_index=False,
+            token=None,
+        )
