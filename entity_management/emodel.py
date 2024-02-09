@@ -3,7 +3,7 @@ EModel related entities.
 """
 
 from entity_management.atlas import AtlasRelease
-from entity_management.base import BrainLocation, Frozen, Identifiable, OntologyTerm
+from entity_management.base import BrainLocation, Frozen, Identifiable, OntologyTerm, Subject
 from entity_management.core import DataDownload, Entity, attributes
 from entity_management.electrophysiology import Trace
 from entity_management.morphology import NeuronMorphology
@@ -128,7 +128,7 @@ class EModel(EModelPropertiesMixin, Entity):
         "hasPart": AttrOf(list[EModel]),
         "brainLocation": AttrOf(BrainLocation),
         "distribution": AttrOf(DataDownload),
-        "subject": AttrOf(dict, default=None),
+        "subject": AttrOf(Subject, default=None),
     }
 )
 class EModelDataCatalog(Entity):
