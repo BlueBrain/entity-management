@@ -777,7 +777,7 @@ class Derivation(Frozen):
 
 @attributes(
     {
-        "species": AttrOf(OntologyTerm),
+        "species": AttrOf(OntologyTerm, default=None),
         "strain": AttrOf(OntologyTerm, default=None),
     }
 )
