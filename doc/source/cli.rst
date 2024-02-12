@@ -5,9 +5,8 @@ Command line interface
 .. contents::
 
 
-TOKEN is the OAuth2 optional access token. Provide it in case the endpoint has OAuth2 protected
-access control. If token is available in the environment variable `NEXUS_TOKEN` it will be used
-by default unless it was explicitly provided in the method argument.
+TOKEN is the OAuth2 optional access token. Provide it in case the endpoint has OAuth2 protected access control. 
+The token needs to be provided in the environment variable `NEXUS_TOKEN`, along with variables `NEXUS_ORG` and `NEXUS_PROJ`.
 
 Get
 ###

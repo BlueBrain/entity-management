@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 """ entity_management setup """
+import importlib.util
 from setuptools import setup, find_packages
 
-from entity_management.version import VERSION
+spec = importlib.util.spec_from_file_location(
+    "entity_management.version", "entity_management/version.py"
+)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+VERSION = module.VERSION
 
 
 TESTS_REQUIRE = [
