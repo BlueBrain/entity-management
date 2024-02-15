@@ -11,6 +11,7 @@ from entity_management import (
     morphology,
     simulation,
     workflow,
+    emodel,
 )
 from entity_management.version import VERSION as __version__
 
