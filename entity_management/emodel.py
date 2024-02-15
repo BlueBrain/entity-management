@@ -18,28 +18,23 @@ from entity_management.util import AttrOf
         "score": AttrOf(float, default=None),
         "seed": AttrOf(int, default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
+        "distribution": AttrOf(list[DataDownload]),
     }
 )
-class EModelPropertiesMixin:
-    """Mixin for common EModel properties."""
+class EModelEntity(Entity):
+    """EModel entity with common EModel properties."""
 
 
 @attributes(
     {
-        "distribution": AttrOf(DataDownload),
         "uses": AttrOf(list[Trace]),
     }
 )
-class ExtractionTargetsConfiguration(EModelPropertiesMixin, Entity):
+class ExtractionTargetsConfiguration(EModelEntity):
     """ExtractionTargetsConfiguration."""
 
 
-@attributes(
-    {
-        "distribution": AttrOf(DataDownload),
-    }
-)
-class EModelPipelineSettings(EModelPropertiesMixin, Entity):
+class EModelPipelineSettings(EModelEntity):
     """EModelPipelineSettings."""
 
 
@@ -59,17 +54,15 @@ class SubCellularModelScript(Entity):
 
 @attributes(
     {
-        "distribution": AttrOf(DataDownload),
         "uses": AttrOf(list[NeuronMorphology | SubCellularModelScript], default=None),
     }
 )
-class EModelConfiguration(EModelPropertiesMixin, Entity):
+class EModelConfiguration(EModelEntity):
     """EModelConfiguration."""
 
 
 @attributes(
     {
-        "distribution": AttrOf(DataDownload),
         "generates": AttrOf(list[Identifiable], default=None),
         "hasPart": AttrOf(
             list[ExtractionTargetsConfiguration | EModelPipelineSettings | EModelConfiguration],
@@ -78,7 +71,7 @@ class EModelConfiguration(EModelPropertiesMixin, Entity):
         "state": AttrOf(str, default=None),
     }
 )
-class EModelWorkflow(EModelPropertiesMixin, Entity):
+class EModelWorkflow(EModelEntity):
     """EModelWorkflow."""
 
 
@@ -94,21 +87,19 @@ class EModelGeneration(Frozen):
 
 @attributes(
     {
-        "distribution": AttrOf(DataDownload),
         "generation": AttrOf(EModelGeneration),
     }
 )
-class FitnessCalculatorConfiguration(EModelPropertiesMixin, Entity):
+class FitnessCalculatorConfiguration(EModelEntity):
     """FitnessCalculatorConfiguration."""
 
 
 @attributes(
     {
-        "distribution": AttrOf(list[DataDownload]),
         "generation": AttrOf(EModelGeneration),
     }
 )
-class EModelScript(EModelPropertiesMixin, Entity):
+class EModelScript(EModelEntity):
     """EModelScript"""
 
 
@@ -116,10 +107,9 @@ class EModelScript(EModelPropertiesMixin, Entity):
     {
         "about": AttrOf(str, default=None),
         "generation": AttrOf(EModelGeneration),
-        "distribution": AttrOf(list[DataDownload]),
     }
 )
-class EModel(EModelPropertiesMixin, Entity):
+class EModel(EModelEntity):
     """EModel definition."""
 
 

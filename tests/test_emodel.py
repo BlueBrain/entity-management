@@ -31,27 +31,27 @@ def _instantiate(cls, response_file):
 def _apply(func, obj):
     if not isinstance(obj, list):
         obj = [obj]
-    return all(func(o) for o in obj)
+    return (func(o) for o in obj)
 
 
 def _not_none(obj):
-    assert _apply(lambda o: o is not None, obj)
+    assert all(_apply(lambda o: o is not None, obj))
 
 
 def _has_id(obj):
-    assert _apply(lambda o: o.get_id() is not None, obj)
+    assert all(_apply(lambda o: o.get_id() is not None, obj))
 
 
 def _has_rev(obj):
-    assert _apply(lambda o: o.get_rev() is not None, obj)
+    assert all(_apply(lambda o: o.get_rev() is not None, obj))
 
 
 def _has_content_url(obj):
-    assert _apply(lambda o: o.contentUrl is not None, obj)
+    assert all(_apply(lambda o: o.contentUrl is not None, obj))
 
 
 def _has_json_encoding_format(obj):
-    assert obj.encodingFormat == "application/json"
+    assert any(_apply(lambda o: o.encodingFormat == "application/json", obj))
 
 
 def _nonempty_list(obj):
