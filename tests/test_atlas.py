@@ -18,7 +18,7 @@ def test_atlas_release(monkeypatch, atlas_release_metadata):
 
     monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: atlas_release_metadata)
 
-    res = test_module.AtlasRelease.from_url(None)
+    res = test_module.AtlasRelease.from_id(None)
 
     assert res.get_id() is not None
     assert res.brainTemplateDataLayer.get_id() is not None
