@@ -120,7 +120,7 @@ class FrozenDummy(Frozen):
         (str, None, None),
         (list, [], None),
         (dict, {}, None),
-        (datetime, "2024-01-22T10:07:16.052123Z", parse("2024-01-22T10:07:16.052123Z")),
+        (datetime, {"@value": "2024-01-22T10:07:16.052123Z"}, parse("2024-01-22T10:07:16.052123Z")),
         (dict, {"a": "b"}, {"a": "b"}),
         (Dict, {"a": "b"}, {"a": "b"}),
         (dict, [{"a": "b"}], {"a": "b"}),
