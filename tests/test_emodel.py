@@ -2,6 +2,7 @@ import json
 import typing
 from pathlib import Path
 from unittest.mock import patch
+from datetime import datetime
 
 import attr
 import pytest
@@ -9,6 +10,7 @@ import pytest
 from entity_management import nexus
 from entity_management.core import DataDownload
 from entity_management import emodel as test_module
+from entity_management.electrophysiology import Trace
 
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -58,6 +60,10 @@ def _nonempty_list(obj):
     assert isinstance(obj, list) and len(obj) > 0
 
 
+def _is_datetime(obj):
+    assert isinstance(obj, datetime)
+
+
 def _has_emodel_elements(obj_list):
     assert all(isinstance(obj, test_module.EModel) for obj in obj_list)
 
@@ -80,6 +86,7 @@ def emodel_release():
         ("atlasRelease", _has_rev),
         ("contribution.agent", _has_id),
         ("brainLocation.brainRegion.url", _not_none),
+        ("releaseDate", _is_datetime),
     ],
 )
 def test_EModelRelease(path, test_func, emodel_release):
@@ -350,3 +357,22 @@ def _validate_emodel_workflow_generates(obj_list):
 )
 def test_EModelWorkflow(path, test_func, emodel_workflow):
     test_func(_follow(emodel_workflow, path))
+
+
+@pytest.fixture(scope="module")
+def trace():
+    return _instantiate(Trace, DATA_DIR / "trace_resp.json")
+
+
+@pytest.mark.parametrize(
+    "path,test_func",
+    [
+        ("name", _not_none),
+        ("contribution.agent", _has_id),
+        ("distribution", _has_content_url),
+        ("contribution.agent", _has_id),
+        ("brainLocation.brainRegion.url", _not_none),
+    ],
+)
+def test_Trace(path, test_func, trace):
+    test_func(_follow(trace, path))

@@ -7,11 +7,11 @@ from entity_management import (
     atlas,
     config,
     electrophysiology,
+    emodel,
     experiment,
     morphology,
     simulation,
     workflow,
-    emodel,
 )
 from entity_management.version import VERSION as __version__
 

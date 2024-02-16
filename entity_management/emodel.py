@@ -2,6 +2,8 @@
 EModel related entities.
 """
 
+from datetime import datetime
+
 from entity_management.atlas import AtlasRelease
 from entity_management.base import BrainLocation, Frozen, Identifiable, OntologyTerm, Subject
 from entity_management.core import DataDownload, Entity, attributes
@@ -130,7 +132,7 @@ class EModelDataCatalog(Entity):
         "eModelDataCatalog": AttrOf(EModelDataCatalog),
         "atlasRelease": AttrOf(AtlasRelease),
         "brainLocation": AttrOf(BrainLocation),
-        "releaseDate": AttrOf(dict),
+        "releaseDate": AttrOf(datetime),
     }
 )
 class EModelRelease(Entity):

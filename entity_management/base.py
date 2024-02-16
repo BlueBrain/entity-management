@@ -309,7 +309,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
 
         if type_class == datetime:
-            return parse(data_raw)
+            return parse(data_raw["@value"])
 
         # attr classes that are not subclasses of Identifiable or Frozen
         return data_type(**_clean_up_dict(data_raw))

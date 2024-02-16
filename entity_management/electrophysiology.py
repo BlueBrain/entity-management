@@ -9,8 +9,16 @@ Experimental morphologies entities
 
 from datetime import datetime
 
-from entity_management.base import Frozen, Identifiable, OntologyTerm, QuantitativeValue, attributes
-from entity_management.core import Activity, DistributionMixin
+from entity_management.base import (
+    BrainLocation,
+    Frozen,
+    Identifiable,
+    OntologyTerm,
+    QuantitativeValue,
+    Subject,
+    attributes,
+)
+from entity_management.core import Activity, Entity
 from entity_management.experiment import PatchedCell
 from entity_management.util import AttrOf
 
@@ -64,14 +72,12 @@ class TraceGeneration(_Entity):
 
 @attributes(
     {
-        "channel": AttrOf(int, default=None),
-        "qualifiedGeneration": AttrOf(TraceGeneration, default=None),
-        "wasGeneratedBy": AttrOf(StimulusExperiment, default=None),
-        "projectName": AttrOf(str, default=None),
         "retrievalDate": AttrOf(datetime, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "subject": AttrOf(Subject, default=None),
     }
 )
-class Trace(DistributionMixin, _Entity):
+class Trace(Entity):
     """Trace.
 
     Args:
