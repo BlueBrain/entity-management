@@ -176,7 +176,7 @@ class DataDownload(BlankNode):
 
     @classmethod
     def from_json_str(
-        cls, json_str, resource_id=None, base=None, org=None, proj=None, use_auth=None
+        cls, json_str, resource_id=None, name=None, base=None, org=None, proj=None, use_auth=None
     ):
         """Create DataDownload object representing json form serialized dict in string.
 
@@ -187,7 +187,7 @@ class DataDownload(BlankNode):
             use_auth (str): Optional OAuth token.
         """
         buff = StringIO(json_str)
-        file_name = str(uuid.uuid4())
+        file_name = name or str(uuid.uuid4())
         resp = nexus.upload_file(
             file_name,
             buff,
