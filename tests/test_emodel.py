@@ -56,6 +56,10 @@ def _has_json_encoding_format(obj):
     assert any(_apply(lambda o: o.encodingFormat == "application/json", obj))
 
 
+def _has_agent_id(obj):
+    assert all(_apply(lambda o: o.agent.get_id() is not None, obj))
+
+
 def _nonempty_list(obj):
     assert isinstance(obj, list) and len(obj) > 0
 
@@ -84,7 +88,7 @@ def emodel_release():
         ("eModelDataCatalog", _has_id),
         ("atlasRelease", _has_id),
         ("atlasRelease", _has_rev),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("brainLocation.brainRegion.url", _not_none),
         ("releaseDate", _is_datetime),
     ],
@@ -105,7 +109,7 @@ def emodel_data_catalog():
         ("distribution.contentUrl", _not_none),
         ("distribution", _has_json_encoding_format),
         ("description", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("brainLocation.brainRegion.url", _not_none),
         ("hasPart", _nonempty_list),
         ("hasPart", _has_emodel_elements),
@@ -134,7 +138,7 @@ def _has_data_download_elements(obj_list):
         ("iteration", _not_none),
         ("score", _not_none),
         ("seed", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _nonempty_list),
         ("distribution", _has_data_download_elements),
         ("generation.activity.followedWorkflow", _has_id),
@@ -177,7 +181,7 @@ def _validate_emodel_configuration_uses(obj_list):
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("uses", _validate_emodel_configuration_uses),
@@ -202,7 +206,7 @@ def emodel_script():
         ("etype", _not_none),
         ("iteration", _not_none),
         ("seed", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("generation.activity.followedWorkflow", _has_id),
         ("distribution", _has_content_url),
         ("objectOfStudy.url", _not_none),
@@ -231,7 +235,7 @@ def sub_cellular_model_script():
         ("suffix", _not_none),
         ("distribution", _nonempty_list),
         ("distribution", _has_content_url),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
     ],
 )
 def test_SubCellularModelScript(path, test_func, sub_cellular_model_script):
@@ -252,7 +256,7 @@ def emodel_pipeline_settings():
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -278,7 +282,7 @@ def extraction_targets_configuration():
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("uses", _nonempty_list),
@@ -306,7 +310,7 @@ def fitness_calculator_configuration():
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -345,7 +349,7 @@ def _validate_emodel_workflow_generates(obj_list):
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -368,9 +372,9 @@ def trace():
     "path,test_func",
     [
         ("name", _not_none),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
-        ("contribution.agent", _has_id),
+        ("contribution", _has_agent_id),
         ("brainLocation.brainRegion.url", _not_none),
     ],
 )

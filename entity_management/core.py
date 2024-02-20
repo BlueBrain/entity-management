@@ -570,7 +570,7 @@ class EntityMixin:
 @attributes(
     {
         "distribution": AttrOf(DataDownload, default=None),
-        "contribution": AttrOf(Contribution, default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
     }
 )
 class Entity(EntityMixin, Identifiable):
