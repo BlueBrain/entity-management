@@ -21,6 +21,7 @@ from entity_management.util import AttrOf
         "seed": AttrOf(int, default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
         "distribution": AttrOf(list[DataDownload]),
+        "annotation": AttrOf(list[dict], default=None),
     }
 )
 class EModelEntity(Entity):
