@@ -12,7 +12,6 @@ from datetime import datetime
 from entity_management.base import (
     BrainLocation,
     Frozen,
-    Identifiable,
     OntologyTerm,
     QuantitativeValue,
     Subject,
