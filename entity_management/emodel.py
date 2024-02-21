@@ -16,11 +16,15 @@ from entity_management.util import AttrOf
     {
         "emodel": AttrOf(str),
         "etype": AttrOf(str),
+        "mtype": AttrOf(str, default=None),
         "iteration": AttrOf(str, default=None),
         "score": AttrOf(float, default=None),
         "seed": AttrOf(int, default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
         "distribution": AttrOf(list[DataDownload]),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "atlasRelease": AttrOf(AtlasRelease, default=None),
+        "subject": AttrOf(Subject, default=None)
         "annotation": AttrOf(list[dict], default=None),
     }
 )
