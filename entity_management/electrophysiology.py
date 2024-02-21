@@ -18,14 +18,9 @@ from entity_management.base import (
     Subject,
     attributes,
 )
-from entity_management.core import Activity, Entity, DataDownload
+from entity_management.core import Activity, DataDownload, Entity
 from entity_management.experiment import PatchedCell
 from entity_management.util import AttrOf
-
-
-@attributes()
-class _Entity(Identifiable):
-    """Base class for electrophysiology Enitities"""
 
 
 @attributes({"stimulusType": AttrOf(OntologyTerm)})
@@ -57,7 +52,7 @@ class StimulusExperiment(Activity):
         "targetHoldingPotential": AttrOf(QuantitativeValue, default=None),
     }
 )
-class TraceGeneration(_Entity):
+class TraceGeneration(Entity):
     """Trace generation.
 
     Args:
