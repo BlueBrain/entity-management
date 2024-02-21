@@ -3,78 +3,115 @@
     "https://bluebrain.github.io/nexus/contexts/metadata.json",
     "https://bbp.neuroshapes.org"
   ],
-  "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/cb8f1e2f-2b3a-4ef0-9cc9-90a1eba961c0",
+  "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/91d98da6-cd22-4ab7-ab0d-656ceed57904",
   "@type": [
     "Entity",
     "Dataset",
-    "SubCellularModelScript"
+    "SubCellularModelScript",
+    "HodgkinHuxleyIonCurrentModel",
+    "DistributedMechanism"
   ],
+  "description": "Something",
   "contribution": {
     "@type": "Contribution",
     "agent": {
-      "@id": "f:0fdadef7-b2b9-492b-af46-c65492d459c2:damart",
+      "@id": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ahaquier",
       "@type": [
         "Person",
         "Agent"
       ],
-      "email": "tanguy.damart@epfl.ch",
-      "name": "Tanguy Pierre Louis Damart",
-      "preferred_username": "damart",
-      "sub": "f:0fdadef7-b2b9-492b-af46-c65492d459c2:damart"
+      "email": "aurelien.jaquier@epfl.ch",
+      "name": "Aurélien Tristan Jaquier",
+      "preferred_username": "ajaquier",
+      "sub": "f:0fdadef7-b2b9-492b-af46-c65492d459c2:ajaquier"
     }
   },
-  "description": "Ih current for thalamo-cortical neurons. Ref.: Huguenard et al., 1997 (taum), Budde et al., 1997 (minf)",
+  "description": "\n        : Na current for axon. No slow inact.\n        : M.Migliore Jul. 1997\n        : added sh to account for higher threshold M.Migliore, Apr.2002\n    ",
   "distribution": {
     "@type": "DataDownload",
     "atLocation": {
       "@type": "Location",
-      "location": "file:///gpfs/bbp.cscs.ch/data/project/proj136/nexus/bbp/mmb-emodels-for-synthesized-neurons/e/3/4/f/e/1/f/7/TC_Ih_Bud97.mod",
+      "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/7/c/3/a/7/4/6/c/naxn.mod",
       "store": {
-        "@id": "https://bbp.epfl.ch/neurosciencegraph/data/0015ba89-7ffa-48f9-91fd-bbdf95cef58e",
+        "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
         "@type": "RemoteDiskStorage",
         "_rev": 1
       }
     },
     "contentSize": {
       "unitCode": "bytes",
-      "value": 1050
+      "value": 1967
     },
-    "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-emodels-for-synthesized-neurons/6944dce9-b309-40d6-a6be-6092ab2f1532",
+    "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F617c5b84-de85-42cc-b197-1b687364930b",
     "digest": {
       "algorithm": "SHA-256",
-      "value": "7b2cdf570e3e3fdeea711a5e5b913714a5c19300c4182f18cf66efc177104364"
+      "value": "adcc3bba0169b70b4dc9945f5e6294a2b172a43042fce078a571f6e21797904b"
     },
-    "encodingFormat": "audio/x-mod",
-    "name": "TC_Ih_Bud97.mod"
+    "encodingFormat": "application/neuron-mod",
+    "name": "naxn.mod"
   },
-  "exposesParameter": {
-    "@type": "ConductanceDensity",
-    "lowerLimit": 0,
-    "name": "gh_max",
-    "unitCode": "S/cm2"
+  "exposesParameter": [
+    {
+      "@type": "NmodlSuffix",
+      "name": "nax",
+      "represents": "IonChannelMechanism"
+    },
+    {
+      "@type": "NmodlRangeVariable",
+      "lowerLimit": 0,
+      "name": "gbar",
+      "represents": "ConductanceDensity",
+      "unit": "S/cm2"
+    }
+  ],
+  "identifier": "nax",
+  "ion": {
+    "@id": "nsg:Na",
+    "label": "Na"
   },
-  "modelId": "Th07-mmb-framework",
-  "name": "TC_ih_Bud97",
+  "isLjpCorrected": false,
+  "isTemperatureDependent": true,
+  "modelId": "nax",
+  "name": "nax",
   "nmodlParameters": {
-    "suffix": "TC_ih_Bud97"
+    "range": [
+      "gbar",
+      "sh",
+      "minf",
+      "hinf",
+      "mtau",
+      "htau"
+    ],
+    "read": "ena",
+    "suffix": "nax",
+    "useion": "na",
+    "write": "ina"
   },
   "objectOfStudy": {
-    "@id": "http://bbp.epfl.ch/neurosciencegraph/taxonomies/objectsofstudy/singlecells",
-    "@type": "ObjectOfStudy",
-    "label": "Single Cell"
+    "@id": "http://bbp.epfl.ch/neurosciencegraph/taxonomies/objectsofstudy/ionchannels",
+    "label": "Ion Channel"
   },
-  "origin": "thalamus",
-  "suffix": "TC_ih_Bud97",
+  "subject": {
+    "@type": "Subject",
+    "species": {
+      "@id": "NCBITaxon:10090",
+      "label": "Mus Musculus"
+    }
+  },
+  "temperature": {
+    "unitCode": "C",
+    "value": 24
+  },
   "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
-  "_createdAt": "2023-10-30T08:48:03.468Z",
+  "_createdAt": "2024-02-15T13:33:02.044419Z",
   "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ajaquier",
   "_deprecated": false,
-  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Fcb8f1e2f-2b3a-4ef0-9cc9-90a1eba961c0/incoming",
-  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Fcb8f1e2f-2b3a-4ef0-9cc9-90a1eba961c0/outgoing",
+  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F91d98da6-cd22-4ab7-ab0d-656ceed57904/incoming",
+  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F91d98da6-cd22-4ab7-ab0d-656ceed57904/outgoing",
   "_project": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
   "_rev": 1,
   "_schemaProject": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
-  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Fcb8f1e2f-2b3a-4ef0-9cc9-90a1eba961c0",
-  "_updatedAt": "2023-10-30T08:48:03.468Z",
+  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F91d98da6-cd22-4ab7-ab0d-656ceed57904",
+  "_updatedAt": "2024-02-15T13:33:02.044419Z",
   "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ajaquier"
 }

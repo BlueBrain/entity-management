@@ -99,7 +99,6 @@ def test_EModelRelease(path, test_func, emodel_release):
 
 ENTITY_TESTS = [
     ("name", _not_none),
-    ("description", _not_none),
     ("contribution", _has_agent_id),
 ]
 
@@ -111,7 +110,8 @@ def emodel_data_catalog():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("distribution.contentUrl", _not_none),
         ("distribution", _has_json_encoding_format),
         ("brainLocation.brainRegion.url", _not_none),
@@ -135,7 +135,8 @@ def _has_data_download_elements(obj_list):
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("mtype", _not_none),
@@ -179,7 +180,8 @@ def _validate_emodel_configuration_uses(obj_list):
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
@@ -201,7 +203,8 @@ def emodel_script():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
@@ -225,14 +228,25 @@ def sub_cellular_model_script():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    [
+        ("name", _not_none),
+        ("description", _not_none),
+        ("contribution", _has_agent_id),
+        ("description", _not_none),
+        ("distribution", _nonempty_list),
+        ("distribution", _has_content_url),
         ("modelId", _not_none),
         ("nmodlParameters", _not_none),
         ("exposesParameter", _not_none),
-        ("origin", _not_none),
-        ("suffix", _not_none),
-        ("distribution", _nonempty_list),
-        ("distribution", _has_content_url),
+        ("identifier", _not_none),
+        ("isLjpCorrected", _not_none),
+        ("isTemperatureDependent", _not_none),
+        ("ion", _not_none),
+        ("objectOfStudy.url", _not_none),
+        ("objectOfStudy.label", _not_none),
+        ("subject.species.url", _not_none),
+        ("subject.species.label", _not_none),
+        ("temperature", _not_none),
     ],
 )
 def test_SubCellularModelScript(path, test_func, sub_cellular_model_script):
@@ -248,7 +262,8 @@ def emodel_pipeline_settings():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
@@ -272,7 +287,8 @@ def extraction_targets_configuration():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
@@ -298,7 +314,8 @@ def fitness_calculator_configuration():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
@@ -335,7 +352,8 @@ def _validate_emodel_workflow_generates(obj_list):
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
@@ -359,7 +377,8 @@ def trace():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    ENTITY_TESTS + [
+    ENTITY_TESTS
+    + [
         ("distribution", _has_content_url),
         ("contribution", _has_agent_id),
         ("brainLocation.brainRegion.url", _not_none),
