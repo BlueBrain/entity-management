@@ -54,6 +54,11 @@ class EModelPipelineSettings(EModelEntity):
         "nmodlParameters": AttrOf(dict, default=None),
         "origin": AttrOf(str, default=None),
         "suffix": AttrOf(str, default=None),
+        "temperature": AttrOf(dict),
+        "isTemperatureDependent": AttrOf(str),
+        "isLjpCorrected": AttrOf(bool),
+        "objectOfStudy": AttrOf(OntologyTerm),
+        "subject": AttrOf(Subject),
     }
 )
 class SubCellularModelScript(Entity):
