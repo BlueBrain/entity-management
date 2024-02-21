@@ -3,165 +3,132 @@
     "https://bluebrain.github.io/nexus/contexts/metadata.json",
     "https://bbp.neuroshapes.org"
   ],
-  "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/aaa4dfee-227a-48bf-8b3e-63ee9a0b42c0",
+  "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/99a9c898-568f-4de5-826a-2e8d00826197",
   "@type": [
-    "Entity",
-    "EModel"
+    "EModel",
+    "Dataset"
   ],
-  "annotation": {
-    "@type": [
-      "ETypeAnnotation",
-      "Annotation"
-    ],
-    "hasBody": {
+  "annotation": [
+    {
       "@type": [
-        "EType",
-        "AnnotationBody"
+        "Annotation",
+        "MTypeAnnotation"
       ],
-      "label": "bAC"
+      "hasBody": {
+        "@id": "https://bbp.epfl.ch/ontologies/core/celltypes/MOBMI_MCI",
+        "@type": [
+          "MType",
+          "AnnotationBody"
+        ],
+        "label": "MOBmi_MC",
+        "prefLabel": "MOBmi_MC"
+      },
+      "name": "M-type Annotation"
     },
-    "name": "E-type annotation"
+    {
+      "@type": [
+        "Annotation",
+        "ETypeAnnotation"
+      ],
+      "hasBody": {
+        "@id": "ilx:0738199",
+        "@type": [
+          "EType",
+          "AnnotationBody"
+        ],
+        "label": "bAC",
+        "prefLabel": "bAC"
+      },
+      "name": "E-type Annotation"
+    }
+  ],
+  "atlasRelease": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
+    "@type": [
+      "BrainAtlasRelease",
+      "AtlasRelease"
+    ],
+    "_rev": 9
+  },
+  "brainLocation": {
+    "@type": "BrainLocation",
+    "brainRegion": {
+      "@id": "mba:236",
+      "label": "Main olfactory bulb, mitral layer"
+    }
   },
   "contribution": {
     "@type": "Contribution",
     "agent": {
-      "@id": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ikilic",
+      "@id": "f:0fdadef7-b2b9-492b-af46-c65492d459c2:ajaquier",
       "@type": [
         "Person",
         "Agent"
       ],
-      "email": "ilkan.kilic@epfl.ch",
-      "name": "Ilkan Fabrice Kiliç",
-      "preferred_username": "ikilic",
-      "sub": "f:0fdadef7-b2b9-492b-af46-c65492d459c2:ikilic"
+      "email": "aurelien.jaquier@epfl.ch",
+      "name": "Aurélien Tristan Jaquier",
+      "preferred_username": "ajaquier",
+      "sub": "f:0fdadef7-b2b9-492b-af46-c65492d459c2:ajaquier"
     }
   },
-  "description": "This is an e-model with placeholder morphology (soma and axon initial segment). See https://bbpteam.epfl.ch/project/issues/browse/BBPP152-28 for details",
-  "distribution": [
-    {
-      "@type": "DataDownload",
-      "atLocation": {
-        "@type": "Location",
-        "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/4/6/b/a/6/5/e/b/EM__emodel=bAC__etype=bAC__iteration=66aaeea__5.json",
-        "store": {
-          "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
-          "@type": "RemoteDiskStorage",
-          "_rev": 1
-        }
-      },
-      "contentSize": {
-        "unitCode": "bytes",
-        "value": 16745
-      },
-      "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F08c8679f-8554-4079-b002-8d80f2e6e6a4",
-      "digest": {
-        "algorithm": "SHA-256",
-        "value": "1c063b8080aadf0765b5dc322c811ca833847175a5272e627420f8a9bd373417"
-      },
-      "encodingFormat": "application/json",
-      "name": "EM__emodel=bAC__etype=bAC__iteration=66aaeea__5.json"
+  "distribution": {
+    "@type": "DataDownload",
+    "atLocation": {
+      "@type": "Location",
+      "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/0/6/c/e/0/6/c/4/EM__emodel=MOBmi_MC_bAC__etype=bAC__mtype=MOBmi_MC__species=mouse__brain_region=MOBmi.json",
+      "store": {
+        "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
+        "@type": "RemoteDiskStorage",
+        "_rev": 1
+      }
     },
-    {
-      "@type": "DataDownload",
-      "atLocation": {
-        "@type": "Location",
-        "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/8/8/f/0/7/a/1/3/emodel=bAC__etype=bAC__iteration=66aaeea__seed=5__traces.pdf",
-        "store": {
-          "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
-          "@type": "RemoteDiskStorage",
-          "_rev": 1
-        }
-      },
-      "contentSize": {
-        "unitCode": "bytes",
-        "value": 31534
-      },
-      "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F2f4eea04-afed-44c9-b4ea-92551d986d4d",
-      "digest": {
-        "algorithm": "SHA-256",
-        "value": "3afe32613a0549dc92598faadd0815db83f489e1908e4d0cc1398768801ea27f"
-      },
-      "encodingFormat": "application/pdf",
-      "name": "emodel=bAC__etype=bAC__iteration=66aaeea__seed=5__traces.pdf"
+    "contentSize": {
+      "unitCode": "bytes",
+      "value": 139
     },
-    {
-      "@type": "DataDownload",
-      "atLocation": {
-        "@type": "Location",
-        "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/7/9/f/5/d/c/a/0/emodel=bAC__etype=bAC__iteration=66aaeea__seed=5__scores.pdf",
-        "store": {
-          "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
-          "@type": "RemoteDiskStorage",
-          "_rev": 1
-        }
-      },
-      "contentSize": {
-        "unitCode": "bytes",
-        "value": 18432
-      },
-      "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Ff241af59-9da5-4ec2-9262-8f6ce9c3c0c3",
-      "digest": {
-        "algorithm": "SHA-256",
-        "value": "b7ca35d8038b37fcc38911cf1817a59e4462072409edeee991ee01dfe809c571"
-      },
-      "encodingFormat": "application/pdf",
-      "name": "emodel=bAC__etype=bAC__iteration=66aaeea__seed=5__scores.pdf"
+    "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F9822e262-325b-4559-a040-83eced2951f3",
+    "digest": {
+      "algorithm": "SHA-256",
+      "value": "f62cec9346477330585b453070b0a5c9d577dbd9d33c8dcf719671ee90637755"
     },
-    {
-      "@type": "DataDownload",
-      "atLocation": {
-        "@type": "Location",
-        "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/2/b/e/9/a/7/7/5/emodel=bAC__etype=bAC__iteration=66aaeea__parameters_distribution.pdf",
-        "store": {
-          "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
-          "@type": "RemoteDiskStorage",
-          "_rev": 1
-        }
-      },
-      "contentSize": {
-        "unitCode": "bytes",
-        "value": 52026
-      },
-      "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https%3A%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F80443ce3-7fe3-4b0f-983b-b165982b1061",
-      "digest": {
-        "algorithm": "SHA-256",
-        "value": "5a365ee6a2f0c0374f68c7449bd25518dfc11ac83a81e5f9548d5c62abfdf70f"
-      },
-      "encodingFormat": "application/pdf",
-      "name": "emodel=bAC__etype=bAC__iteration=66aaeea__parameters_distribution.pdf"
-    }
-  ],
-  "emodel": "bAC",
+    "encodingFormat": "application/json",
+    "name": "EM__emodel=MOBmi_MC_bAC__etype=bAC__mtype=MOBmi_MC__species=mouse__brain_region=MOBmi.json"
+  },
+  "emodel": "MOBmi_MC_bAC",
   "etype": "bAC",
   "generation": {
     "@type": "Generation",
     "activity": {
       "@type": "Activity",
       "followedWorkflow": {
-        "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/fffe1a95-57de-486e-96b5-d2b6df5ce60d",
+        "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/564af3f3-6d00-46ba-97d7-06d51649b9a7",
         "@type": "EModelWorkflow"
       }
     }
   },
-  "iteration": "66aaeea",
-  "name": "EM__66aaeea__bAC__5",
+  "mtype": "MOBmi_MC",
+  "name": "EM__MOBmi_MC_bAC",
   "objectOfStudy": {
     "@id": "http://bbp.epfl.ch/neurosciencegraph/taxonomies/objectsofstudy/singlecells",
-    "@type": "ObjectOfStudy",
     "label": "Single Cell"
   },
-  "score": 36.39402417540092,
-  "seed": 5,
+  "subject": {
+    "@type": "Subject",
+    "species": {
+      "@id": "NCBITaxon:10090",
+      "label": "Mus musculus"
+    }
+  },
   "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
-  "_createdAt": "2023-11-09T13:12:59.968Z",
-  "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ikilic",
+  "_createdAt": "2024-02-21T11:55:11.985302Z",
+  "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ajaquier",
   "_deprecated": false,
-  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Faaa4dfee-227a-48bf-8b3e-63ee9a0b42c0/incoming",
-  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Faaa4dfee-227a-48bf-8b3e-63ee9a0b42c0/outgoing",
+  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F99a9c898-568f-4de5-826a-2e8d00826197/incoming",
+  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F99a9c898-568f-4de5-826a-2e8d00826197/outgoing",
   "_project": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
-  "_rev": 3,
+  "_rev": 1,
   "_schemaProject": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
-  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2Faaa4dfee-227a-48bf-8b3e-63ee9a0b42c0",
-  "_updatedAt": "2024-01-12T14:12:29.419488Z",
+  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F99a9c898-568f-4de5-826a-2e8d00826197",
+  "_updatedAt": "2024-02-21T11:55:11.985302Z",
   "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/ajaquier"
 }

@@ -25,7 +25,7 @@ from entity_management.util import AttrOf
         "distribution": AttrOf(list[DataDownload]),
         "brainLocation": AttrOf(BrainLocation, default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
-        "subject": AttrOf(Subject, default=None)
+        "subject": AttrOf(Subject, default=None),
         "annotation": AttrOf(list[dict], default=None),
     }
 )
@@ -54,7 +54,6 @@ class EModelPipelineSettings(EModelEntity):
         "nmodlParameters": AttrOf(dict, default=None),
         "origin": AttrOf(str, default=None),
         "suffix": AttrOf(str, default=None),
-        "temperature": AttrOf(dict),
         "isTemperatureDependent": AttrOf(str),
         "isLjpCorrected": AttrOf(bool),
         "objectOfStudy": AttrOf(OntologyTerm),

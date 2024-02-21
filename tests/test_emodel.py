@@ -97,6 +97,13 @@ def test_EModelRelease(path, test_func, emodel_release):
     test_func(_follow(emodel_release, path))
 
 
+ENTITY_TESTS = [
+    ("name", _not_none),
+    ("description", _not_none),
+    ("contribution", _has_agent_id),
+]
+
+
 @pytest.fixture(scope="module")
 def emodel_data_catalog():
     return _instantiate(test_module.EModelDataCatalog, DATA_DIR / "emodel_data_catalog_resp.json")
@@ -104,12 +111,9 @@ def emodel_data_catalog():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("distribution.contentUrl", _not_none),
         ("distribution", _has_json_encoding_format),
-        ("description", _not_none),
-        ("contribution", _has_agent_id),
         ("brainLocation.brainRegion.url", _not_none),
         ("hasPart", _nonempty_list),
         ("hasPart", _has_emodel_elements),
@@ -131,14 +135,13 @@ def _has_data_download_elements(obj_list):
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
+        ("mtype", _not_none),
         ("iteration", _not_none),
         ("score", _not_none),
         ("seed", _not_none),
-        ("contribution", _has_agent_id),
         ("distribution", _nonempty_list),
         ("distribution", _has_data_download_elements),
         ("generation.activity.followedWorkflow", _has_id),
@@ -176,12 +179,10 @@ def _validate_emodel_configuration_uses(obj_list):
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("uses", _validate_emodel_configuration_uses),
@@ -200,13 +201,11 @@ def emodel_script():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
         ("seed", _not_none),
-        ("contribution", _has_agent_id),
         ("generation.activity.followedWorkflow", _has_id),
         ("distribution", _has_content_url),
         ("objectOfStudy.url", _not_none),
@@ -226,8 +225,7 @@ def sub_cellular_model_script():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("modelId", _not_none),
         ("nmodlParameters", _not_none),
         ("exposesParameter", _not_none),
@@ -235,7 +233,6 @@ def sub_cellular_model_script():
         ("suffix", _not_none),
         ("distribution", _nonempty_list),
         ("distribution", _has_content_url),
-        ("contribution", _has_agent_id),
     ],
 )
 def test_SubCellularModelScript(path, test_func, sub_cellular_model_script):
@@ -251,12 +248,10 @@ def emodel_pipeline_settings():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -277,12 +272,10 @@ def extraction_targets_configuration():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("uses", _nonempty_list),
@@ -305,12 +298,10 @@ def fitness_calculator_configuration():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -344,12 +335,10 @@ def _validate_emodel_workflow_generates(obj_list):
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
+    ENTITY_TESTS + [
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
-        ("contribution", _has_agent_id),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -370,9 +359,7 @@ def trace():
 
 @pytest.mark.parametrize(
     "path,test_func",
-    [
-        ("name", _not_none),
-        ("contribution", _has_agent_id),
+    ENTITY_TESTS + [
         ("distribution", _has_content_url),
         ("contribution", _has_agent_id),
         ("brainLocation.brainRegion.url", _not_none),
