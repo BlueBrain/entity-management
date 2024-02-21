@@ -1,5 +1,6 @@
 """
 EModel related entities.
+See https://bbpgitlab.epfl.ch/dke/apps/brain-modeling-ontology/-/tree/develop/shapes/
 """
 
 from datetime import datetime
