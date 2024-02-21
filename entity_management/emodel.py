@@ -49,15 +49,19 @@ class EModelPipelineSettings(EModelEntity):
 @attributes(
     {
         "distribution": AttrOf(list[DataDownload]),
-        "exposesParameter": AttrOf(dict, default=None),
+        "exposesParameter": AttrOf(list[dict], default=None),
         "modelId": AttrOf(str, default=None),
         "nmodlParameters": AttrOf(dict, default=None),
         "origin": AttrOf(str, default=None),
         "suffix": AttrOf(str, default=None),
-        "isTemperatureDependent": AttrOf(str),
+        "isTemperatureDependent": AttrOf(bool),
+        "temperature": AttrOf(dict, default=None),
         "isLjpCorrected": AttrOf(bool),
         "objectOfStudy": AttrOf(OntologyTerm),
         "subject": AttrOf(Subject),
+        "identifier": AttrOf(str),
+        "mod": AttrOf(dict, default=None),
+        "ion": AttrOf(OntologyTerm, default=None),
     }
 )
 class SubCellularModelScript(Entity):
