@@ -309,7 +309,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
 
         if type_class == datetime:
-            return parse(data_raw["@value"])
+            return _deserialize_datetime(data_raw)
 
         # attr classes that are not subclasses of Identifiable or Frozen
         return data_type(**_clean_up_dict(data_raw))
@@ -317,6 +317,12 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
     except Exception:
         L.error("Error deserializing type: %s for raw data:\n%s", data_type, pformat(data_raw))
         raise
+
+
+def _deserialize_datetime(data_raw):
+    if isinstance(data_raw, dict):
+        return parse(data_raw["@value"])
+    return parse(data_raw)
 
 
 def _deserialize_union(data_type, data_raw, base, org, proj, token):
