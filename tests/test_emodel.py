@@ -60,6 +60,10 @@ def _has_agent_id(obj):
     assert all(_apply(lambda o: o.agent.get_id() is not None, obj))
 
 
+def _has_body_label(obj):
+    assert all(_apply(lambda o: o.hasBody.label is not None, obj))
+
+
 def _nonempty_list(obj):
     assert isinstance(obj, list) and len(obj) > 0
 
@@ -143,6 +147,7 @@ def _has_data_download_elements(obj_list):
         ("iteration", _not_none),
         ("score", _not_none),
         ("seed", _not_none),
+        ("annotation", _has_body_label),
         ("distribution", _nonempty_list),
         ("distribution", _has_data_download_elements),
         ("generation.activity.followedWorkflow", _has_id),
@@ -185,6 +190,7 @@ def _validate_emodel_configuration_uses(obj_list):
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
+        ("annotation", _has_body_label),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("uses", _validate_emodel_configuration_uses),
@@ -209,6 +215,7 @@ def emodel_script():
         ("etype", _not_none),
         ("iteration", _not_none),
         ("seed", _not_none),
+        ("annotation", _has_body_label),
         ("generation.activity.followedWorkflow", _has_id),
         ("distribution", _has_content_url),
         ("objectOfStudy.url", _not_none),
@@ -267,6 +274,7 @@ def emodel_pipeline_settings():
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
+        ("annotation", _has_body_label),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -292,6 +300,7 @@ def extraction_targets_configuration():
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
+        ("annotation", _has_body_label),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("uses", _nonempty_list),
@@ -319,6 +328,7 @@ def fitness_calculator_configuration():
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
+        ("annotation", _has_body_label),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),
@@ -357,6 +367,7 @@ def _validate_emodel_workflow_generates(obj_list):
         ("emodel", _not_none),
         ("etype", _not_none),
         ("iteration", _not_none),
+        ("annotation", _has_body_label),
         ("distribution", _has_content_url),
         ("distribution", _has_json_encoding_format),
         ("objectOfStudy.url", _not_none),

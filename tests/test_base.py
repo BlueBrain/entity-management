@@ -23,6 +23,7 @@ from entity_management.base import (
     Unconstrained,
     NotInstantiated,
     Frozen,
+    BlankNode,
     attributes,
     AttrOf,
     Subject,
@@ -114,6 +115,26 @@ class FrozenDummy(Frozen):
     pass
 
 
+@attributes(
+    {
+        "a": AttrOf(int),
+        "b": AttrOf(float),
+    }
+)
+class BlankNode1(BlankNode):
+    pass
+
+
+@attributes(
+    {
+        "c": AttrOf(int),
+        "d": AttrOf(float),
+    }
+)
+class BlankNode2(BlankNode):
+    pass
+
+
 @pytest.mark.parametrize(
     "data_type, data_raw, expected",
     [
@@ -167,6 +188,8 @@ class FrozenDummy(Frozen):
         (int | float, 1.0, 1.0),
         (int | dict, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
         (int | dict, 2, 2),
+        (BlankNode1 | BlankNode2, {"@type": "BlankNode1", "a": 2, "b": 3.0}, BlankNode1(a=2, b=3.0)),
+        (BlankNode1 | BlankNode2, {"@type": "BlankNode2", "c": 2, "d": 3.0}, BlankNode2(c=2, d=3.0)),
     ],
 )
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):

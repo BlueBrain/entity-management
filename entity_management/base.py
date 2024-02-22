@@ -185,7 +185,23 @@ class Frozen:
         return obj
 
 
-class BlankNode(Frozen):
+class _RegistryMeta(type):
+    """Initialize class variables."""
+
+    def __init__(cls, name, bases, attrs):
+        # Always register constrained type hint, so we can recover in a unique way class from
+        # _constrainedBy
+        constrained_by = str(DASH[name.lower()])
+        nexus.register_type(constrained_by, cls)
+        # also registre by class name so we can recover from @type
+        nexus.register_type(name, cls)
+
+        cls._nsg_type = NSG[name]
+
+        super().__init__(name, bases, attrs)
+
+
+class BlankNode(Frozen, metaclass=_RegistryMeta):
     """Blank node."""
 
     def __attrs_post_init__(self):
@@ -329,7 +345,7 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
     """Deserialize a union of types."""
     type_args = list(typing.get_args(data_type))
 
-    # e.g. TypeA | TypeB
+    # e.g. IdentifiableA | IdentifiableB
     if all(issubclass(cls, Identifiable) for cls in type_args):
 
         # get type class by name from the global registry if present
@@ -342,6 +358,11 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
             )
 
         return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
+
+    # e.g. BlankNodeA | BlankNodeB
+    if all(issubclass(cls, BlankNode) for cls in type_args):
+        data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
+        return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
 
     # e.g. int | float | dict
     if type(data_raw) in type_args:
@@ -411,6 +432,7 @@ def _is_type_union(data_type):
 
 def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=None):
     """Build class instance from json."""
+
     if cls == Unconstrained:
         instance = Unconstrained(json=json_ld)
     else:
@@ -443,20 +465,11 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
     return instance
 
 
-class _IdentifiableMeta(type):
+class _IdentifiableMeta(_RegistryMeta):
     """Initialize class variables."""
 
     def __init__(cls, name, bases, attrs):
-        # Always register constrained type hint, so we can recover in a unique way class from
-        # _constrainedBy
-        constrained_by = str(DASH[name.lower()])
-        nexus.register_type(constrained_by, cls)
-        # also registre by class name so we can recover from @type
-        nexus.register_type(name, cls)
-
-        cls._nsg_type = NSG[name]
         cls.__getattribute__ = custom_getattr
-
         super().__init__(name, bases, attrs)
 
 

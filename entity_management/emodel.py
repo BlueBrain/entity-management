@@ -6,11 +6,58 @@ See https://bbpgitlab.epfl.ch/dke/apps/brain-modeling-ontology/-/tree/develop/sh
 from datetime import datetime
 
 from entity_management.atlas import AtlasRelease
-from entity_management.base import BrainLocation, Frozen, Identifiable, OntologyTerm, Subject
+from entity_management.base import (
+    BlankNode,
+    BrainLocation,
+    Frozen,
+    Identifiable,
+    OntologyTerm,
+    Subject,
+)
 from entity_management.core import DataDownload, Entity, attributes
 from entity_management.electrophysiology import Trace
 from entity_management.morphology import NeuronMorphology
 from entity_management.util import AttrOf
+
+
+@attributes(
+    {
+        "label": AttrOf(str),
+        "prefLabel": AttrOf(str, default=None),
+    }
+)
+class MTypeAnnotationBody(BlankNode):
+    """MTypeAnnotationBody."""
+
+
+@attributes(
+    {
+        "hasBody": AttrOf(MTypeAnnotationBody),
+        "name": AttrOf(str, default=None),
+    }
+)
+class MTypeAnnotation(BlankNode):
+    """MTypeAnnotation."""
+
+
+@attributes(
+    {
+        "label": AttrOf(str),
+        "prefLabel": AttrOf(str, default=None),
+    }
+)
+class ETypeAnnotationBody(BlankNode):
+    """ETypeAnnotationBody."""
+
+
+@attributes(
+    {
+        "hasBody": AttrOf(ETypeAnnotationBody),
+        "name": AttrOf(str, default=None),
+    }
+)
+class ETypeAnnotation(BlankNode):
+    """ETypeAnnotation."""
 
 
 @attributes(
@@ -26,7 +73,7 @@ from entity_management.util import AttrOf
         "brainLocation": AttrOf(BrainLocation, default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "subject": AttrOf(Subject, default=None),
-        "annotation": AttrOf(list[dict], default=None),
+        "annotation": AttrOf(list[MTypeAnnotation | ETypeAnnotation], default=None),
     }
 )
 class EModelEntity(Entity):
