@@ -163,6 +163,10 @@ class FrozenDummy(Frozen):
         ),
         (datetime, "2024-02-21T18:03:18.804172", datetime(2024, 2, 21, 18, 3, 18, 804172)),
         (datetime, {"@type": "xsd:date", "@value": "2024-02-14"}, datetime(2024, 2, 14, 0, 0)),
+        (int | float, 2, 2),
+        (int | float, 1.0, 1.0),
+        (int | dict, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
+        (int | dict, 2, 2),
     ],
 )
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):

@@ -327,12 +327,13 @@ def _deserialize_datetime(data_raw):
 
 def _deserialize_union(data_type, data_raw, base, org, proj, token):
     """Deserialize a union of types."""
-    type_args = typing.get_args(data_type)
+    type_args = list(typing.get_args(data_type))
 
-    # get type class by name from the global registry if present
-    data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-
+    # e.g. TypeA | TypeB
     if all(issubclass(cls, Identifiable) for cls in type_args):
+
+        # get type class by name from the global registry if present
+        data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
 
         # otherwise get the class type from the id
         if not data_type:
@@ -342,10 +343,12 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
 
         return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
 
+    # e.g. int | float | dict
+    if type(data_raw) in type_args:
+        return data_raw
+
     raise NotImplementedError(
-        "Only Union of Identifiable types is supported.\n"
-        f"data_type: {data_type}\n"
-        f"data_raw : {data_raw}"
+        "Unknown type/data combination:\n" f"data_type: {data_type}\n" f"data_raw : {data_raw}"
     )
 
 
