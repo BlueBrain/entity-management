@@ -161,6 +161,8 @@ class FrozenDummy(Frozen):
             {"@id": "foo", "label": "bar", "@type": "zee"},
             OntologyTerm(url="foo", label="bar"),
         ),
+        (datetime, "2024-02-21T18:03:18.804172", datetime(2024, 2, 21, 18, 3, 18, 804172)),
+        (datetime, {"@type": "xsd:date", "@value": "2024-02-14"}, datetime(2024, 2, 14, 0, 0)),
     ],
 )
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
