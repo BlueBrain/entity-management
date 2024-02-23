@@ -50,6 +50,21 @@ def test_id_type(monkeypatch):
     assert dummy._type == "Dummy"
 
 
+def test_id_type__nexus_expanded_response(monkeypatch):
+    class Dummy(Identifiable):
+        """A dummy class"""
+
+    dummy = Dummy()
+    monkeypatch.setattr(
+        nexus,
+        "create",
+        lambda *args, **kwargs: {JSLD_ID: "id", JSLD_REV: 1, JSLD_TYPE: "expanded/Dummy"},
+    )
+    dummy = dummy.publish()
+    assert dummy._id == "id"
+    assert dummy._type == "Dummy"
+
+
 def test_serialize():
     assert _serialize_obj(datetime(2018, 12, 23)) == "2018-12-23T00:00:00"
 
