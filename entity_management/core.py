@@ -22,7 +22,6 @@ from entity_management import nexus
 from entity_management.base import Subject  # noqa pylint: disable=unused-import
 from entity_management.base import BlankNode, Identifiable, _NexusBySparqlIterator, attributes
 from entity_management.settings import WORKFLOW
-from entity_management.state import get_base_url
 from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 
 
@@ -396,24 +395,16 @@ class Activity(Identifiable):
             )
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
-        if self._id:
-            json_ld = nexus.update(
-                self._self,
-                self._rev,
-                self.as_json_ld(include_rev),
-                sync_index=sync_index,
-                token=use_auth,
-            )
-        else:
-            json_ld = nexus.create(
-                get_base_url(base, org, proj),
-                self.as_json_ld(include_rev),
-                resource_id,
-                sync_index=sync_index,
-                token=use_auth,
-            )
-        self._process_response(json_ld)
-        return self
+        return Identifiable.publish(
+            self,
+            resource_id=resource_id,
+            sync_index=sync_index,
+            base=base,
+            org=org,
+            proj=proj,
+            use_auth=use_auth,
+            include_rev=include_rev,
+        )
 
 
 @attributes(
@@ -547,24 +538,16 @@ class EntityMixin:
                 )
             )
 
-        if self._id:
-            json_ld = nexus.update(
-                self._self,
-                self._rev,
-                self.as_json_ld(include_rev),
-                sync_index=sync_index,
-                token=use_auth,
-            )
-        else:
-            json_ld = nexus.create(
-                get_base_url(base, org, proj),
-                self.as_json_ld(include_rev),
-                resource_id,
-                sync_index=sync_index,
-                token=use_auth,
-            )
-        self._process_response(json_ld)
-        return self
+        return Identifiable.publish(
+            self,
+            resource_id=resource_id,
+            sync_index=sync_index,
+            base=base,
+            org=org,
+            proj=proj,
+            use_auth=use_auth,
+            include_rev=include_rev,
+        )
 
 
 @attributes(
