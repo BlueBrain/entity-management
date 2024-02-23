@@ -517,8 +517,10 @@ def test_Identifiable_clone():
     with patch("entity_management.nexus.load_by_id", return_value=resp):
         a = A.from_id("my-id")
 
+    assert a.get_id() is not None
+
     b = a.clone(a=2, b=3.0)
 
     assert b is not a
     assert isinstance(b, A)
-    assert b._id is None
+    assert b.get_id() is None
