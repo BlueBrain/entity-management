@@ -706,6 +706,21 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         _copy_sys_meta(self, obj)
         return obj
 
+    def clone(self, **changes):
+        """Create new instance of the frozen(immutable) object with *changes* applied.
+
+        Note: A clone is stripped of its id if present.
+
+        Args:
+            changes: Keyword changes in the new copy, should be a subset of class
+                constructor(__init__) keyword arguments.
+        Returns:
+            New instance of the same class with changes applied.
+        """
+        obj = self.evolve(**changes)
+        obj._force_attr("_id", None)
+        return obj
+
 
 @attributes(
     {
