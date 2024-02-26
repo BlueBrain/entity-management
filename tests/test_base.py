@@ -499,3 +499,28 @@ def test_subject(payload):
             sync_index=False,
             token=None,
         )
+
+
+def test_Identifiable_clone():
+
+    @attributes(
+        {
+            "a": AttrOf(int),
+            "b": AttrOf(float),
+        }
+    )
+    class A(Identifiable):
+        pass
+
+    resp = _make_valid_resp({"@id": "my-id", "@type": "A", "a": 1, "b": 2.0})
+
+    with patch("entity_management.nexus.load_by_id", return_value=resp):
+        a = A.from_id("my-id")
+
+    assert a.get_id() is not None
+
+    b = a.clone(a=2, b=3.0)
+
+    assert b is not a
+    assert isinstance(b, A)
+    assert b.get_id() is None
