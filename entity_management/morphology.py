@@ -6,9 +6,27 @@ Experimental morphologies entities
    :parts: 1
 """
 
-from entity_management.base import BrainLocation, Identifiable, attributes
-from entity_management.core import DistributionMixin, Entity, EntityMixin
+from entity_management.base import BrainLocation, Identifiable, OntologyTerm, attributes
+from entity_management.core import DataDownload, DistributionMixin, Entity, EntityMixin
 from entity_management.util import AttrOf
+
+
+@attributes(
+    {
+        "distribution": AttrOf(list[DataDownload]),
+        "objectOfStudy": AttrOf(OntologyTerm, default=None),
+    }
+)
+class NeuronMorphology(Entity):
+    """A Neuron Morphology."""
+
+
+class SynthesizedNeuronMorphology(NeuronMorphology):
+    """A synthesized neuron morphology."""
+
+
+class ReconstructedNeuronMorphology(NeuronMorphology):
+    """A reconstruced neuron morphology."""
 
 
 @attributes({"name": AttrOf(str), "brainLocation": AttrOf(BrainLocation)})

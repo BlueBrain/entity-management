@@ -185,7 +185,23 @@ class Frozen:
         return obj
 
 
-class BlankNode(Frozen):
+class _RegistryMeta(type):
+    """Initialize class variables."""
+
+    def __init__(cls, name, bases, attrs):
+        # Always register constrained type hint, so we can recover in a unique way class from
+        # _constrainedBy
+        constrained_by = str(DASH[name.lower()])
+        nexus.register_type(constrained_by, cls)
+        # also registre by class name so we can recover from @type
+        nexus.register_type(name, cls)
+
+        cls._nsg_type = NSG[name]
+
+        super().__init__(name, bases, attrs)
+
+
+class BlankNode(Frozen, metaclass=_RegistryMeta):
     """Blank node."""
 
     def __attrs_post_init__(self):
@@ -309,7 +325,7 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
             return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
 
         if type_class == datetime:
-            return parse(data_raw)
+            return _deserialize_datetime(data_raw)
 
         # attr classes that are not subclasses of Identifiable or Frozen
         return data_type(**_clean_up_dict(data_raw))
@@ -319,14 +335,21 @@ def _deserialize_json_to_datatype(data_type, data_raw, base=None, org=None, proj
         raise
 
 
+def _deserialize_datetime(data_raw):
+    if isinstance(data_raw, dict):
+        return parse(data_raw["@value"])
+    return parse(data_raw)
+
+
 def _deserialize_union(data_type, data_raw, base, org, proj, token):
     """Deserialize a union of types."""
-    type_args = typing.get_args(data_type)
+    type_args = list(typing.get_args(data_type))
 
-    # get type class by name from the global registry if present
-    data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-
+    # e.g. IdentifiableA | IdentifiableB
     if all(issubclass(cls, Identifiable) for cls in type_args):
+
+        # get type class by name from the global registry if present
+        data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
 
         # otherwise get the class type from the id
         if not data_type:
@@ -336,10 +359,17 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
 
         return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
 
+    # e.g. BlankNodeA | BlankNodeB
+    if all(issubclass(cls, BlankNode) for cls in type_args):
+        data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
+        return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
+
+    # e.g. int | float | dict
+    if type(data_raw) in type_args:
+        return data_raw
+
     raise NotImplementedError(
-        "Only Union of Identifiable types is supported.\n"
-        f"data_type: {data_type}\n"
-        f"data_raw : {data_raw}"
+        "Unknown type/data combination:\n" f"data_type: {data_type}\n" f"data_raw : {data_raw}"
     )
 
 
@@ -349,12 +379,15 @@ def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
     type_ = data_raw[JSLD_TYPE]
     rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
 
-    # if generic Identifiable class is declared get the more specific type from the id
+    # if generic Identifiable class is declared find the more specific type
     if data_type is Identifiable:
-        data_type = nexus.get_type_from_id(
-            resource_id, base, org, proj, token=token, cross_bucket=True
-        )
-
+        # get type class by name from the global registry if present
+        data_type = nexus.get_type_from_name(type_)
+        if not data_type:
+            # otherwise get the class type from the id
+            data_type = nexus.get_type_from_id(
+                resource_id, base, org, proj, token=token, cross_bucket=True
+            )
     return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
 
 
@@ -399,6 +432,7 @@ def _is_type_union(data_type):
 
 def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=None):
     """Build class instance from json."""
+
     if cls == Unconstrained:
         instance = Unconstrained(json=json_ld)
     else:
@@ -431,20 +465,11 @@ def _deserialize_resource(json_ld, cls, base=None, org=None, proj=None, token=No
     return instance
 
 
-class _IdentifiableMeta(type):
+class _IdentifiableMeta(_RegistryMeta):
     """Initialize class variables."""
 
     def __init__(cls, name, bases, attrs):
-        # Always register constrained type hint, so we can recover in a unique way class from
-        # _constrainedBy
-        constrained_by = str(DASH[name.lower()])
-        nexus.register_type(constrained_by, cls)
-        # also registre by class name so we can recover from @type
-        nexus.register_type(name, cls)
-
-        cls._nsg_type = NSG[name]
         cls.__getattribute__ = custom_getattr
-
         super().__init__(name, bases, attrs)
 
 

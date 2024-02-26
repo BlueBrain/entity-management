@@ -23,6 +23,7 @@ from entity_management.base import (
     Unconstrained,
     NotInstantiated,
     Frozen,
+    BlankNode,
     attributes,
     AttrOf,
     Subject,
@@ -114,13 +115,33 @@ class FrozenDummy(Frozen):
     pass
 
 
+@attributes(
+    {
+        "a": AttrOf(int),
+        "b": AttrOf(float),
+    }
+)
+class BlankNode1(BlankNode):
+    pass
+
+
+@attributes(
+    {
+        "c": AttrOf(int),
+        "d": AttrOf(float),
+    }
+)
+class BlankNode2(BlankNode):
+    pass
+
+
 @pytest.mark.parametrize(
     "data_type, data_raw, expected",
     [
         (str, None, None),
         (list, [], None),
         (dict, {}, None),
-        (datetime, "2024-01-22T10:07:16.052123Z", parse("2024-01-22T10:07:16.052123Z")),
+        (datetime, {"@value": "2024-01-22T10:07:16.052123Z"}, parse("2024-01-22T10:07:16.052123Z")),
         (dict, {"a": "b"}, {"a": "b"}),
         (Dict, {"a": "b"}, {"a": "b"}),
         (dict, [{"a": "b"}], {"a": "b"}),
@@ -152,6 +173,7 @@ class FrozenDummy(Frozen):
         (List[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
         (list[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
         (list[FrozenDummy], [], None),
+        (dict[str, str], {"foo": "bar"}, {"foo": "bar"}),
         (dict[str, Dummy], {"foo": {"a": 1, "b": "2"}}, {"foo": Dummy(a=1, b="2")}),
         (dict[str, FrozenDummy], {"foo": {"a": 1, "b": "2"}}, {"foo": FrozenDummy(a=1, b="2")}),
         (dict[str, list[Dummy]], {"foo": {"a": 1, "b": "2"}}, {"foo": [Dummy(a=1, b="2")]}),
@@ -159,6 +181,22 @@ class FrozenDummy(Frozen):
             OntologyTerm,
             {"@id": "foo", "label": "bar", "@type": "zee"},
             OntologyTerm(url="foo", label="bar"),
+        ),
+        (datetime, "2024-02-21T18:03:18.804172", datetime(2024, 2, 21, 18, 3, 18, 804172)),
+        (datetime, {"@type": "xsd:date", "@value": "2024-02-14"}, datetime(2024, 2, 14, 0, 0)),
+        (int | float, 2, 2),
+        (int | float, 1.0, 1.0),
+        (int | dict, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
+        (int | dict, 2, 2),
+        (
+            BlankNode1 | BlankNode2,
+            {"@type": "BlankNode1", "a": 2, "b": 3.0},
+            BlankNode1(a=2, b=3.0),
+        ),
+        (
+            BlankNode1 | BlankNode2,
+            {"@type": "BlankNode2", "c": 2, "d": 3.0},
+            BlankNode2(c=2, d=3.0),
         ),
     ],
 )

@@ -9,15 +9,17 @@ Experimental morphologies entities
 
 from datetime import datetime
 
-from entity_management.base import Frozen, Identifiable, OntologyTerm, QuantitativeValue, attributes
-from entity_management.core import Activity, DistributionMixin
+from entity_management.base import (
+    BrainLocation,
+    Frozen,
+    OntologyTerm,
+    QuantitativeValue,
+    Subject,
+    attributes,
+)
+from entity_management.core import Activity, DataDownload, Entity
 from entity_management.experiment import PatchedCell
 from entity_management.util import AttrOf
-
-
-@attributes()
-class _Entity(Identifiable):
-    """Base class for electrophysiology Enitities"""
 
 
 @attributes({"stimulusType": AttrOf(OntologyTerm)})
@@ -49,7 +51,7 @@ class StimulusExperiment(Activity):
         "targetHoldingPotential": AttrOf(QuantitativeValue, default=None),
     }
 )
-class TraceGeneration(_Entity):
+class TraceGeneration(Entity):
     """Trace generation.
 
     Args:
@@ -64,14 +66,13 @@ class TraceGeneration(_Entity):
 
 @attributes(
     {
-        "channel": AttrOf(int),
-        "qualifiedGeneration": AttrOf(TraceGeneration),
-        "wasGeneratedBy": AttrOf(StimulusExperiment),
-        "projectName": AttrOf(str, default=None),
         "retrievalDate": AttrOf(datetime, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
+        "subject": AttrOf(Subject, default=None),
+        "distribution": AttrOf(list[DataDownload], default=None),
     }
 )
-class Trace(DistributionMixin, _Entity):
+class Trace(Entity):
     """Trace.
 
     Args:

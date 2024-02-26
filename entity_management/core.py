@@ -449,6 +449,15 @@ class WorkflowExecution(Activity):
 
 @attributes(
     {
+        "agent": AttrOf(Agent),
+    }
+)
+class Contribution(BlankNode):
+    """Contribution"""
+
+
+@attributes(
+    {
         "name": AttrOf(str, default=None),
         "description": AttrOf(str, default=None),
         "wasAttributedTo": AttrOf(list[Agent], default=None),
@@ -561,6 +570,7 @@ class EntityMixin:
 @attributes(
     {
         "distribution": AttrOf(DataDownload, default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
     }
 )
 class Entity(EntityMixin, Identifiable):
@@ -623,12 +633,3 @@ class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
         )
 
         return _NexusBySparqlIterator(cls, query, **kwargs)
-
-
-@attributes(
-    {
-        "agent": AttrOf(Agent),
-    }
-)
-class Contribution(BlankNode):
-    """Contribution"""

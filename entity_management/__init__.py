@@ -7,6 +7,7 @@ from entity_management import (
     atlas,
     config,
     electrophysiology,
+    emodel,
     experiment,
     morphology,
     simulation,
