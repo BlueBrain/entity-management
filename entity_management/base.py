@@ -242,7 +242,7 @@ def _serialize_obj(value, include_rev=False):
     return value
 
 
-def _deserialize_list(data_type, data_raw, context, base=None, org=None, proj=None, token=None):
+def _deserialize_list(data_type, data_raw, *, context, base=None, org=None, proj=None, token=None):
     """Deserialize list of json elements"""
     # Enforce a list of a single element if data_raw is not a sequence
     if not _is_data_sequence(data_raw):
@@ -258,7 +258,13 @@ def _deserialize_list(data_type, data_raw, context, base=None, org=None, proj=No
     result_list = []
     for data_element in data_raw:
         data = _deserialize_json_to_datatype(
-            list_element_type, data_element, context, base, org, proj, token
+            list_element_type,
+            data_element,
+            context=context,
+            base=base,
+            org=org,
+            proj=proj,
+            token=token,
         )
         if data is not None:
             result_list.append(data)
@@ -269,7 +275,7 @@ def _deserialize_list(data_type, data_raw, context, base=None, org=None, proj=No
     return result_list
 
 
-def _deserialize_dict(data_type, data_raw, context, base, org, proj, token):
+def _deserialize_dict(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a dict of json elements."""
 
     # collapse a sequence of one element if the data_type is a mapping
@@ -289,14 +295,20 @@ def _deserialize_dict(data_type, data_raw, context, base, org, proj, token):
 
     return {
         data_key: _deserialize_json_to_datatype(
-            value_type or type(data_element), data_element, context, base, org, proj, token
+            value_type or type(data_element),
+            data_element,
+            context=context,
+            base=base,
+            org=org,
+            proj=proj,
+            token=token,
         )
         for data_key, data_element in data_raw.items()
     }
 
 
 def _deserialize_json_to_datatype(
-    data_type, data_raw, context=None, base=None, org=None, proj=None, token=None
+    data_type, data_raw, *, context=None, base=None, org=None, proj=None, token=None
 ):
     """Deserialize raw data json to data_type"""
     # pylint: disable=too-many-return-statements
@@ -310,22 +322,32 @@ def _deserialize_json_to_datatype(
         type_class = _type_class(data_type)
 
         if _is_type_sequence(type_class):
-            return _deserialize_list(data_type, data_raw, context, base, org, proj, token)
+            return _deserialize_list(
+                data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+            )
 
         if _is_type_mapping(type_class):
-            return _deserialize_dict(data_type, data_raw, context, base, org, proj, token)
+            return _deserialize_dict(
+                data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+            )
 
         if _is_type_union(type_class):
-            return _deserialize_union(data_type, data_raw, base, org, proj, token)
+            return _deserialize_union(
+                data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+            )
 
         if issubclass(type_class, Identifiable):
-            return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
+            return _deserialize_identifiable(
+                data_type, data_raw, base=base, org=org, proj=proj, token=token
+            )
 
         if issubclass(type_class, OntologyTerm):
             return data_type(url=expand(context, data_raw[JSLD_ID]), label=data_raw["label"])
 
         if issubclass(type_class, Frozen):
-            return _deserialize_frozen(data_type, data_raw, context, base, org, proj, token)
+            return _deserialize_frozen(
+                data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+            )
 
         if type_class == datetime:
             return _deserialize_datetime(data_raw)
@@ -344,7 +366,7 @@ def _deserialize_datetime(data_raw):
     return parse(data_raw)
 
 
-def _deserialize_union(data_type, data_raw, base, org, proj, token):
+def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a union of types."""
     type_args = list(typing.get_args(data_type))
 
@@ -360,12 +382,16 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
                 data_raw[JSLD_ID], base=base, org=org, proj=proj, token=token, cross_bucket=True
             )
 
-        return _deserialize_identifiable(data_type, data_raw, base, org, proj, token)
+        return _deserialize_identifiable(
+            data_type, data_raw, base=base, org=org, proj=proj, token=token
+        )
 
     # e.g. BlankNodeA | BlankNodeB
     if all(issubclass(cls, BlankNode) for cls in type_args):
         data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-        return _deserialize_frozen(data_type, data_raw, base, org, proj, token)
+        return _deserialize_frozen(
+            data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+        )
 
     # e.g. int | float | dict
     if type(data_raw) in type_args:
@@ -376,7 +402,7 @@ def _deserialize_union(data_type, data_raw, base, org, proj, token):
     )
 
 
-def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
+def _deserialize_identifiable(data_type, data_raw, *, base, org, proj, token):
     """Deserialize an Identifiable class."""
     resource_id = data_raw[JSLD_ID]
     type_ = data_raw[JSLD_TYPE]
@@ -393,11 +419,6 @@ def _deserialize_identifiable(data_type, data_raw, base, org, proj, token):
                 resource_id, base, org, proj, token=token, cross_bucket=True
             )
 
-        # get type class from resource if if nothing else works
-        data_type = nexus.get_type_from_id(
-            resource_id, base=base, org=org, proj=proj, token=token, cross_bucket=True
-        )
-
     return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
 
 
@@ -413,7 +434,9 @@ def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
         )
 
     field_values = {
-        k: _deserialize_json_to_datatype(attr_fields[k].type, v, context, base, org, proj, token)
+        k: _deserialize_json_to_datatype(
+            attr_fields[k].type, v, context=context, base=base, org=org, proj=proj, token=token
+        )
         for k, v in data_raw.items()
         if k in attr_fields
     }
