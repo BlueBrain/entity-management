@@ -725,22 +725,44 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         Returns:
             New instance of the same class with revision updated.
         """
+        payload = self.as_json_ld(include_rev)
+
         if self._id:
             json_ld = nexus.update(
                 self._self,
                 self._rev,
-                self.as_json_ld(include_rev),
+                payload,
                 sync_index=sync_index,
                 token=use_auth,
             )
         else:
             json_ld = nexus.create(
                 get_base_url(base, org, proj),
-                self.as_json_ld(include_rev),
+                payload,
                 resource_id,
                 sync_index=sync_index,
                 token=use_auth,
             )
+
+        # Nexus truncates the contexts and expands the bmo types. For example:
+        #
+        # '@type': [
+        #   'CellCompositionConfig',
+        #   'Entity',
+        # ]
+        #
+        # will be returned in the response without the neuroshapes context as:
+        #
+        # '@type': [
+        #   'https://bbp.epfl.ch/ontologies/core/bmo/CellCompositionConfig',
+        #   'http://www.w3.org/ns/prov#Entity',
+        # ],
+        #
+        # To avoid this the payload's type, which is shrunk due to the resource's context, is used
+        # wherever possible to address this inconsistency.
+        if JSLD_TYPE in payload:
+            json_ld[JSLD_TYPE] = payload[JSLD_TYPE]
+
         self._process_response(json_ld)
         return self
 
