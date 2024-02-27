@@ -395,8 +395,7 @@ class Activity(Identifiable):
             )
             self = self.evolve(wasInfluencedBy=workflow)  # pylint: disable=self-cls-assignment
 
-        return Identifiable.publish(
-            self,
+        return super().publish(
             resource_id=resource_id,
             sync_index=sync_index,
             base=base,
