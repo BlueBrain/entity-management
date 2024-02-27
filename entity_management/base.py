@@ -242,7 +242,7 @@ def _serialize_obj(value, include_rev=False):
     return value
 
 
-def _deserialize_list(data_type, data_raw, *, context, base=None, org=None, proj=None, token=None):
+def _deserialize_list(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize list of json elements"""
     # Enforce a list of a single element if data_raw is not a sequence
     if not _is_data_sequence(data_raw):
