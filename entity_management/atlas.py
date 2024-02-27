@@ -24,12 +24,14 @@ class AtlasBrainRegion(Identifiable):
     def from_id(
         cls,
         resource_id,
+        *,
         on_no_result=None,
         base=None,
         org=None,
         proj=None,
         use_auth=None,
         cross_bucket=False,
+        resolve_context=False,
         **kwargs,
     ):
         """
@@ -39,6 +41,10 @@ class AtlasBrainRegion(Identifiable):
             resource_id (str): id of the entity to load.
             on_no_result (Callable): A function to be called when no result found. It will receive
                 `resource_id` as a first argument.
+            cross_bucket (bool):
+                Use the resolvers instead of the resources endpoint. Default False.
+            resolve_context (bool):
+                Resolve ontological term curies using the resource's context. Default False.
             kwargs: Keyword arguments which will be forwarded to ``on_no_result`` function.
             use_auth (str): OAuth token in case access is restricted.
                 Token should be in the format for the authorization header: Bearer VALUE.
@@ -46,21 +52,40 @@ class AtlasBrainRegion(Identifiable):
         if proj is None and org is None:
             proj, org = cls._ontology_location()
 
-        return super().from_id(resource_id, on_no_result, base, proj, org, use_auth, **kwargs)
+        return super().from_id(
+            resource_id,
+            on_no_result=on_no_result,
+            cross_bucket=cross_bucket,
+            resolve_context=resolve_context,
+            base=base,
+            proj=proj,
+            org=org,
+            use_auth=use_auth,
+            **kwargs,
+        )
 
     @classmethod
-    def from_url(cls, url, base=None, org=None, proj=None, use_auth=None):
+    def from_url(cls, url, *, resolve_context=False, base=None, org=None, proj=None, use_auth=None):
         """
         Load entity from url.
 
         Args:
             url (str): Full url to the entity in nexus. ``_self`` content is a valid full URL.
+            resolve_context (bool):
+                Resolve ontological term curies using the resource's context. Default False.
             use_auth (str): OAuth token in case access is restricted.
                 token should be in the format for the authorization header: Bearer VALUE.
         """
         if proj is None and org is None:
             proj, org = cls._ontology_location()
-        return super().from_url(url, base, org, proj, use_auth)
+        return super().from_url(
+            url,
+            resolve_context=resolve_context,
+            base=base,
+            org=org,
+            proj=proj,
+            use_auth=use_auth,
+        )
 
 
 @attributes(

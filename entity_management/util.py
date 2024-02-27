@@ -192,6 +192,7 @@ def get_entity(
     *,
     cls,
     cross_bucket: bool = True,
+    resolve_context: bool = False,
     base: str | None = None,
     org: str | None = None,
     proj: str | None = None,
@@ -219,6 +220,7 @@ def get_entity(
         entity = cls.from_id(
             resource_id,
             cross_bucket=cross_bucket,
+            resolve_context=resolve_context,
             base=base,
             org=org,
             proj=proj,
