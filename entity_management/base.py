@@ -751,7 +751,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         #   'Entity',
         # ]
         #
-        # will be returned in the response wihout the neuroshapes context as:
+        # will be returned in the response without the neuroshapes context as:
         #
         # '@type': [
         #   'https://bbp.epfl.ch/ontologies/core/bmo/CellCompositionConfig',
