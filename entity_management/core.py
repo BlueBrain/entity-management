@@ -13,7 +13,6 @@ from datetime import datetime
 from io import IOBase, StringIO
 from pathlib import Path
 
-import attr
 from attr.validators import in_
 
 from entity_management import nexus
@@ -275,14 +274,6 @@ class DataDownload(BlankNode):
         return self._id
 
 
-@attributes({"distribution": AttrOf(list[DataDownload], default=None)})
-@attr.s
-class DistributionMixin:
-    """Provide `distribution` attribute.
-    attach/download corresponding operations on the distribution.
-    """
-
-
 @attributes()
 class Agent(Identifiable):
     """Agent.
@@ -364,6 +355,7 @@ class Activity(Identifiable):
 
     def publish(
         self,
+        *,
         resource_id=None,
         sync_index=False,
         base=None,
@@ -454,9 +446,11 @@ class Contribution(BlankNode):
         "wasGeneratedBy": AttrOf(Identifiable, default=None),
         "wasDerivedFrom": AttrOf(list[Identifiable], default=None),
         "dateCreated": AttrOf(datetime, default=None),
+        "distribution": AttrOf(DataDownload, default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
     }
 )
-class EntityMixin:
+class Entity(Identifiable):
     """Enables provenance metadata when publishing/deprecating entities."""
 
     @classmethod
@@ -488,6 +482,7 @@ class EntityMixin:
 
     def publish(
         self,
+        *,
         resource_id=None,
         sync_index=False,
         base=None,
@@ -517,6 +512,7 @@ class EntityMixin:
         Returns:
             New instance of the same class with revision updated.
         """
+        # pylint: disable=no-member
         if self.wasGeneratedBy is None and activity is None and WORKFLOW is not None:
             # in case running in the context of workflow execution activity
             activity = WorkflowExecution.from_id(
@@ -537,8 +533,7 @@ class EntityMixin:
                 )
             )
 
-        return Identifiable.publish(
-            self,
+        return super().publish(
             resource_id=resource_id,
             sync_index=sync_index,
             base=base,
@@ -547,16 +542,6 @@ class EntityMixin:
             use_auth=use_auth,
             include_rev=include_rev,
         )
-
-
-@attributes(
-    {
-        "distribution": AttrOf(DataDownload, default=None),
-        "contribution": AttrOf(list[Contribution], default=None),
-    }
-)
-class Entity(EntityMixin, Identifiable):
-    """Generic class for core Entities."""
 
 
 @attributes(
@@ -574,9 +559,10 @@ class Entity(EntityMixin, Identifiable):
         ),
         "memoryAmount": AttrOf(str, default=None),
         "numberOfTasksPerNode": AttrOf(int, default=None),
+        "distribution": AttrOf(list[DataDownload], default=None),
     }
 )
-class ModelRuntimeParameters(EntityMixin, DistributionMixin, Identifiable):
+class ModelRuntimeParameters(Entity):
     """Model runtime parameters.
 
     Args:

@@ -6,18 +6,23 @@ Experimental morphologies entities
    :parts: 1
 """
 
-from entity_management.base import BrainLocation, Identifiable, OntologyTerm, attributes
-from entity_management.core import DataDownload, DistributionMixin, Entity, EntityMixin
+from entity_management.base import BrainLocation, OntologyTerm, attributes
+from entity_management.core import DataDownload, Entity
 from entity_management.util import AttrOf
 
 
 @attributes(
     {
-        "distribution": AttrOf(list[DataDownload]),
+        "distribution": AttrOf(list[DataDownload], default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
     }
 )
-class NeuronMorphology(Entity):
+class Morphology(Entity):
+    """A Morphology."""
+
+
+class NeuronMorphology(Morphology):
     """A Neuron Morphology."""
 
 
@@ -29,8 +34,12 @@ class ReconstructedNeuronMorphology(NeuronMorphology):
     """A reconstruced neuron morphology."""
 
 
-@attributes({"name": AttrOf(str), "brainLocation": AttrOf(BrainLocation)})
-class ReconstructedCell(DistributionMixin, Identifiable, EntityMixin):
+@attributes(
+    {
+        "distribution": AttrOf(list[DataDownload], default=None),
+    }
+)
+class ReconstructedCell(Entity):
     """Reconstructed cell.
 
     Args:
@@ -51,11 +60,20 @@ class ReconstructedWholeBrainCell(ReconstructedCell):
     """Reconstructed wholeBrain cell."""
 
 
-@attributes({"morphology": AttrOf(Entity)})
-class CutPlane(DistributionMixin, Identifiable, EntityMixin):
+@attributes(
+    {
+        "morphology": AttrOf(Entity),
+        "distribution": AttrOf(list[DataDownload], default=None),
+    }
+)
+class CutPlane(Entity):
     """Cut plane."""
 
 
-@attributes()
-class LabeledCell(DistributionMixin, Identifiable, EntityMixin):
+@attributes(
+    {
+        "distribution": AttrOf(list[DataDownload], default=None),
+    }
+)
+class LabeledCell(Entity):
     """Labeled cell."""

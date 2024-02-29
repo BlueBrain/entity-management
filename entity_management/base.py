@@ -706,6 +706,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
 
     def publish(
         self,
+        *,
         resource_id=None,
         sync_index=False,
         base=None,
