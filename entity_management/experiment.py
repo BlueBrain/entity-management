@@ -7,7 +7,7 @@ Experimental morphologies entities
 """
 
 from entity_management.base import BrainLocation, OntologyTerm, attributes
-from entity_management.core import DataDownload, Entity
+from entity_management.core import MultiDistributionEntity
 from entity_management.util import AttrOf
 
 
@@ -17,8 +17,7 @@ from entity_management.util import AttrOf
         "brainLocation": AttrOf(BrainLocation, default=None),
         "eType": AttrOf(OntologyTerm, default=None),
         "mType": AttrOf(OntologyTerm, default=None),
-        "distribution": AttrOf(list[DataDownload], default=None),
     }
 )
-class PatchedCell(Entity):
+class PatchedCell(MultiDistributionEntity):
     """Patched cell."""

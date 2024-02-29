@@ -546,6 +546,15 @@ class Entity(Identifiable):
 
 @attributes(
     {
+        "distribution": AttrOf(list[DataDownload], default=None),
+    }
+)
+class MultiDistributionEntity(Entity):
+    """Entity with one or more distributions."""
+
+
+@attributes(
+    {
         "model": AttrOf(Identifiable),
         "purpose": AttrOf(str, default=None, validators=in_([None, "sim", "viz"])),
         "modelBuildingSteps": AttrOf(int, default=None),
@@ -559,10 +568,9 @@ class Entity(Identifiable):
         ),
         "memoryAmount": AttrOf(str, default=None),
         "numberOfTasksPerNode": AttrOf(int, default=None),
-        "distribution": AttrOf(list[DataDownload], default=None),
     }
 )
-class ModelRuntimeParameters(Entity):
+class ModelRuntimeParameters(MultiDistributionEntity):
     """Model runtime parameters.
 
     Args:

@@ -14,7 +14,7 @@ from entity_management.base import (
     OntologyTerm,
     Subject,
 )
-from entity_management.core import DataDownload, Entity, attributes
+from entity_management.core import DataDownload, Entity, MultiDistributionEntity, attributes
 from entity_management.electrophysiology import Trace
 from entity_management.morphology import NeuronMorphology
 from entity_management.util import AttrOf
@@ -69,14 +69,13 @@ class ETypeAnnotation(BlankNode):
         "score": AttrOf(float, default=None),
         "seed": AttrOf(int, default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
-        "distribution": AttrOf(list[DataDownload]),
         "brainLocation": AttrOf(BrainLocation, default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "subject": AttrOf(Subject, default=None),
         "annotation": AttrOf(list[MTypeAnnotation | ETypeAnnotation], default=None),
     }
 )
-class EModelEntity(Entity):
+class EModelEntity(MultiDistributionEntity):
     """EModel entity with common EModel properties."""
 
 

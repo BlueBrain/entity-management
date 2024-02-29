@@ -49,12 +49,10 @@ class ModelRelease(Entity):
     """Release base entity"""
 
 
-@attributes()
 class ModelScript(Entity):
     """Base entity for the scripts attached to the model."""
 
 
-@attributes()
 class ModelReleaseIndex(Entity):
     """Index files attached to release entities"""
 
