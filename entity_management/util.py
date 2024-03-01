@@ -1,5 +1,7 @@
 """Utilities"""
 
+import typing
+from types import UnionType
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
 from urllib.parse import unquote, urlparse
@@ -45,6 +47,16 @@ class _ListOfValidator:
         return f"<instance_of validator for list of type {self.type_!r}>"
 
 
+class _OneOrListValidator(_ListOfValidator):
+
+    def __call__(self, inst, attribute, value):
+
+        if not (value is None or isinstance(value, list)):
+            value = [value]
+
+        super().__call__(inst, attribute, value)
+
+
 def _list_of(type_, default):
     """
     A validator that raises a :exc:`TypeError` if the initializer is called
@@ -59,6 +71,10 @@ def _list_of(type_, default):
         got.
     """
     return _ListOfValidator(type_, default)
+
+
+def _one_or_list_of(type_, default):
+    return _OneOrListValidator(type_, default)
 
 
 @attr.s(repr=False, slots=True, hash=True)
@@ -123,7 +139,9 @@ class AttrOf:
             """optional_of"""
             return optional_validator(instance_of(type_))
 
-        if hasattr(type_, "__origin__") and issubclass(type_.__origin__, list):
+        type_origin = typing.get_origin(type_)
+        if type_origin and issubclass(type_origin, list):
+
             # the collection was explicitly specified in attr.ib
             # like typing.List[Distribution]
             list_element_type = _get_list_params(type_)[0]
@@ -134,6 +152,9 @@ class AttrOf:
                 validator = _list_of(types, default)
             else:
                 validator = _list_of(list_element_type, default)
+
+        elif single_or_list_type := _single_or_list_type(type_):
+            validator = _one_or_list_of(single_or_list_type, default)
         else:
             if default is None:  # default explicitly provided as None
                 validator = optional_of(type_)
@@ -147,6 +168,21 @@ class AttrOf:
 
     def __call__(self):
         return self.fn()
+
+
+def _single_or_list_type(type_):
+    """Return True if the type_ is of the form T | list[T]"""
+    if typing.get_origin(type_) not in {typing.Union, UnionType}:
+        return None
+
+    type_args = typing.get_args(type_)
+    element_origin = typing.get_origin(type_args[1])
+    if len(type_args) == 2 and element_origin and issubclass(element_origin, list):
+        element_type = typing.get_args(type_args[1])[0]
+        if element_type is type_args[0]:
+            return element_type
+
+    return None
 
 
 def _clean_up_dict(d):

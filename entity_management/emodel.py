@@ -2,7 +2,7 @@
 EModel related entities.
 See https://bbpgitlab.epfl.ch/dke/apps/brain-modeling-ontology/-/tree/develop/shapes/
 """
-
+import attrs
 from datetime import datetime
 
 from entity_management.atlas import AtlasRelease
@@ -125,7 +125,7 @@ class EModelConfiguration(EModelEntity):
 
 @attributes(
     {
-        "generates": AttrOf(list[Identifiable], default=None),
+        "generates": AttrOf("list['EModel']", default=None),
         "hasPart": AttrOf(
             list[ExtractionTargetsConfiguration | EModelPipelineSettings | EModelConfiguration],
             default=None,
@@ -174,6 +174,7 @@ class EModelScript(EModelEntity):
 class EModel(EModelEntity):
     """EModel definition."""
 
+breakpoint()
 
 @attributes(
     {

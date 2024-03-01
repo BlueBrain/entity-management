@@ -446,7 +446,7 @@ class Contribution(BlankNode):
         "wasGeneratedBy": AttrOf(Identifiable, default=None),
         "wasDerivedFrom": AttrOf(list[Identifiable], default=None),
         "dateCreated": AttrOf(datetime, default=None),
-        "distribution": AttrOf(DataDownload, default=None),
+        "distribution": AttrOf(DataDownload | list[DataDownload], default=None),
         "contribution": AttrOf(list[Contribution], default=None),
     }
 )

@@ -213,6 +213,14 @@ class BlankNode2(BlankNode):
             {"@type": "BlankNode2", "c": 2, "d": 3.0},
             BlankNode2(c=2, d=3.0),
         ),
+        (int | list[int], 1, 1),
+        (int | list[int], [1, 2], [1, 2]),
+        (Dummy | list[Dummy], {"a": 1, "b": "2"}, Dummy(a=1, b="2")),
+        (
+            Dummy | list[Dummy],
+            [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}],
+            [Dummy(a=1, b="2"), Dummy(a=2, b="3")],
+        ),
     ],
 )
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):

@@ -370,27 +370,34 @@ def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a union of types."""
     type_args = list(typing.get_args(data_type))
 
-    # e.g. IdentifiableA | IdentifiableB
-    if all(issubclass(cls, Identifiable) for cls in type_args):
-
-        # get type class by name from the global registry if present
-        data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-
-        # otherwise get the class type from the id
-        if not data_type:
-            data_type = nexus.get_type_from_id(
-                data_raw[JSLD_ID], base=base, org=org, proj=proj, token=token, cross_bucket=True
+    # e.g. DataDownload | list[DataDownload]
+    if _is_single_or_list_union(type_args):
+        if isinstance(data_raw, list):
+            return _deserialize_list(
+                type_args[1],
+                data_raw,
+                context=context,
+                base=base,
+                org=org,
+                proj=proj,
+                token=token,
             )
-
-        return _deserialize_identifiable(
-            data_type, data_raw, base=base, org=org, proj=proj, token=token
+        return _deserialize_json_to_datatype(
+            type_args[0],
+            data_raw,
+            context=context,
+            base=base,
+            org=org,
+            proj=proj,
+            token=token,
         )
 
-    # e.g. BlankNodeA | BlankNodeB
-    if all(issubclass(cls, BlankNode) for cls in type_args):
+    # if data_raw is a json dict with a type, then try to fetch and instantiate that type.
+    # Covers subclasses of Identifiable, BlankNode, and their combinations.
+    if isinstance(data_raw, dict) and JSLD_TYPE in data_raw:
         data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-        return _deserialize_frozen(
-            data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+        return _deserialize_json_to_datatype(
+            data_type, data_raw, context=context, base=base, org=org, token=token
         )
 
     # e.g. int | float | dict
@@ -400,6 +407,21 @@ def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     raise NotImplementedError(
         "Unknown type/data combination:\n" f"data_type: {data_type}\n" f"data_raw : {data_raw}"
     )
+
+
+def _is_single_or_list_union(type_args):
+    """ "Return True for unions of the form T | list[T]"""
+
+    if len(type_args) != 2:
+        return False
+
+    arg1, arg2 = type_args
+
+    if not issubclass(_type_class(arg2), list):
+        return False
+
+    list_element = typing.get_args(arg2)[0]
+    return issubclass(_type_class(arg2), list) and arg1 is list_element
 
 
 def _deserialize_identifiable(data_type, data_raw, *, base, org, proj, token):
