@@ -172,7 +172,9 @@ def _make_validators(type_, default, custom_validators):
     validators = [validator]
 
     if custom_validators is not None:
-        validators += validators if isinstance(validators, list) else [validators]
+        validators += (
+            custom_validators if isinstance(custom_validators, list) else [custom_validators]
+        )
 
     return validators
 
