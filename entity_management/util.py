@@ -128,46 +128,53 @@ class AttrOf:
     """
 
     def __init__(self, type_, default=attr.NOTHING, validators=None):
-        if validators is None:
-            validators = []
 
-        def instance_of(type_):
-            """instance_of"""
-            return _NotInstatiatedValidator(instance_of_validator(type_))
+        validators = _make_validators(type_, default, validators)
 
-        def optional_of(type_):
-            """optional_of"""
-            return optional_validator(instance_of(type_))
-
-        type_origin = typing.get_origin(type_)
-        if type_origin and issubclass(type_origin, list):
-
-            # the collection was explicitly specified in attr.ib
-            # like typing.List[Distribution]
-            list_element_type = _get_list_params(type_)[0]
-            if hasattr(list_element_type, "__args__") or hasattr(
-                list_element_type, "__union_params__"
-            ):
-                types = _get_union_params(list_element_type)
-                validator = _list_of(types, default)
-            else:
-                validator = _list_of(list_element_type, default)
-
-        elif single_or_list_type := _single_or_list_type(type_):
-            validator = _one_or_list_of(single_or_list_type, default)
-        else:
-            if default is None:  # default explicitly provided as None
-                validator = optional_of(type_)
-            else:  # default either not provided -> mandatory, or initialized with value
-                validator = instance_of(type_)
-
-        validators = [validator] + validators if isinstance(validators, list) else [validators]
         self.fn = lambda: attr.ib(
             type=type_, default=default, validator=validators, repr=False, kw_only=True
         )
 
     def __call__(self):
         return self.fn()
+
+
+def _make_validators(type_, default, custom_validators):
+
+    def instance_of(type_):
+        """instance_of"""
+        return _NotInstatiatedValidator(instance_of_validator(type_))
+
+    def optional_of(type_):
+        """optional_of"""
+        return optional_validator(instance_of(type_))
+
+    type_origin = typing.get_origin(type_)
+    if type_origin and issubclass(type_origin, list):
+
+        # the collection was explicitly specified in attr.ib
+        # like typing.List[Distribution]
+        list_element_type = _get_list_params(type_)[0]
+        if hasattr(list_element_type, "__args__") or hasattr(list_element_type, "__union_params__"):
+            types = _get_union_params(list_element_type)
+            validator = _list_of(types, default)
+        else:
+            validator = _list_of(list_element_type, default)
+
+    elif single_or_list_type := _single_or_list_type(type_):
+        validator = _one_or_list_of(single_or_list_type, default)
+    else:
+        if default is None:  # default explicitly provided as None
+            validator = optional_of(type_)
+        else:  # default either not provided -> mandatory, or initialized with value
+            validator = instance_of(type_)
+
+    validators = [validator]
+
+    if custom_validators is not None:
+        validators += validators if isinstance(validators, list) else [validators]
+
+    return validators
 
 
 def _single_or_list_type(type_):
