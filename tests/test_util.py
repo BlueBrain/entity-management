@@ -12,29 +12,17 @@ from entity_management.base import BlankNode
 NA = attr.NOTHING
 
 
-@attributes(
-    {
-        "a": AttrOf(int),
-    }
-)
+@attributes({"a": AttrOf(int)})
 class BN1(BlankNode):
     pass
 
 
-@attributes(
-    {
-        "a": AttrOf(int),
-    }
-)
+@attributes({"a": AttrOf(int)})
 class BN2(BlankNode):
     pass
 
 
-@attributes(
-    {
-        "a": AttrOf(int),
-    }
-)
+@attributes({"a": AttrOf(int)})
 class BN3(BlankNode):
     pass
 
@@ -115,7 +103,6 @@ def test_validators(type_, default, value, should_validation_pass):
 )
 def test_unquote_uri_path(uri, expected_path):
     res = test_module.unquote_uri_path(uri)
-
     assert res == expected_path
 
 
