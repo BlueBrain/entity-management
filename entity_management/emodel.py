@@ -105,7 +105,7 @@ class EModelPipelineSettings(EModelEntity):
         "subject": AttrOf(Subject, default=None),
         "identifier": AttrOf(str, default=None),
         "mod": AttrOf(dict, default=None),
-        "ion": AttrOf(OntologyTerm, default=None),
+        "ion": AttrOf(list[OntologyTerm], default=None),
         "isLjpCorrected": AttrOf(bool, default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
         "isTemperatureDependent": AttrOf(bool, default=None),
