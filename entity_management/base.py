@@ -6,9 +6,7 @@ Base simulation entities
 """
 
 import logging
-import types
 import typing
-from collections.abc import Mapping, Sequence
 from datetime import datetime
 from pprint import pformat
 
@@ -16,7 +14,7 @@ import attr
 from dateutil.parser import parse
 from rdflib.graph import BNode, Graph
 
-from entity_management import nexus
+from entity_management import nexus, typecheck
 from entity_management.context import expand, get_resolved_context
 from entity_management.settings import (
     DASH,
@@ -245,7 +243,7 @@ def _serialize_obj(value, include_rev=False):
 def _deserialize_list(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize list of json elements"""
     # Enforce a list of a single element if data_raw is not a sequence
-    if not _is_data_sequence(data_raw):
+    if not typecheck.is_data_sequence(data_raw):
         data_raw = [data_raw]
 
     if not len(data_raw):
@@ -279,7 +277,7 @@ def _deserialize_dict(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a dict of json elements."""
 
     # collapse a sequence of one element if the data_type is a mapping
-    if _is_data_sequence(data_raw):
+    if typecheck.is_data_sequence(data_raw):
         assert len(data_raw) == 1
         data_raw = data_raw[0]
 
@@ -321,17 +319,17 @@ def _deserialize_json_to_datatype(
 
         type_class = _type_class(data_type)
 
-        if _is_type_sequence(type_class):
+        if typecheck.is_type_sequence(type_class):
             return _deserialize_list(
                 data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
             )
 
-        if _is_type_mapping(type_class):
+        if typecheck.is_type_mapping(type_class):
             return _deserialize_dict(
                 data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
             )
 
-        if _is_type_union(type_class):
+        if typecheck.is_type_union(type_class):
             return _deserialize_union(
                 data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
             )
@@ -361,7 +359,7 @@ def _deserialize_json_to_datatype(
 
 
 def _deserialize_datetime(data_raw):
-    if isinstance(data_raw, dict):
+    if typecheck.is_data_mapping(data_raw):
         return parse(data_raw["@value"])
     return parse(data_raw)
 
@@ -371,8 +369,8 @@ def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     type_args = list(typing.get_args(data_type))
 
     # e.g. DataDownload | list[DataDownload]
-    if _is_single_or_list_union(type_args):
-        if isinstance(data_raw, list):
+    if typecheck.is_type_single_or_list_union(data_type):
+        if typecheck.is_data_sequence(data_raw):
             return _deserialize_list(
                 type_args[1],
                 data_raw,
@@ -394,7 +392,7 @@ def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
 
     # if data_raw is a json dict with a type, then try to fetch and instantiate that type.
     # Covers subclasses of Identifiable, BlankNode, and their combinations.
-    if isinstance(data_raw, dict) and JSLD_TYPE in data_raw:
+    if typecheck.is_data_mapping(data_raw) and JSLD_TYPE in data_raw:
         data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
         return _deserialize_json_to_datatype(
             data_type, data_raw, context=context, base=base, org=org, token=token
@@ -407,21 +405,6 @@ def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     raise NotImplementedError(
         "Unknown type/data combination:\n" f"data_type: {data_type}\n" f"data_raw : {data_raw}"
     )
-
-
-def _is_single_or_list_union(type_args):
-    """ "Return True for unions of the form T | list[T]"""
-
-    if len(type_args) != 2:
-        return False
-
-    arg1, arg2 = type_args
-
-    if not issubclass(_type_class(arg2), list):
-        return False
-
-    list_element = typing.get_args(arg2)[0]
-    return issubclass(_type_class(arg2), list) and arg1 is list_element
 
 
 def _deserialize_identifiable(data_type, data_raw, *, base, org, proj, token):
@@ -467,22 +450,6 @@ def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
     if issubclass(data_type, BlankNode):
         data._force_attr("_type", data_raw[JSLD_TYPE])
     return data
-
-
-def _is_type_sequence(data_type):
-    return data_type is not str and issubclass(data_type, Sequence)
-
-
-def _is_type_mapping(data_type):
-    return issubclass(data_type, Mapping)
-
-
-def _is_data_sequence(data_raw):
-    return not isinstance(data_raw, str) and isinstance(data_raw, Sequence)
-
-
-def _is_type_union(data_type):
-    return data_type in {typing.Union, types.UnionType}
 
 
 def _deserialize_resource(
@@ -702,9 +669,9 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             attr_value = getattr(self, attribute.name)
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
-                if isinstance(attr_value, (tuple, list, set)):
+                if typecheck.is_data_sequence(attr_value):
                     json_ld[attr_name] = [_serialize_obj(i, include_rev) for i in attr_value]
-                elif isinstance(attr_value, dict):
+                elif typecheck.is_data_mapping(attr_value):
                     json_ld[attr_name] = {
                         kk: _serialize_obj(vv, include_rev) for kk, vv in attr_value.items()
                     }

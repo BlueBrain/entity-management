@@ -1,7 +1,6 @@
 """Utilities"""
 
 import typing
-from types import UnionType
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
 from urllib.parse import unquote, urlparse
@@ -11,7 +10,7 @@ from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
 from devtools import pformat
 
-from entity_management import state
+from entity_management import state, typecheck
 from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError
 
 # copied from attrs, their standard way to make validators
@@ -32,7 +31,7 @@ class _ListOfValidator:
             raise TypeError(f"'{attribute.name}' must be provided", attribute, self.type_, value)
 
         if value is not None:
-            if not isinstance(value, list):
+            if not typecheck.is_data_sequence(value):
                 raise TypeError(f"'{attribute.name}' must be a list", attribute, self.type_, value)
             if not all(isinstance(v, self.type_) for v in value):
                 raise TypeError(
@@ -51,7 +50,7 @@ class _OneOrListValidator(_ListOfValidator):
 
     def __call__(self, inst, attribute, value):
 
-        if not (value is None or isinstance(value, list)):
+        if not (value is None or typecheck.is_data_sequence(value)):
             value = [value]
 
         super().__call__(inst, attribute, value)
@@ -149,20 +148,19 @@ def _make_validators(type_, default, custom_validators):
         """optional_of"""
         return optional_validator(instance_of(type_))
 
-    type_origin = typing.get_origin(type_)
-    if type_origin and issubclass(type_origin, list):
-
+    if typecheck.is_type_sequence(type_):
         # the collection was explicitly specified in attr.ib
         # like typing.List[Distribution]
         list_element_type = _get_list_params(type_)[0]
-        if hasattr(list_element_type, "__args__") or hasattr(list_element_type, "__union_params__"):
+        if typecheck.is_type_union(list_element_type):
             types = _get_union_params(list_element_type)
             validator = _list_of(types, default)
         else:
             validator = _list_of(list_element_type, default)
 
-    elif single_or_list_type := _single_or_list_type(type_):
-        validator = _one_or_list_of(single_or_list_type, default)
+    # e.g. A | list[A]
+    elif typecheck.is_type_single_or_list_union(type_):
+        validator = _one_or_list_of(typing.get_args(type_)[0], default)
     else:
         if default is None:  # default explicitly provided as None
             validator = optional_of(type_)
@@ -177,21 +175,6 @@ def _make_validators(type_, default, custom_validators):
         )
 
     return validators
-
-
-def _single_or_list_type(type_):
-    """Return True if the type_ is of the form T | list[T]"""
-    if typing.get_origin(type_) not in {typing.Union, UnionType}:
-        return None
-
-    type_args = typing.get_args(type_)
-    element_origin = typing.get_origin(type_args[1])
-    if len(type_args) == 2 and element_origin and issubclass(element_origin, list):
-        element_type = typing.get_args(type_args[1])[0]
-        if element_type is type_args[0]:
-            return element_type
-
-    return None
 
 
 def _clean_up_dict(d):
