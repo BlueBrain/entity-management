@@ -50,7 +50,7 @@ class _OneOrListValidator(_ListOfValidator):
 
     def __call__(self, inst, attribute, value):
 
-        if not (value is None or typecheck.is_data_sequence(value)):
+        if value is not None and not typecheck.is_data_sequence(value):
             value = [value]
 
         super().__call__(inst, attribute, value)
