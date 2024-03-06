@@ -216,6 +216,7 @@ class BlankNode2(BlankNode):
         (int | list[int], 1, 1),
         (int | list[int], [1, 2], [1, 2]),
         (Dummy | list[Dummy], {"a": 1, "b": "2"}, Dummy(a=1, b="2")),
+        (list[Dummy] | Dummy, {"a": 1, "b": "2"}, Dummy(a=1, b="2")),
         (
             Dummy | list[Dummy],
             [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}],

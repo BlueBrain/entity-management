@@ -18,6 +18,11 @@ def test_type_root_class(type_, expected):
     assert res is expected
 
 
+def test_sort_types_by_origin():
+    res = test_module.sort_types_by_origin([list[int], float, int | float, int])
+    assert res == [float, int, list[int], int | float]
+
+
 @pytest.mark.parametrize(
     "type_,expected",
     [
@@ -109,8 +114,11 @@ def test_is_type_union(type_, expected):
     [
         (int | float, False),
         (int | list[int], True),
+        (list[int] | int, True),
         (int | list[float], False),
+        (list[float] | int, False),
         (dict | list[dict], True),
+        (list[dict] | dict, True),
         (dict | list, False),
     ],
 )

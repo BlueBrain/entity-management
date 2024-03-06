@@ -10,6 +10,15 @@ def get_type_root_class(type_):
     return typing.get_origin(type_) or type_
 
 
+def sort_types_by_origin(args):
+    """Return the args sorted with generics or unions coming last.
+
+    Example:
+        [list[int], float, int | float,  int] -> [float, int, list[int], int | float ]
+    """
+    return sorted(args, key=lambda a: typing.get_origin(a) is not None)
+
+
 def is_type_sequence(data_type):
     """Return True if the data_type is a sequence."""
     return data_type is not str and issubclass(
@@ -39,15 +48,14 @@ def is_type_union(data_type):
 
 def is_type_single_or_list_union(data_type):
     """Return True for unions of the form T | list[T]"""
-    type_args = typing.get_args(data_type)
+    type_args = sort_types_by_origin(typing.get_args(data_type))
 
     if len(type_args) != 2:
         return False
 
     arg1, arg2 = type_args
-
     # check that arg2 is a list generic e.g. list[int]
-    # and that arg1 has the same type as arg2's element
+    # and that x has the same type as y's element
     arg2_origin = typing.get_origin(arg2)
     return (
         arg2_origin is not None
