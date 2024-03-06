@@ -55,7 +55,7 @@ def is_type_single_or_list_union(data_type):
 
     arg1, arg2 = type_args
     # check that arg2 is a list generic e.g. list[int]
-    # and that x has the same type as y's element
+    # and that arg1 has the same type as arg2's element
     arg2_origin = typing.get_origin(arg2)
     return (
         arg2_origin is not None
