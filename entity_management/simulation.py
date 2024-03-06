@@ -15,7 +15,7 @@ from entity_management.base import (
     _NexusBySparqlIterator,
     attributes,
 )
-from entity_management.core import Activity, DataDownload, Entity, Subject
+from entity_management.core import Activity, DataDownload, Entity, MultiDistributionEntity, Subject
 from entity_management.electrophysiology import Trace
 from entity_management.state import get_base_url
 from entity_management.util import AttrOf
@@ -573,8 +573,7 @@ class DetailedCircuitValidationReport(AnalysisReport):
     """Detailed circuit validation report."""
 
 
-@attributes({"distribution": AttrOf(list[DataDownload], default=None)})
-class PlotCollection(Entity):
+class PlotCollection(MultiDistributionEntity):
     """Collection of plots."""
 
 
