@@ -33,6 +33,8 @@ from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
 from entity_management.morphology import ReconstructedPatchedCell
 import entity_management.nexus as nexus
+from entity_management.typing import MaybeList
+
 
 state.ACCESS_TOKEN = "foo"
 
@@ -213,12 +215,11 @@ class BlankNode2(BlankNode):
             {"@type": "BlankNode2", "c": 2, "d": 3.0},
             BlankNode2(c=2, d=3.0),
         ),
-        (int | list[int], 1, 1),
-        (int | list[int], [1, 2], [1, 2]),
-        (Dummy | list[Dummy], {"a": 1, "b": "2"}, Dummy(a=1, b="2")),
-        (list[Dummy] | Dummy, {"a": 1, "b": "2"}, Dummy(a=1, b="2")),
+        (MaybeList[int], 1, 1),
+        (MaybeList[int], [1, 2], [1, 2]),
+        (MaybeList[Dummy], {"a": 1, "b": "2"}, Dummy(a=1, b="2")),
         (
-            Dummy | list[Dummy],
+            MaybeList[Dummy],
             [{"a": 1, "b": "2"}, {"a": 2, "b": "3"}],
             [Dummy(a=1, b="2"), Dummy(a=2, b="3")],
         ),

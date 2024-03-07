@@ -158,12 +158,9 @@ def _make_validators(type_, default, custom_validators):
         else:
             validator = _list_of(list_element_type, default)
 
-    # e.g. A | list[A] or list[A] | A
+    # e.g. A | list[A]
     elif typecheck.is_type_single_or_list_union(type_):
-
-        # ensure we are getting A, not list[A]
-        element_type = typecheck.sort_types_by_origin(typing.get_args(type_))[0]
-
+        element_type = typing.get_args(type_)[0]
         validator = _one_or_list_of(element_type, default)
     else:
         if default is None:  # default explicitly provided as None

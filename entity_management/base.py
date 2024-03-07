@@ -366,9 +366,7 @@ def _deserialize_datetime(data_raw):
 
 def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a union of types."""
-
-    # For example list[T] | T will be sorted to (T, list[T])
-    type_args = typecheck.sort_types_by_origin(typing.get_args(data_type))
+    type_args = typing.get_args(data_type)
 
     # e.g. DataDownload | list[DataDownload]
     if typecheck.is_type_single_or_list_union(data_type):

@@ -18,11 +18,6 @@ def test_type_root_class(type_, expected):
     assert res is expected
 
 
-def test_sort_types_by_origin():
-    res = test_module.sort_types_by_origin([list[int], float, int | float, int])
-    assert res == [float, int, list[int], int | float]
-
-
 @pytest.mark.parametrize(
     "type_,expected",
     [
@@ -34,6 +29,8 @@ def test_sort_types_by_origin():
         (tuple[int], True),
         (dict, False),
         (dict[int, float], False),
+        (int | float, False),
+        (typing.Union[int, float], False),
     ],
 )
 def test_is_type_sequence(type_, expected):
@@ -70,6 +67,7 @@ def test_is_data_sequence(data, expected):
         (tuple[int, float], False),
         (int | float, False),
         (dict | list, False),
+        (typing.Union[int, float], False),
     ],
 )
 def test_is_type_mapping(type_, expected):
@@ -113,12 +111,14 @@ def test_is_type_union(type_, expected):
     "type_,expected",
     [
         (int | float, False),
+        (typing.Union[int, float], False),
         (int | list[int], True),
-        (list[int] | int, True),
+        (typing.Union[int, list[int]], True),
+        (list[int] | int, False),
         (int | list[float], False),
         (list[float] | int, False),
         (dict | list[dict], True),
-        (list[dict] | dict, True),
+        (list[dict] | dict, False),
         (dict | list, False),
     ],
 )

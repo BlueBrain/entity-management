@@ -5,18 +5,15 @@ import types
 import typing
 
 
-def get_type_root_class(type_):
+def get_type_root_class(data_type):
     """Get type class. First try if it's `typing` type class then fallback to regular type."""
-    return typing.get_origin(type_) or type_
+    root_type = typing.get_origin(data_type) or data_type
 
+    # Return types.UnionType instead of typing.Union because it works with issubclass
+    if root_type is typing.Union:
+        return types.UnionType
 
-def sort_types_by_origin(args):
-    """Return the args sorted with generics or unions coming last.
-
-    Example:
-        [list[int], float, int | float,  int] -> [float, int, list[int], int | float ]
-    """
-    return sorted(args, key=lambda a: typing.get_origin(a) is not None)
+    return root_type
 
 
 def is_type_sequence(data_type):
@@ -48,7 +45,7 @@ def is_type_union(data_type):
 
 def is_type_single_or_list_union(data_type):
     """Return True for unions of the form T | list[T]"""
-    type_args = sort_types_by_origin(typing.get_args(data_type))
+    type_args = typing.get_args(data_type)
 
     if len(type_args) != 2:
         return False
