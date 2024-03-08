@@ -21,6 +21,7 @@ from entity_management import nexus
 from entity_management.base import Subject  # noqa pylint: disable=unused-import
 from entity_management.base import BlankNode, Identifiable, _NexusBySparqlIterator, attributes
 from entity_management.settings import WORKFLOW
+from entity_management.typing import MaybeList
 from entity_management.util import AttrOf, NotInstantiated, unquote_uri_path
 
 
@@ -446,7 +447,7 @@ class Contribution(BlankNode):
         "wasGeneratedBy": AttrOf(Identifiable, default=None),
         "wasDerivedFrom": AttrOf(list[Identifiable], default=None),
         "dateCreated": AttrOf(datetime, default=None),
-        "distribution": AttrOf(DataDownload | list[DataDownload], default=None),
+        "distribution": AttrOf(MaybeList[DataDownload], default=None),
         "contribution": AttrOf(list[Contribution], default=None),
     }
 )
