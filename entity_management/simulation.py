@@ -15,7 +15,7 @@ from entity_management.base import (
     _NexusBySparqlIterator,
     attributes,
 )
-from entity_management.core import Activity, DataDownload, DistributionMixin, Entity, Subject
+from entity_management.core import Activity, DataDownload, Entity, MultiDistributionEntity, Subject
 from entity_management.electrophysiology import Trace
 from entity_management.state import get_base_url
 from entity_management.util import AttrOf
@@ -49,12 +49,10 @@ class ModelRelease(Entity):
     """Release base entity"""
 
 
-@attributes()
 class ModelScript(Entity):
     """Base entity for the scripts attached to the model."""
 
 
-@attributes()
 class ModelReleaseIndex(Entity):
     """Index files attached to release entities"""
 
@@ -575,8 +573,7 @@ class DetailedCircuitValidationReport(AnalysisReport):
     """Detailed circuit validation report."""
 
 
-@attributes()
-class PlotCollection(DistributionMixin, Entity):
+class PlotCollection(MultiDistributionEntity):
     """Collection of plots."""
 
 

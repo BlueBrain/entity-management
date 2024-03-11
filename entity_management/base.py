@@ -6,9 +6,7 @@ Base simulation entities
 """
 
 import logging
-import types
 import typing
-from collections.abc import Mapping, Sequence
 from datetime import datetime
 from pprint import pformat
 
@@ -16,7 +14,7 @@ import attr
 from dateutil.parser import parse
 from rdflib.graph import BNode, Graph
 
-from entity_management import nexus
+from entity_management import nexus, typecheck
 from entity_management.context import expand, get_resolved_context
 from entity_management.settings import (
     DASH,
@@ -245,7 +243,7 @@ def _serialize_obj(value, include_rev=False):
 def _deserialize_list(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize list of json elements"""
     # Enforce a list of a single element if data_raw is not a sequence
-    if not _is_data_sequence(data_raw):
+    if not typecheck.is_data_sequence(data_raw):
         data_raw = [data_raw]
 
     if not len(data_raw):
@@ -279,7 +277,7 @@ def _deserialize_dict(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a dict of json elements."""
 
     # collapse a sequence of one element if the data_type is a mapping
-    if _is_data_sequence(data_raw):
+    if typecheck.is_data_sequence(data_raw):
         assert len(data_raw) == 1
         data_raw = data_raw[0]
 
@@ -321,17 +319,17 @@ def _deserialize_json_to_datatype(
 
         type_class = _type_class(data_type)
 
-        if _is_type_sequence(type_class):
+        if typecheck.is_type_sequence(type_class):
             return _deserialize_list(
                 data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
             )
 
-        if _is_type_mapping(type_class):
+        if typecheck.is_type_mapping(type_class):
             return _deserialize_dict(
                 data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
             )
 
-        if _is_type_union(type_class):
+        if typecheck.is_type_union(type_class):
             return _deserialize_union(
                 data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
             )
@@ -361,36 +359,43 @@ def _deserialize_json_to_datatype(
 
 
 def _deserialize_datetime(data_raw):
-    if isinstance(data_raw, dict):
+    if typecheck.is_data_mapping(data_raw):
         return parse(data_raw["@value"])
     return parse(data_raw)
 
 
 def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
     """Deserialize a union of types."""
-    type_args = list(typing.get_args(data_type))
+    type_args = typing.get_args(data_type)
 
-    # e.g. IdentifiableA | IdentifiableB
-    if all(issubclass(cls, Identifiable) for cls in type_args):
-
-        # get type class by name from the global registry if present
-        data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-
-        # otherwise get the class type from the id
-        if not data_type:
-            data_type = nexus.get_type_from_id(
-                data_raw[JSLD_ID], base=base, org=org, proj=proj, token=token, cross_bucket=True
+    # e.g. DataDownload | list[DataDownload]
+    if typecheck.is_type_single_or_list_union(data_type):
+        if typecheck.is_data_sequence(data_raw):
+            return _deserialize_list(
+                type_args[1],
+                data_raw,
+                context=context,
+                base=base,
+                org=org,
+                proj=proj,
+                token=token,
             )
-
-        return _deserialize_identifiable(
-            data_type, data_raw, base=base, org=org, proj=proj, token=token
+        return _deserialize_json_to_datatype(
+            type_args[0],
+            data_raw,
+            context=context,
+            base=base,
+            org=org,
+            proj=proj,
+            token=token,
         )
 
-    # e.g. BlankNodeA | BlankNodeB
-    if all(issubclass(cls, BlankNode) for cls in type_args):
+    # if data_raw is a json dict with a type, then try to fetch and instantiate that type.
+    # Covers subclasses of Identifiable, BlankNode, and their combinations.
+    if typecheck.is_data_mapping(data_raw) and JSLD_TYPE in data_raw:
         data_type = nexus.get_type_from_name(data_raw[JSLD_TYPE])
-        return _deserialize_frozen(
-            data_type, data_raw, context=context, base=base, org=org, proj=proj, token=token
+        return _deserialize_json_to_datatype(
+            data_type, data_raw, context=context, base=base, org=org, token=token
         )
 
     # e.g. int | float | dict
@@ -445,22 +450,6 @@ def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
     if issubclass(data_type, BlankNode):
         data._force_attr("_type", data_raw[JSLD_TYPE])
     return data
-
-
-def _is_type_sequence(data_type):
-    return data_type is not str and issubclass(data_type, Sequence)
-
-
-def _is_type_mapping(data_type):
-    return issubclass(data_type, Mapping)
-
-
-def _is_data_sequence(data_raw):
-    return not isinstance(data_raw, str) and isinstance(data_raw, Sequence)
-
-
-def _is_type_union(data_type):
-    return data_type in {typing.Union, types.UnionType}
 
 
 def _deserialize_resource(
@@ -680,9 +669,9 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             attr_value = getattr(self, attribute.name)
             if attr_value is not None:  # ignore empty values
                 attr_name = attribute.name
-                if isinstance(attr_value, (tuple, list, set)):
+                if typecheck.is_data_sequence(attr_value):
                     json_ld[attr_name] = [_serialize_obj(i, include_rev) for i in attr_value]
-                elif isinstance(attr_value, dict):
+                elif typecheck.is_data_mapping(attr_value):
                     json_ld[attr_name] = {
                         kk: _serialize_obj(vv, include_rev) for kk, vv in attr_value.items()
                     }
@@ -706,6 +695,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
 
     def publish(
         self,
+        *,
         resource_id=None,
         sync_index=False,
         base=None,

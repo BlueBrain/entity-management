@@ -6,7 +6,7 @@
 """
 
 from entity_management.base import Frozen, _NexusBySparqlIterator, attributes
-from entity_management.core import EntityMixin, Identifiable
+from entity_management.core import Entity
 from entity_management.util import AttrOf
 from entity_management.workflow import BbpWorkflowConfig, GeneratorTaskActivity
 
@@ -105,5 +105,5 @@ class Configs(Frozen):
         "configs": AttrOf(Configs),
     }
 )
-class ModelBuildingConfig(EntityMixin, Identifiable):
+class ModelBuildingConfig(Entity):
     """ModelBuildingConfig"""

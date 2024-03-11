@@ -17,7 +17,7 @@ from entity_management.base import (
     Subject,
     attributes,
 )
-from entity_management.core import Activity, DataDownload, Entity
+from entity_management.core import Activity, Entity, MultiDistributionEntity
 from entity_management.experiment import PatchedCell
 from entity_management.util import AttrOf
 
@@ -69,10 +69,9 @@ class TraceGeneration(Entity):
         "retrievalDate": AttrOf(datetime, default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
         "subject": AttrOf(Subject, default=None),
-        "distribution": AttrOf(list[DataDownload], default=None),
     }
 )
-class Trace(Entity):
+class Trace(MultiDistributionEntity):
     """Trace.
 
     Args:
