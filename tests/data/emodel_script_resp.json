@@ -85,8 +85,8 @@
       "name": "model.hoc"
     }
   ],
-  "emodel": "dSTUT",
-  "etype": "dSTUT",
+  "eModel": "dSTUT",
+  "eType": "dSTUT",
   "generation": {
     "@type": "Generation",
     "activity": {

@@ -162,8 +162,8 @@
       "name": "emodel=bSTUT__etype=bSTUT__mtype=L6_LBC__species=mouse__brain_region=grey__iteration=117407f__parameters_distribution.pdf"
     }
   ],
-  "emodel": "bSTUT",
-  "etype": "bSTUT",
+  "eModel": "bSTUT",
+  "eType": "bSTUT",
   "generation": {
     "@type": "Generation",
     "activity": {
@@ -175,7 +175,7 @@
     }
   },
   "iteration": "117407f",
-  "mtype": "L6_LBC",
+  "mType": "L6_LBC",
   "name": "EM__117407f__bSTUT__17",
   "objectOfStudy": {
     "@id": "http://bbp.epfl.ch/neurosciencegraph/taxonomies/objectsofstudy/singlecells",

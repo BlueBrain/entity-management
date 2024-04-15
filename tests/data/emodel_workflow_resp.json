@@ -59,8 +59,8 @@
     "encodingFormat": "application/json",
     "name": "EMW__emodel=dSTUT__etype=dSTUT__iteration=fa285b7.json"
   },
-  "emodel": "dSTUT",
-  "etype": "dSTUT",
+  "eModel": "dSTUT",
+  "eType": "dSTUT",
   "generates": [
     {
       "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/96724fb2-b0b3-41ce-b812-2d741bd3b41c",
