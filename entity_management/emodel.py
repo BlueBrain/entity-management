@@ -62,9 +62,9 @@ class ETypeAnnotation(BlankNode):
 
 @attributes(
     {
-        "emodel": AttrOf(str),
-        "etype": AttrOf(str),
-        "mtype": AttrOf(str, default=None),
+        "eModel": AttrOf(str),
+        "eType": AttrOf(str),
+        "mType": AttrOf(str, default=None),
         "iteration": AttrOf(str, default=None),
         "score": AttrOf(float, default=None),
         "seed": AttrOf(int, default=None),

@@ -141,9 +141,9 @@ def _has_data_download_elements(obj_list):
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
-        ("mtype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
+        ("mType", _not_none),
         ("iteration", _not_none),
         ("score", _not_none),
         ("seed", _not_none),
@@ -187,8 +187,8 @@ def _validate_emodel_configuration_uses(obj_list):
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
         ("iteration", _not_none),
         ("annotation", _has_body_label),
         ("distribution", _has_content_url),
@@ -211,8 +211,8 @@ def emodel_script():
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
         ("iteration", _not_none),
         ("seed", _not_none),
         ("annotation", _has_body_label),
@@ -271,8 +271,8 @@ def emodel_pipeline_settings():
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
         ("iteration", _not_none),
         ("annotation", _has_body_label),
         ("distribution", _has_content_url),
@@ -297,8 +297,8 @@ def extraction_targets_configuration():
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
         ("iteration", _not_none),
         ("annotation", _has_body_label),
         ("distribution", _has_content_url),
@@ -325,8 +325,8 @@ def fitness_calculator_configuration():
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
         ("iteration", _not_none),
         ("annotation", _has_body_label),
         ("distribution", _has_content_url),
@@ -364,8 +364,8 @@ def _validate_emodel_workflow_generates(obj_list):
     "path,test_func",
     ENTITY_TESTS
     + [
-        ("emodel", _not_none),
-        ("etype", _not_none),
+        ("eModel", _not_none),
+        ("eType", _not_none),
         ("iteration", _not_none),
         ("annotation", _has_body_label),
         ("distribution", _has_content_url),

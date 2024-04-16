@@ -59,8 +59,8 @@
     "encodingFormat": "application/json",
     "name": "ETC__emodel=dSTUT__etype=dSTUT__iteration=fa285b7.json"
   },
-  "emodel": "dSTUT",
-  "etype": "dSTUT",
+  "eModel": "dSTUT",
+  "eType": "dSTUT",
   "iteration": "fa285b7",
   "name": "ETC__fa285b7__dSTUT",
   "objectOfStudy": {

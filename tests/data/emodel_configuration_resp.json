@@ -59,8 +59,8 @@
     "encodingFormat": "application/json",
     "name": "EMC__emodel=bAC__etype=bAC__iteration=66aaeea.json"
   },
-  "emodel": "bAC",
-  "etype": "bAC",
+  "eModel": "bAC",
+  "eType": "bAC",
   "iteration": "66aaeea",
   "name": "EMC__66aaeea__bAC",
   "objectOfStudy": {
