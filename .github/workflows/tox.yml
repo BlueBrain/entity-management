@@ -24,7 +24,9 @@ jobs:
 
     - name: Install graphviz if docs tox-env
       if: matrix.tox-env == 'docs'
-      run: apt-get install -y graphviz
+      run:
+        sudo apt-get update
+        sudo apt-get -y install graphviz
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
