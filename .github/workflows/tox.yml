@@ -24,7 +24,7 @@ jobs:
 
     - name: Install graphviz if docs tox-env
       if: matrix.tox-env == 'docs'
-      run:
+      run: |
         sudo apt-get update
         sudo apt-get -y install graphviz
 
