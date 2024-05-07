@@ -4,6 +4,8 @@ Maintainer
 
 Authors
 -------
+Arseny V. Povolotsky
+Benoit Coste
 Eduard Subert
 Eleftherios Zisis
 Genrich Ivaska
