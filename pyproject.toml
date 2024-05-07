@@ -42,13 +42,6 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[project.optional-dependencies]
-extension_tests = [
-  "nose==1.3.0",
-  "mock==1.0.1",
-  "responses",
-]
-
 [project.urls]
 Homepage = "https://github.com/BlueBrain/entity-management"
 Repository = "https://github.com/BlueBrain/NeuroM.git"
