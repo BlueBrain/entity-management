@@ -7,11 +7,19 @@ version: 2
 
 # Set the OS, Python version and other tools you might need
 build:
-  os: ubuntu-latest
+  os: ubuntu-lts-latest
   tools:
-    python: '3.10'
+    python: "3.10"
   apt_packages:
     - graphviz
 
 sphinx:
   configuration: doc/source/conf.py
+  fail_on_warning: true
+
+python:
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs

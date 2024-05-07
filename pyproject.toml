@@ -42,6 +42,11 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+docs = [
+  "sphinx-bluebrain-theme",
+]
+
 [project.urls]
 Homepage = "https://github.com/BlueBrain/entity-management"
 Repository = "https://github.com/BlueBrain/NeuroM.git"

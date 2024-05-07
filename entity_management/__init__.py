@@ -1,4 +1,8 @@
-"""docstring"""
+"""entity-management"""
+
+from importlib.metadata import version
+
+__version__ = version(__package__)
 
 import logging
 
@@ -13,6 +17,5 @@ from entity_management import (
     simulation,
     workflow,
 )
-from entity_management.version import VERSION as __version__
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
