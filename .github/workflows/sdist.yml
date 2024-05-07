@@ -1,6 +1,11 @@
 name: sdist
 
 on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+     - main
   release:
     types:
       - published
@@ -31,6 +36,7 @@ jobs:
       permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
+    if: github.event_name == 'release' && github.event.action == 'published'
 
     steps:
       - uses: actions/download-artifact@v4
