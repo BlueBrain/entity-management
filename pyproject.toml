@@ -1,0 +1,69 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "setuptools_scm>=8"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "entity-management"
+description = "Access to production entity management"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+requires-python = ">=3.10"
+license = { file = "LICENSE.txt" }
+authors = [
+  { name = "Blue Brain Project, EPFL" },
+]
+keywords = [
+  "computational neuroscience",
+  "simulation",
+  "analysis",
+  "nexus",
+  "parameters",
+  "BlueBrainProject",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: POSIX",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Utilities",
+]
+dependencies = [
+  "requests",
+  "attrs",
+  "python-dateutil",
+  "sparqlwrapper",
+  "rdflib",
+  "pyjwt",
+  "python-keycloak",
+  "devtools[pygments]",
+  "click",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/BlueBrain/entity-management"
+Repository = "https://github.com/BlueBrain/NeuroM.git"
+Tracker = "https://github.com/BlueBrain/entity-management/issues"
+
+[project.scripts]
+entity-management = "entity_management.cli.base:cli"
+
+[tool.setuptools.packages.find]
+include = ["entity_management"]
+namespaces = false
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+
+[tool.black]
+line-length = 100
+target-version = [
+    'py310',
+]
+include = 'entity_management\/.*\.py$|tests\/.*\.py$|doc\/source\/conf\.py$|setup\.py$'
+
+[tool.isort]
+profile = "black"
+line_length = 100

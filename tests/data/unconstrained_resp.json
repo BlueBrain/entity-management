@@ -1,0 +1,13 @@
+{
+    "@context": "https://bluebrain.github.io/nexus/contexts/resource.json",
+    "@id": "https://bbp-nexus.epfl.ch/staging/v1/resources/org/proj/_/03a8d151-0a1a-4735-8b81-2696422e04b8",
+    "_self": "https://bbp-nexus.epfl.ch/staging/v1/resources/org/proj/_/03a8d151-0a1a-4735-8b81-2696422e04b8",
+    "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
+    "_project": "https://bbp-nexus.epfl.ch/staging/v1/projects/org/proj",
+    "_rev": 1,
+    "_deprecated": false,
+    "_createdAt": "2019-01-28T12:15:33.238Z",
+    "_createdBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous",
+    "_updatedAt": "2019-12-28T12:15:33.238Z",
+    "_updatedBy": "https://bbp-nexus.epfl.ch/staging/v1/anonymous"
+}

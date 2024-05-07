@@ -1,0 +1,28 @@
+{
+    "@context": [
+        "https://bluebrain.github.io/nexus/contexts/search.json",
+        "https://bluebrain.github.io/nexus/contexts/metadata.json"
+    ],
+    "_next": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/https:%2F%2Fneuroshapes.org%2Fdash%2Freconstructedpatchedcell?size=1&deprecated=False&after=%5B1556292575255,%22https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed%22%5D",
+    "_results": [
+        {
+            "@id": "https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed",
+            "@type": [
+                "http://www.w3.org/ns/prov#Entity",
+                "https://neuroshapes.org/ReconstructedPatchedCell"
+            ],
+            "_constrainedBy": "https://neuroshapes.org/dash/reconstructedpatchedcell",
+            "_createdAt": "2019-04-26T15:29:35.255Z",
+            "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/org/users/anonymous",
+            "_deprecated": false,
+            "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/https%3A%2F%2Fneuroshapes.org%2Fdash%2Freconstructedpatchedcell/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F20bdaa94-41e0-4ccf-b5c2-920b95b136ed/incoming",
+            "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/https%3A%2F%2Fneuroshapes.org%2Fdash%2Freconstructedpatchedcell/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F20bdaa94-41e0-4ccf-b5c2-920b95b136ed/outgoing",
+            "_project": "https://bbp.epfl.ch/nexus/v1/projects/org/proj",
+            "_rev": 1,
+            "_self": "https://bbp.epfl.ch/nexus/v1/resources/org/proj/https%3A%2F%2Fneuroshapes.org%2Fdash%2Freconstructedpatchedcell/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F20bdaa94-41e0-4ccf-b5c2-920b95b136ed",
+            "_updatedAt": "2019-04-26T15:29:35.255Z",
+            "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/org/users/anonymous"
+        }
+    ],
+    "_total": 3
+}

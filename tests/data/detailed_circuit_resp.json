@@ -1,0 +1,54 @@
+{
+  "@context": [
+    "https://bluebrain.github.io/nexus/contexts/metadata.json",
+    "https://bbp.neuroshapes.org"
+  ],
+  "@id": "https://bbp.epfl.ch/neurosciencegraph/data/8ac825fb-0480-4340-bbff-47ff05819e66",
+  "@type": "DetailedCircuit",
+  "atlasRelease": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
+    "@type": [
+      "AtlasRelease",
+      "BrainAtlasRelease"
+    ],
+    "_rev": 5
+  },
+  "brainLocation": {
+    "@type": "BrainLocation",
+    "brainRegion": {
+      "@id": "mba:997",
+      "label": "root",
+      "notation": "root"
+    }
+  },
+  "circuitConfigPath": {
+    "@type": "DataDownload",
+    "url": "file:///gpfs/bbp.cscs.ch/project/proj134/workflow-outputs/07072023-e998eccf-b10e-4702-88c0-8a1111de35f0/morphologyAssignmentConfig/root/circuit_config.json"
+  },
+  "description": "Partial circuit built with cell properties, and morphologies.",
+  "name": "Partial circuit with morphologies",
+  "subject": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/b9641820-659b-455a-a0ae-98bf3f333805",
+    "@type": "Subject",
+    "species": {
+      "@id": "NCBITaxon:10090",
+      "label": "Mus musculus"
+    }
+  },
+  "wasInfluencedBy": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/4a9af83f-d86b-4c7f-9e3d-44d28df3542f",
+    "@type": "WorkflowExecution"
+  },
+  "_constrainedBy": "https://bluebrain.github.io/nexus/schemas/unconstrained.json",
+  "_createdAt": "2023-07-07T09:42:50.334Z",
+  "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/antonel",
+  "_deprecated": false,
+  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F8ac825fb-0480-4340-bbff-47ff05819e66/incoming",
+  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F8ac825fb-0480-4340-bbff-47ff05819e66/outgoing",
+  "_project": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
+  "_rev": 1,
+  "_schemaProject": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
+  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F8ac825fb-0480-4340-bbff-47ff05819e66",
+  "_updatedAt": "2023-07-07T09:42:50.334Z",
+  "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/antonel"
+}

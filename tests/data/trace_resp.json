@@ -1,0 +1,163 @@
+{
+  "@context": [
+    "https://bluebrain.github.io/nexus/contexts/metadata.json",
+    "https://bbp.neuroshapes.org"
+  ],
+  "@id": "https://bbp.epfl.ch/neurosciencegraph/data/e593693a-65d2-49b2-8f3d-41a0b5230f93",
+  "@type": [
+    "Dataset",
+    "Trace",
+    "Entity",
+    "ExperimentalTrace"
+  ],
+  "annotation": [
+    {
+      "@type": [
+        "ETypeAnnotation",
+        "Annotation"
+      ],
+      "hasBody": {
+        "@id": "ilx:0738202",
+        "@type": [
+          "AnnotationBody",
+          "EType"
+        ],
+        "label": "dSTUT",
+        "prefLabel": "Delayed stuttering electrical type"
+      },
+      "name": "E-type Annotation"
+    },
+    {
+      "@type": [
+        "Annotation",
+        "QualityAnnotation"
+      ],
+      "hasBody": {
+        "@id": "nsg:Curated",
+        "@type": [
+          "DataMaturity",
+          "AnnotationBody"
+        ],
+        "label": "Curated"
+      },
+      "motivatedBy": {
+        "@id": "quality:Assessment",
+        "@type": "Motivation"
+      },
+      "name": "Data maturity annotation",
+      "note": "NWB dataset contains complete minimal metadata."
+    }
+  ],
+  "brainLocation": {
+    "@type": "BrainLocation",
+    "brainRegion": {
+      "@id": "mba:322",
+      "label": "Primary somatosensory area"
+    },
+    "layer": {
+      "@id": "uberon:0005394",
+      "label": "layer 5"
+    }
+  },
+  "contribution": {
+    "@type": "Contribution",
+    "agent": {
+      "@id": "https://bbp.epfl.ch/neurosciencegraph/data/persons/664380c8-5a22-4974-951c-68ca78c0b1f1",
+      "@type": "Agent"
+    },
+    "hadRole": {
+      "@id": "obo:CRO_0000036",
+      "label": "data collection role",
+      "prefLabel": "experimenter"
+    }
+  },
+  "dateCreated": {
+    "@type": "xsd:dateTime",
+    "@value": "2001-03-07T14:45:17+00:00"
+  },
+  "distribution": {
+    "@type": "DataDownload",
+    "atLocation": {
+      "@type": "Location",
+      "location": "file:///gpfs/bbp.cscs.ch/data/project/proj106/nexus/bbp/lnmce/7/6/d/3/b/2/e/5/C070301B1-MT-C1.nwb",
+      "store": {
+        "@id": "https://bbp.epfl.ch/neurosciencegraph/data/0617f3c3-8d30-4054-807f-c3708922f973",
+        "@type": "RemoteDiskStorage",
+        "_rev": 1
+      }
+    },
+    "contentSize": {
+      "unitCode": "bytes",
+      "value": 9662305
+    },
+    "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/lnmce/https%3A%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2F3b1bbc7d-d2f3-4752-a6bf-dcd3c5cd9535",
+    "digest": {
+      "algorithm": "SHA-256",
+      "value": "690c6cd4c9db52415cb449beb5b9d9c28a76f28670cf8f7d7bfc59b8b7c133ee"
+    },
+    "encodingFormat": "application/nwb",
+    "name": "C070301B1-MT-C1.nwb"
+  },
+  "editorialNote": "Mapped original rat brain region 'http://purl.obolibrary.org/obo/UBERON_0008933' to new mouse brain region 'http://api.brain-map.org/api/v2/data/Structure/322'. ",
+  "identifier": "C070301B1-MT-C1",
+  "image": [
+    {
+      "@id": "https://bbp.epfl.ch/neurosciencegraph/data/56c3a350-abc2-4282-b75a-852275f72982",
+      "about": "nsg:StimulationTrace",
+      "repetition": 4,
+      "stimulusType": {
+        "@id": "http://bbp.epfl.ch/neurosciencegraph/ontologies/stimulustypes/IDthresh"
+      }
+    },
+    {
+      "@id": "https://bbp.epfl.ch/neurosciencegraph/data/dc579dd9-db2e-4987-a1f6-b1a8efd9319a",
+      "about": "nsg:ResponseTrace",
+      "repetition": 2,
+      "stimulusType": {
+        "@id": "http://bbp.epfl.ch/neurosciencegraph/ontologies/stimulustypes/IDthresh"
+      }
+    }
+  ],
+  "name": "C070301B1-MT-C1",
+  "note": "NMC SSCx",
+  "stimulus": [
+    {
+      "@type": "Stimulus",
+      "stimulusType": {
+        "@id": "http://bbp.epfl.ch/neurosciencegraph/ontologies/stimulustypes/APWaveform",
+        "label": "APWaveform"
+      }
+    },
+    {
+      "@type": "Stimulus",
+      "stimulusType": {
+        "@id": "http://bbp.epfl.ch/neurosciencegraph/ontologies/stimulustypes/APDrop",
+        "label": "APDrop"
+      }
+    }
+  ],
+  "subject": {
+    "@type": "Subject",
+    "age": {
+      "period": "Post-natal",
+      "unitCode": "days",
+      "value": 13
+    },
+    "species": {
+      "@id": "NCBITaxon:10116",
+      "label": "Rattus norvegicus"
+    }
+  },
+  "_constrainedBy": "https://neuroshapes.org/dash/dataset",
+  "_createdAt": "2020-03-11T20:29:02.618Z",
+  "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/akkaufma",
+  "_deprecated": false,
+  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/lnmce/_/https:%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fe593693a-65d2-49b2-8f3d-41a0b5230f93/incoming",
+  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/lnmce/_/https:%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fe593693a-65d2-49b2-8f3d-41a0b5230f93/outgoing",
+  "_project": "https://bbp.epfl.ch/nexus/v1/projects/bbp/lnmce",
+  "_rev": 28,
+  "_schemaProject": "https://bbp.epfl.ch/nexus/v1/projects/neurosciencegraph/datamodels",
+  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/lnmce/_/https:%2F%2Fbbp.epfl.ch%2Fneurosciencegraph%2Fdata%2Fe593693a-65d2-49b2-8f3d-41a0b5230f93",
+  "_updatedAt": "2023-12-21T16:50:17.444159Z",
+  "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/sy"
+}

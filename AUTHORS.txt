@@ -1,0 +1,14 @@
+Maintainer
+----------
+* BBP/NSE
+
+Authors
+-------
+Arseny V. Povolotsky
+Benoit Coste
+Eduard Subert
+Eleftherios Zisis
+Genrich Ivaska
+Gianluca Ficarelli
+Joni Herttuainen
+Mike Gevaert

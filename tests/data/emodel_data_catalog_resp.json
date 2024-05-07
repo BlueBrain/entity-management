@@ -1,0 +1,104 @@
+{
+  "@context": [
+    "https://bluebrain.github.io/nexus/contexts/metadata.json",
+    "https://bbp.neuroshapes.org"
+  ],
+  "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/903b7484-2ceb-48b5-a91c-3b64374ca0c8",
+  "@type": [
+    "EModelDataCatalog",
+    "DataCatalog"
+  ],
+  "about": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/EModel",
+  "atlasRelease": {
+    "@id": "https://bbp.epfl.ch/neurosciencegraph/data/4906ab85-694f-469d-962f-c0174e901885",
+    "@type": [
+      "BrainAtlasRelease",
+      "AtlasRelease"
+    ],
+    "_rev": 9
+  },
+  "brainLocation": {
+    "@type": "BrainLocation",
+    "brainRegion": {
+      "@id": "mba:997",
+      "label": "root"
+    }
+  },
+  "contribution": {
+    "@type": "Contribution",
+    "agent": {
+      "@id": "https://bbp.epfl.ch/nexus/v1/realms/bbp/group/bbp-ou-cells",
+      "@type": [
+        "Agent",
+        "OrganizationalUnit"
+      ],
+      "name": "Cells Team"
+    }
+  },
+  "description": "A collection of Canonical EModels built using both, placeholder and detailed reconstructed morphologies.",
+  "distribution": {
+    "@type": "DataDownload",
+    "atLocation": {
+      "@type": "Location",
+      "location": "file:///gpfs/bbp.cscs.ch/data/project/proj134/nexus/bbp/mmb-point-neuron-framework-model/8/e/2/a/b/2/d/6/canonical_emodel_datacatalog_jsonld.json",
+      "store": {
+        "@id": "https://bbp.epfl.ch/neurosciencegraph/data/10419671-da26-48d3-abf9-51eb54759ca4",
+        "@type": "RemoteDiskStorage",
+        "_rev": 1
+      }
+    },
+    "contentSize": {
+      "unitCode": "bytes",
+      "value": 8876
+    },
+    "contentUrl": "https://bbp.epfl.ch/nexus/v1/files/bbp/mmb-point-neuron-framework-model/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F686a9cce-3b85-462f-90d0-5dc8a507a9cf",
+    "digest": {
+      "algorithm": "SHA-256",
+      "value": "f3240c2afab9a46e7b460ff4983b2b5cea9d264d983f4db60dfa48109c045878"
+    },
+    "encodingFormat": "application/json",
+    "name": "canonical_emodel_datacatalog_jsonld.json"
+  },
+  "hasPart": [
+    {
+      "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/b635e5db-4a17-4949-b907-a7133c894710",
+      "@type": "EModel",
+      "about": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/PlaceholderNeuronMorphology"
+    },
+    {
+      "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/aaa4dfee-227a-48bf-8b3e-63ee9a0b42c0",
+      "@type": "EModel",
+      "about": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/PlaceholderNeuronMorphology"
+    },
+    {
+      "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/c8181452-b108-4b99-a176-786fb8f6b19b",
+      "@type": "EModel",
+      "about": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/ReconstructedNeuronMorphology"
+    },
+    {
+      "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/bc920b10-bb54-4b5c-a73f-d437e87e5418",
+      "@type": "EModel",
+      "about": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/ReconstructedNeuronMorphology"
+    }
+  ],
+  "name": "Collection of Blue Brain Canonical EModels",
+  "subject": {
+    "@type": "Subject",
+    "species": {
+      "@id": "NCBITaxon:10090",
+      "label": "Mus musculus"
+    }
+  },
+  "_constrainedBy": "https://bbp.epfl.ch/shapes/dash/datacatalog",
+  "_createdAt": "2024-02-01T13:28:08.874706Z",
+  "_createdBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/cgonzale",
+  "_deprecated": false,
+  "_incoming": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F903b7484-2ceb-48b5-a91c-3b64374ca0c8/incoming",
+  "_outgoing": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F903b7484-2ceb-48b5-a91c-3b64374ca0c8/outgoing",
+  "_project": "https://bbp.epfl.ch/nexus/v1/projects/bbp/mmb-point-neuron-framework-model",
+  "_rev": 3,
+  "_schemaProject": "https://bbp.epfl.ch/nexus/v1/projects/neurosciencegraph/datamodels",
+  "_self": "https://bbp.epfl.ch/nexus/v1/resources/bbp/mmb-point-neuron-framework-model/_/https:%2F%2Fbbp.epfl.ch%2Fdata%2Fbbp%2Fmmb-point-neuron-framework-model%2F903b7484-2ceb-48b5-a91c-3b64374ca0c8",
+  "_updatedAt": "2024-02-01T16:08:32.283448Z",
+  "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/cgonzale"
+}
