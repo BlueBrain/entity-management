@@ -33,7 +33,7 @@ jobs:
     name: Upload sdist
     needs: [build_sdist]
     runs-on: ubuntu-latest
-      permissions:
+    permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     if: github.event_name == 'release' && github.event.action == 'published'
