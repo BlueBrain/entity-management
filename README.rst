@@ -7,7 +7,7 @@ Documentation
 =============
 
 * `latest release <https://entity-management.readthedocs.io/en/stable/>`_
-* `latest snapshot<https://entity-management.readthedocs.io/en/latest/>`_
+* `latest snapshot <https://entity-management.readthedocs.io/en/latest/>`_
 
 Installation
 ============
