@@ -6,8 +6,8 @@ Library for handling NEXUS entity dataclass definitions.
 Documentation
 =============
 
-* `<stable https://entity-management.readthedocs.io/en/stable/>`_
-* `<latest https://entity-management.readthedocs.io/en/latest/>`_
+* `stable <https://entity-management.readthedocs.io/en/stable/>`_
+* `latest <https://entity-management.readthedocs.io/en/latest/>`_
 
 Installation
 ============
