@@ -49,8 +49,9 @@ docs = [
 
 [project.urls]
 Homepage = "https://github.com/BlueBrain/entity-management"
-Repository = "https://github.com/BlueBrain/NeuroM.git"
-Tracker = "https://github.com/BlueBrain/entity-management/issues"
+Documentation = "https://entity-management.readthedocs.io/en/stable/"
+Repository = "https://github.com/BlueBrain/entity-management"
+Issues = "https://github.com/BlueBrain/entity-management/issues"
 
 [project.scripts]
 entity-management = "entity_management.cli.base:cli"
