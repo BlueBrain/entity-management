@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Context related functions."""
 
 from typing import Any

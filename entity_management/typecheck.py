@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Type checking related utils."""
 
 import collections.abc

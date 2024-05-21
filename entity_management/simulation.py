@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Simulation domain entities."""
 
 from datetime import datetime

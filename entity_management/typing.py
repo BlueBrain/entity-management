@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Typing related declarations."""
 
 import typing

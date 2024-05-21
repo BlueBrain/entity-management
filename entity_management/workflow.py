@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Bbp-workflow entities."""
 
 from entity_management.base import Identifiable, _NexusBySparqlIterator, attributes

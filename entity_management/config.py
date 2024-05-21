@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Entities for Model building config
 
     see entity_management/cli/model_building_config.py for an example
