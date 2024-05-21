@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """State of the interaction with nexus. For example current project to use.
 
 Nexus organization, project and access token are initialized from the corresponding

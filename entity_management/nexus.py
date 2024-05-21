@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """New nexus access layer"""
 
 import json as js
@@ -74,7 +76,7 @@ def _print_violation_summary(data):
             end_color = "\033[0m"
             color_url = re.sub(r"<(.*?)>", color + r"<\g<1>>" + end_color, no_hash)
 
-        print(color_url + "\n", file=sys.stderr)
+            print(color_url + "\n", file=sys.stderr)
 
 
 def _print_nexus_error(http_error):

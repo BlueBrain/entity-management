@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Atlas related entities."""
 
 from entity_management.base import BrainLocation, Derivation, Identifiable, Subject, attributes

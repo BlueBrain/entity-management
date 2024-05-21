@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Command line interface for Model Building Config."""
 
 import json
