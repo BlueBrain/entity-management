@@ -7,6 +7,8 @@ See https://bbpgitlab.epfl.ch/dke/apps/brain-modeling-ontology/-/tree/develop/sh
 
 from datetime import datetime
 
+from typing import List, Union, Dict
+
 from entity_management.atlas import AtlasRelease
 from entity_management.base import (
     BlankNode,
@@ -74,7 +76,7 @@ class ETypeAnnotation(BlankNode):
         "brainLocation": AttrOf(BrainLocation, default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "subject": AttrOf(Subject, default=None),
-        "annotation": AttrOf(list[MTypeAnnotation | ETypeAnnotation], default=None),
+        "annotation": AttrOf(List[Union[MTypeAnnotation, ETypeAnnotation]], default=None),
     }
 )
 class EModelEntity(MultiDistributionEntity):
@@ -83,7 +85,7 @@ class EModelEntity(MultiDistributionEntity):
 
 @attributes(
     {
-        "uses": AttrOf(list[Trace]),
+        "uses": AttrOf(List[Trace]),
     }
 )
 class ExtractionTargetsConfiguration(EModelEntity):
@@ -96,17 +98,17 @@ class EModelPipelineSettings(EModelEntity):
 
 @attributes(
     {
-        "distribution": AttrOf(list[DataDownload]),
-        "exposesParameter": AttrOf(list[dict], default=None),
+        "distribution": AttrOf(List[DataDownload]),
+        "exposesParameter": AttrOf(List[Dict], default=None),
         "modelId": AttrOf(str, default=None),
         "nmodlParameters": AttrOf(dict, default=None),
         "origin": AttrOf(str, default=None),
         "suffix": AttrOf(str, default=None),
-        "temperature": AttrOf(int | dict, default=None),
+        "temperature": AttrOf(Union[int, Dict], default=None),
         "subject": AttrOf(Subject, default=None),
         "identifier": AttrOf(str, default=None),
-        "mod": AttrOf(dict, default=None),
-        "ion": AttrOf(list[OntologyTerm], default=None),
+        "mod": AttrOf(Dict, default=None),
+        "ion": AttrOf(List[OntologyTerm], default=None),
         "isLjpCorrected": AttrOf(bool, default=None),
         "objectOfStudy": AttrOf(OntologyTerm, default=None),
         "isTemperatureDependent": AttrOf(bool, default=None),
@@ -118,7 +120,7 @@ class SubCellularModelScript(Entity):
 
 @attributes(
     {
-        "uses": AttrOf(list[NeuronMorphology | SubCellularModelScript], default=None),
+        "uses": AttrOf(List[Union[NeuronMorphology, SubCellularModelScript]], default=None),
     }
 )
 class EModelConfiguration(EModelEntity):
@@ -127,9 +129,9 @@ class EModelConfiguration(EModelEntity):
 
 @attributes(
     {
-        "generates": AttrOf(list[Identifiable], default=None),
+        "generates": AttrOf(List[Identifiable], default=None),
         "hasPart": AttrOf(
-            list[ExtractionTargetsConfiguration | EModelPipelineSettings | EModelConfiguration],
+            List[Union[ExtractionTargetsConfiguration, EModelPipelineSettings, EModelConfiguration]],
             default=None,
         ),
         "state": AttrOf(str, default=None),
@@ -179,7 +181,7 @@ class EModel(EModelEntity):
 
 @attributes(
     {
-        "hasPart": AttrOf(list[EModel]),
+        "hasPart": AttrOf(List[EModel]),
         "brainLocation": AttrOf(BrainLocation),
         "distribution": AttrOf(DataDownload),
         "subject": AttrOf(Subject, default=None),

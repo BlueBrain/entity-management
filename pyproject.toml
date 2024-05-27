@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 name = "entity-management"
 description = "Access to production entity management"
 readme = { file = "README.rst", content-type = "text/x-rst" }
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 license = { file = "LICENSE.txt" }
 authors = [
   { name = "Blue Brain Project, EPFL" },

@@ -1,6 +1,7 @@
 from unittest.mock import patch
 import attr
 
+import sys
 import pytest
 from entity_management import exception
 from entity_management import util as test_module
@@ -33,6 +34,7 @@ OBN2 = BN2(a=2)
 OBN3 = BN3(a=3)
 
 
+@pytest.mark.skipif(sys.version_info < (3, 10))
 @pytest.mark.parametrize(
     "type_,default,value, should_validation_pass",
     [

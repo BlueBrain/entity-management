@@ -2,6 +2,7 @@
 
 """Context related functions."""
 
+from __future__ import annotations
 from typing import Any
 
 from rdflib.plugins.shared.jsonld.context import Context
