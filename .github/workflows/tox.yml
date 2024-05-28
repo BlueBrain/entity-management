@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tox-env: ['py3', 'check-packaging', 'lint', 'coverage', 'docs']
+        tox-env: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
 
@@ -39,7 +39,7 @@ jobs:
         pip install tox-gh-actions
 
     - name: Run tox
-      run: tox -e ${{ matrix.tox-env }}
+      run: tox
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
