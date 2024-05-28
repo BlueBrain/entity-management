@@ -4,6 +4,7 @@
 
 import re
 from pathlib import Path
+from typing import List, Optional, Union
 
 import attr
 
@@ -35,9 +36,9 @@ class Sample:
     """Parameters for sampling bouton density."""
 
     size: int = 100  #: Sample size
-    target: str | None = None  #: Sample target
+    target: Optional[str] = None  #: Sample target
     #: Region of interest. If provided, only axonal segments within this region would be considered.
-    mask: str | None = None
+    mask: Optional[str] = None
     assume_nsyn_bouton: float = 1.0  #: FIMXE
     assume_syns_bouton: float = 1.0  #: Assumed synapse count per bouton
 
@@ -51,22 +52,22 @@ class EstimateSynsCon(Strategy):
     formula: str  #: Synapse number prediction formula.
     #: Synapse number prediction formula for EXC->EXC pathways.
     #: If omitted, general formula would be used
-    formula_ee: str | None = None
+    formula_ee: Optional[str] = None
     #: Synapse number prediction formula for EXC->INH pathways.
     #: If omitted, general formula would be used
-    formula_ei: str | None = None
+    formula_ei: Optional[str] = None
     #: Synapse number prediction formula for INH->EXC pathways.
     #: If omitted, general formula would be used
-    formula_ie: str | None = None
+    formula_ie: Optional[str] = None
     #: Synapse number prediction formula for INH->INH pathways.
     #: If omitted, general formula would be used
-    formula_ii: str | None = None
+    formula_ii: Optional[str] = None
     #: Max value for predicted synapse number.
     #: If omitted, the predicted synapse number is not clipped above NB: predicted synapse value
     #: would be always min-clipped to 1.0 to avoid invalid synapse count values.
-    max_value: float | None = None
+    max_value: Optional[float] = None
     #: Parameters for sampling bouton density OR path to bouton-density dataset already sampled
-    sample: Sample | Path | None = None
+    sample: Union[Sample, Path, None] = None
 
 
 @attr.frozen
@@ -84,9 +85,9 @@ class EstimateBoutonReduction(Strategy):
     mtypes."""
 
     #: Path to bouton-density dataset representing reference biological data (OR single float value)
-    bio_data: Path | float
+    bio_data: Union[Path, float]
     #: Parameters for sampling bouton density OR path to bouton-density dataset already sampled
-    sample: Sample | Path | None = None
+    sample: Union[Sample, Path, None] = None
 
 
 @attr.frozen
@@ -106,14 +107,14 @@ class GeneralizedCv(Strategy):
 class Recipe:
     """Synapse pruning functionalizer recipe."""
 
-    strategies: list[
-        (
-            EstimateSynsCon
-            | ExperimentalSynsCon
-            | EstimateBoutonReduction
-            | EstimateIndividualBoutonReduction
-            | GeneralizedCv
-        )
+    strategies: List[
+        Union[
+            EstimateSynsCon,
+            ExperimentalSynsCon,
+            EstimateBoutonReduction,
+            EstimateIndividualBoutonReduction,
+            GeneralizedCv,
+        ]
     ] = []  #:
 
     def asdict(self):

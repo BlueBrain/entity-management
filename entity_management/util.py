@@ -3,6 +3,7 @@
 """Utilities"""
 
 import typing
+from typing import Optional
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
 from urllib.parse import unquote, urlparse
@@ -227,10 +228,10 @@ def get_entity(
     cls,
     cross_bucket: bool = True,
     resolve_context: bool = False,
-    base: str | None = None,
-    org: str | None = None,
-    proj: str | None = None,
-    token: str | None = None,
+    base: Optional[str] = None,
+    org: Optional[str] = None,
+    proj: Optional[str] = None,
+    token: Optional[str] = None,
 ):
     """Instantiate an entity from a resource id.
 
