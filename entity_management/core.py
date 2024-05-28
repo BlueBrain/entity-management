@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime
 from io import IOBase, StringIO
 from pathlib import Path
+from typing import List
 
 from attr.validators import in_
 
@@ -445,12 +446,12 @@ class Contribution(BlankNode):
     {
         "name": AttrOf(str, default=None),
         "description": AttrOf(str, default=None),
-        "wasAttributedTo": AttrOf(list[Agent], default=None),
+        "wasAttributedTo": AttrOf(List[Agent], default=None),
         "wasGeneratedBy": AttrOf(Identifiable, default=None),
-        "wasDerivedFrom": AttrOf(list[Identifiable], default=None),
+        "wasDerivedFrom": AttrOf(List[Identifiable], default=None),
         "dateCreated": AttrOf(datetime, default=None),
         "distribution": AttrOf(MaybeList[DataDownload], default=None),
-        "contribution": AttrOf(list[Contribution], default=None),
+        "contribution": AttrOf(List[Contribution], default=None),
     }
 )
 class Entity(Identifiable):
@@ -549,7 +550,7 @@ class Entity(Identifiable):
 
 @attributes(
     {
-        "distribution": AttrOf(list[DataDownload], default=None),
+        "distribution": AttrOf(List[DataDownload], default=None),
     }
 )
 class MultiDistributionEntity(Entity):

@@ -3,7 +3,7 @@
 """Simulation domain entities."""
 
 from datetime import datetime
-from typing import Union
+from typing import List, Union
 
 from attr.validators import in_
 
@@ -151,7 +151,7 @@ class SingleCellSimulationTrace(Entity):
     """Single cell simulation trace file"""
 
 
-@attributes({"hadMember": AttrOf(list[Trace], default=None)})
+@attributes({"hadMember": AttrOf(List[Trace], default=None)})
 class TraceCollection(Entity):
     """Collection of traces
 
@@ -160,7 +160,7 @@ class TraceCollection(Entity):
     """
 
 
-@attributes({"hadMember": AttrOf(list[Trace], default=None)})
+@attributes({"hadMember": AttrOf(List[Trace], default=None)})
 class CoreTraceCollection(Entity):
     """Collection of traces
 
@@ -204,7 +204,7 @@ class BluePyEfeFeatures(Entity):
         "subject": AttrOf(Subject, default=None),
         "mType": AttrOf(OntologyTerm),
         "eType": AttrOf(OntologyTerm),
-        "experimentalCell": AttrOf(list[ExperimentalCell]),
+        "experimentalCell": AttrOf(List[ExperimentalCell]),
         "featureExtractionConfiguration": AttrOf(dict),
         "stimuliToExperimentMap": AttrOf(dict, default=None),
     }
@@ -326,7 +326,7 @@ class EModelGenerationShape(Entity):
 
 @attributes(
     {
-        "used": AttrOf(list[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
+        "used": AttrOf(List[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
         "generated": AttrOf(BluePyEfeFeatures, default=None),
     }
 )
@@ -478,7 +478,7 @@ class SimulationCampaignGeneration(BbpWorkflowActivity):
 
 @attributes(
     {
-        "hadMember": AttrOf(list[Report], default=None),
+        "hadMember": AttrOf(List[Report], default=None),
     }
 )
 class SimulationCampaignReportCollection(Entity):
@@ -536,7 +536,7 @@ class AnalysisConfiguration(Entity):
 
 @attributes(
     {
-        "used": AttrOf(list[Identifiable], default=None),
+        "used": AttrOf(List[Identifiable], default=None),
     }
 )
 class Analysis(Activity):
@@ -549,7 +549,7 @@ class Analysis(Activity):
 
 @attributes(
     {
-        "used": AttrOf(list[VariableReport], default=None),
+        "used": AttrOf(List[VariableReport], default=None),
         "generated": AttrOf(AnalysisReport, default=None),
         # 'wasInformedBy': AttrOf(SimulationCampaign, default=None),
     }

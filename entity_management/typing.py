@@ -6,4 +6,4 @@ import typing
 
 T = typing.TypeVar("T")
 
-MaybeList = typing.Union[T, list[T]]
+MaybeList = typing.Union[T, typing.List[T]]
