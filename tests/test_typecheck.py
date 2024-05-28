@@ -27,15 +27,47 @@ def _eval(string_or_type):
     "type_,expected",
     [
         (int, int),
+        (list, list),
         (List[int], list),
         _skip("list[int]", list, min_version=(3, 9)),
+        (tuple, tuple),
+        (Tuple[float], tuple),
+        _skip("tuple[int]", tuple, min_version=(3, 9)),
+        (Dict[float, int], dict),
+        _skip("dict[float, int]", dict, min_version=(3, 9)),
         (Union[int, float], Union),
         _skip("int | float", Union, min_version=(3, 10)),
     ],
 )
-def test_type_root_class(type_, expected):
+def test_get_type_root_class(type_, expected):
     res = test_module.get_type_root_class(_eval(type_))
     assert res is expected
+
+
+@pytest.mark.parametrize(
+    "type_,expected",
+    [
+        (List[int], (int,)),
+        _skip("list[int]", (int,), min_version=(3, 9)),
+        (List[List], (list,)),
+        _skip("list[list]", (list,), min_version=(3, 9)),
+        _skip("list[List]", (list,), min_version=(3, 9)),
+        (Dict[int, float], (int, float)),
+        (Dict[list, dict], (list, dict)),
+        (Dict[List, dict], (list, dict)),
+        _skip("dict[int, float]", (int, float), min_version=(3, 9)),
+        _skip("dict[List, Dict]", (list, dict), min_version=(3, 9)),
+        (Union[int, float], (int, float)),
+        _skip("int | float", (int, float), min_version=(3, 10)),
+        (Union[List, Dict], (list, dict)),
+        _skip("List | Dict", (list, dict), min_version=(3, 10)),
+        (Union[list, dict], (list, dict)),
+        _skip("list | dict", (list, dict), min_version=(3, 10)),
+    ],
+)
+def test_get_type_root_args(type_, expected):
+    res = test_module.get_type_root_args(_eval(type_))
+    assert res == expected
 
 
 @pytest.mark.parametrize(
