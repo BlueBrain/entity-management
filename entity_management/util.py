@@ -2,8 +2,6 @@
 
 """Utilities"""
 
-from __future__ import annotations
-
 import typing
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote

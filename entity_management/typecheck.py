@@ -14,7 +14,7 @@ def get_type_root_class(data_type):
     root_type = typing.get_origin(data_type) or data_type
 
     # types.UnionType for A | B is added in python3.10
-    if sys.version_info.minor >= 10 and root_type is types.UnionType:
+    if sys.version_info >= (3, 10) and root_type is types.UnionType:  # pylint: disable=no-member
         return typing.Union
 
     return root_type
@@ -58,6 +58,7 @@ def is_data_mapping(data_raw):
 def is_type_union(data_type):
     """Return True if the data_type is a union."""
     if sys.version_info.minor >= 10:
+        # pylint: disable=no-member
         return get_type_root_class(data_type) in {typing.Union, types.UnionType}
     return get_type_root_class(data_type) is typing.Union
 
