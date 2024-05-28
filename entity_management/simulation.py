@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import Union
 
 from attr.validators import in_
-from typing import List, Dict
 
 from entity_management import morphology
 from entity_management.atlas import AtlasRelease
@@ -152,7 +151,7 @@ class SingleCellSimulationTrace(Entity):
     """Single cell simulation trace file"""
 
 
-@attributes({"hadMember": AttrOf(List[Trace], default=None)})
+@attributes({"hadMember": AttrOf(list[Trace], default=None)})
 class TraceCollection(Entity):
     """Collection of traces
 
@@ -161,7 +160,7 @@ class TraceCollection(Entity):
     """
 
 
-@attributes({"hadMember": AttrOf(List[Trace], default=None)})
+@attributes({"hadMember": AttrOf(list[Trace], default=None)})
 class CoreTraceCollection(Entity):
     """Collection of traces
 
@@ -205,9 +204,9 @@ class BluePyEfeFeatures(Entity):
         "subject": AttrOf(Subject, default=None),
         "mType": AttrOf(OntologyTerm),
         "eType": AttrOf(OntologyTerm),
-        "experimentalCell": AttrOf(List[ExperimentalCell]),
-        "featureExtractionConfiguration": AttrOf(Dict),
-        "stimuliToExperimentMap": AttrOf(Dict, default=None),
+        "experimentalCell": AttrOf(list[ExperimentalCell]),
+        "featureExtractionConfiguration": AttrOf(dict),
+        "stimuliToExperimentMap": AttrOf(dict, default=None),
     }
 )
 class BluePyEfeConfiguration(Entity):
@@ -327,7 +326,7 @@ class EModelGenerationShape(Entity):
 
 @attributes(
     {
-        "used": AttrOf(List[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
+        "used": AttrOf(list[Union[CoreTraceCollection, BluePyEfeConfiguration]]),
         "generated": AttrOf(BluePyEfeFeatures, default=None),
     }
 )
@@ -378,7 +377,7 @@ class VariableReport(Report):
 
 @attributes(
     {
-        "parameter": AttrOf(Dict),
+        "parameter": AttrOf(dict),
         "startedAtTime": AttrOf(datetime, default=None),
         "endedAtTime": AttrOf(datetime, default=None),
         "status": AttrOf(
@@ -479,7 +478,7 @@ class SimulationCampaignGeneration(BbpWorkflowActivity):
 
 @attributes(
     {
-        "hadMember": AttrOf(List[Report], default=None),
+        "hadMember": AttrOf(list[Report], default=None),
     }
 )
 class SimulationCampaignReportCollection(Entity):
@@ -537,7 +536,7 @@ class AnalysisConfiguration(Entity):
 
 @attributes(
     {
-        "used": AttrOf(List[Identifiable], default=None),
+        "used": AttrOf(list[Identifiable], default=None),
     }
 )
 class Analysis(Activity):
@@ -550,7 +549,7 @@ class Analysis(Activity):
 
 @attributes(
     {
-        "used": AttrOf(List[VariableReport], default=None),
+        "used": AttrOf(list[VariableReport], default=None),
         "generated": AttrOf(AnalysisReport, default=None),
         # 'wasInformedBy': AttrOf(SimulationCampaign, default=None),
     }
@@ -583,7 +582,7 @@ class PlotCollection(MultiDistributionEntity):
 @attributes(
     {
         "simulations": AttrOf(DataDownload),
-        "parameter": AttrOf(Dict, default={}),
+        "parameter": AttrOf(dict, default={}),
     }
 )
 class SimulationCampaign(Entity):

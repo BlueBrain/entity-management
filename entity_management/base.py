@@ -401,7 +401,7 @@ def _deserialize_union(data_type, data_raw, *, context, base, org, proj, token):
         )
 
     # e.g. int | float | dict
-    if type(data_raw) in type_args:
+    if type(data_raw) in typecheck.get_type_root_args(data_type):
         return data_raw
 
     raise NotImplementedError(

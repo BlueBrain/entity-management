@@ -2,9 +2,9 @@
 
 """Type checking related utils."""
 
-import sys
-import inspect
 import collections.abc
+import inspect
+import sys
 import types
 import typing
 
@@ -18,6 +18,14 @@ def get_type_root_class(data_type):
         return typing.Union
 
     return root_type
+
+
+def get_type_root_args(data_type):
+    """Return the type's args as type classes.
+
+    For example list | Dict returns (list, dict).
+    """
+    return tuple(get_type_root_class(arg) for arg in typing.get_args(data_type))
 
 
 def is_type_sequence(data_type):

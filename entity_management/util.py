@@ -3,6 +3,7 @@
 """Utilities"""
 
 from __future__ import annotations
+
 import typing
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
@@ -160,11 +161,14 @@ def _make_validators(type_, default, custom_validators):
             validator = _list_of(types, default)
         else:
             validator = _list_of(list_element_type, default)
-
     # e.g. A | list[A]
     elif typecheck.is_type_single_or_list_union(type_):
         element_type = typing.get_args(type_)[0]
         validator = _one_or_list_of(element_type, default)
+    # e.g A | B
+    elif typecheck.is_type_union(type_):
+        types = _get_union_params(type_)
+        validator = instance_of(types)
     else:
         if default is None:  # default explicitly provided as None
             validator = optional_of(type_)

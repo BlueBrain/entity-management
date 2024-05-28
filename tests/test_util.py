@@ -3,6 +3,7 @@ import attr
 
 import sys
 import pytest
+from typing import Union, List
 from entity_management import exception
 from entity_management import util as test_module
 from entity_management.core import Entity, attributes
@@ -34,7 +35,22 @@ OBN2 = BN2(a=2)
 OBN3 = BN3(a=3)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10))
+def _skip(*args, min_version):
+    return pytest.param(
+        *args,
+        marks=pytest.mark.skipif(
+            sys.version_info < min_version,
+            reason=f"Test requres {min_version} or higher.",
+        ),
+    )
+
+
+def _eval(string_or_type):
+    if isinstance(string_or_type, str):
+        return eval(string_or_type)
+    return string_or_type
+
+
 @pytest.mark.parametrize(
     "type_,default,value, should_validation_pass",
     [
@@ -45,28 +61,33 @@ OBN3 = BN3(a=3)
         (BN1, NA, OBN1, True),
         (BN1, OBN1, None, True),
         (BN1, NA, OBN2, False),
-        (list[int], NA, [1, 2], True),
-        (list[int], NA, [1.0, 2.0], False),
-        (list[int], NA, [1, 2.0], False),
-        (int | float, NA, 2, True),
-        (int | float, NA, 2.0, True),
-        (int | float, 2, None, True),
-        (int | float, 2.0, None, True),
-        (int | float, NA, {}, False),
-        (int | float, {}, None, False),
-        (int | list[int], NA, 2, True),
-        (int | list[int], NA, 2.0, False),
-        (int | list[int], NA, [1, 2], True),
-        (int | list[int], NA, [1, 2.0], False),
-        (BN1 | list[BN1], NA, OBN1, True),
-        (BN1 | list[BN1], NA, [OBN1, OBN1], True),
+        (List[int], NA, [1, 2], True),
+        _skip("list[int]", NA, [1, 2], True, min_version=(3, 9)),
+        _skip("list[int]", NA, [1.0, 2.0], False, min_version=(3, 9)),
+        (List[int], NA, [1.0, 2.0], False),
+        _skip("list[int]", NA, [1, 2.0], False, min_version=(3, 9)),
+        (List[int], NA, [1, 2.0], False),
+        _skip("int | float", NA, 2, True, min_version=(3, 10)),
+        (Union[int, float], NA, 2, True),
+        _skip("int | float", NA, 2, True, min_version=(3, 10)),
+        _skip("int | float", NA, 2.0, True, min_version=(3, 10)),
+        _skip("int | float", 2, None, True, min_version=(3, 10)),
+        _skip("int | float", 2.0, None, True, min_version=(3, 10)),
+        _skip("int | float", NA, {}, False, min_version=(3, 10)),
+        _skip("int | float", {}, None, False, min_version=(3, 10)),
+        _skip("int | list[int]", NA, 2, True, min_version=(3, 10)),
+        _skip("int | list[int]", NA, 2.0, False, min_version=(3, 10)),
+        _skip("int | list[int]", NA, [1, 2], True, min_version=(3, 10)),
+        _skip("int | list[int]", NA, [1, 2.0], False, min_version=(3, 10)),
+        _skip("BN1 | list[BN1]", NA, OBN1, True, min_version=(3, 10)),
+        _skip("BN1 | list[BN1]", NA, [OBN1, OBN1], True, min_version=(3, 10)),
         (MaybeList[BN1], NA, OBN1, True),
         (MaybeList[BN1], NA, [OBN1, OBN1], True),
     ],
 )
 def test_validators(type_, default, value, should_validation_pass):
 
-    @attributes({"test": AttrOf(type_, default=default)})
+    @attributes({"test": AttrOf(_eval(type_), default=default)})
     class A(BlankNode):
         pass
 

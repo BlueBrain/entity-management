@@ -1,20 +1,40 @@
+import sys
 import pytest
 import types
 import typing
+from typing import List, Union, Tuple, Dict
 
 from entity_management import typecheck as test_module
+
+
+def _skip(*args, min_version):
+    return pytest.param(
+        *args,
+        marks=pytest.mark.skipif(
+            sys.version_info < min_version,
+            reason=f"Test requres {min_version} or higher.",
+        ),
+    )
+
+
+def _eval(string_or_type):
+    if isinstance(string_or_type, str):
+        return eval(string_or_type)
+    return string_or_type
 
 
 @pytest.mark.parametrize(
     "type_,expected",
     [
         (int, int),
-        (list[int], list),
-        (int | float, types.UnionType),
+        (List[int], list),
+        _skip("list[int]", list, min_version=(3, 9)),
+        (Union[int, float], Union),
+        _skip("int | float", Union, min_version=(3, 10)),
     ],
 )
 def test_type_root_class(type_, expected):
-    res = test_module.get_type_root_class(type_)
+    res = test_module.get_type_root_class(_eval(type_))
     assert res is expected
 
 
@@ -25,16 +45,19 @@ def test_type_root_class(type_, expected):
         (str, False),
         (list, True),
         (tuple, True),
-        (list[int], True),
-        (tuple[int], True),
+        (List[int], True),
+        _skip("list[int]", True, min_version=(3, 9)),
+        (Tuple[int], True),
+        _skip("tuple[int]", True, min_version=(3, 9)),
         (dict, False),
-        (dict[int, float], False),
-        (int | float, False),
-        (typing.Union[int, float], False),
+        (Dict[int, float], False),
+        _skip("dict[int, float]", False, min_version=(3, 9)),
+        _skip("int | float", False, min_version=(3, 10)),
+        (Union[int, float], False),
     ],
 )
 def test_is_type_sequence(type_, expected):
-    res = test_module.is_type_sequence(type_)
+    res = test_module.is_type_sequence(_eval(type_))
     assert res is expected
 
 
@@ -58,20 +81,23 @@ def test_is_data_sequence(data, expected):
     "type_,expected",
     [
         (dict, True),
-        (dict[int, float], True),
+        (Dict[int, float], True),
+        _skip("dict[int, float]", True, min_version=(3, 9)),
         (int, False),
         (str, False),
         (list, False),
-        (list[int], False),
+        _skip("list[int]", False, min_version=(3, 9)),
         (tuple, False),
-        (tuple[int, float], False),
-        (int | float, False),
-        (dict | list, False),
-        (typing.Union[int, float], False),
+        (Tuple[int, float], False),
+        _skip("tuple[int, float]", False, min_version=(3, 9)),
+        (Union[int, float], False),
+        _skip("int | float", False, min_version=(3, 10)),
+        (Union[dict, list], False),
+        _skip("dict | list", False, min_version=(3, 10)),
     ],
 )
 def test_is_type_mapping(type_, expected):
-    res = test_module.is_type_mapping(type_)
+    res = test_module.is_type_mapping(_eval(type_))
     assert res is expected
 
 
@@ -94,34 +120,40 @@ def test_is_data_mapping(data, expected):
 @pytest.mark.parametrize(
     "type_,expected",
     [
-        (int | float, True),
-        (typing.Union[int, float], True),
+        _skip("int | float", True, min_version=(3, 10)),
+        (Union[int, float], True),
         (int, False),
         (list, False),
-        (list[int], False),
-        (list[int] | list[float], True),
+        (List[int], False),
+        _skip("list[int]", False, min_version=(3, 9)),
+        (Union[List[int], List[float]], True),
+        _skip("list[int] | list[float]", True, min_version=(3, 10)),
     ],
 )
 def test_is_type_union(type_, expected):
-    res = test_module.is_type_union(type_)
+    res = test_module.is_type_union(_eval(type_))
     assert res is expected
 
 
 @pytest.mark.parametrize(
     "type_,expected",
     [
-        (int | float, False),
-        (typing.Union[int, float], False),
-        (int | list[int], True),
-        (typing.Union[int, list[int]], True),
-        (list[int] | int, False),
-        (int | list[float], False),
-        (list[float] | int, False),
-        (dict | list[dict], True),
-        (list[dict] | dict, False),
-        (dict | list, False),
+        _skip("int | float", False, min_version=(3, 10)),
+        (Union[int, float], False),
+        (Union[int, List[int]], True),
+        _skip("int | list[int]", True, min_version=(3, 10)),
+        _skip("Union[int, list[int]]", True, min_version=(3, 9)),
+        _skip("list[int] | int", False, min_version=(3, 10)),
+        _skip("int | list[float]", False, min_version=(3, 10)),
+        _skip("list[float] | int", False, min_version=(3, 10)),
+        _skip("dict | list[dict]", True, min_version=(3, 10)),
+        (Union[List[Dict], Dict], False),
+        (Union[List[dict], dict], False),
+        _skip("list[dict] | dict", False, min_version=(3, 10)),
+        (Union[dict, list], False),
+        _skip("dict | list", False, min_version=(3, 10)),
     ],
 )
 def test_is_type_single_or_list_union(type_, expected):
-    res = test_module.is_type_single_or_list_union(type_)
+    res = test_module.is_type_single_or_list_union(_eval(type_))
     assert res is expected

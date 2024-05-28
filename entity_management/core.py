@@ -18,7 +18,6 @@ from pathlib import Path
 from attr.validators import in_
 
 from entity_management import nexus
-from typing import List
 
 # Subject used to be in this module. It is imported for backward compatibility
 from entity_management.base import Subject  # noqa pylint: disable=unused-import
@@ -446,12 +445,12 @@ class Contribution(BlankNode):
     {
         "name": AttrOf(str, default=None),
         "description": AttrOf(str, default=None),
-        "wasAttributedTo": AttrOf(List[Agent], default=None),
+        "wasAttributedTo": AttrOf(list[Agent], default=None),
         "wasGeneratedBy": AttrOf(Identifiable, default=None),
-        "wasDerivedFrom": AttrOf(List[Identifiable], default=None),
+        "wasDerivedFrom": AttrOf(list[Identifiable], default=None),
         "dateCreated": AttrOf(datetime, default=None),
         "distribution": AttrOf(MaybeList[DataDownload], default=None),
-        "contribution": AttrOf(List[Contribution], default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
     }
 )
 class Entity(Identifiable):
@@ -550,7 +549,7 @@ class Entity(Identifiable):
 
 @attributes(
     {
-        "distribution": AttrOf(List[DataDownload], default=None),
+        "distribution": AttrOf(list[DataDownload], default=None),
     }
 )
 class MultiDistributionEntity(Entity):

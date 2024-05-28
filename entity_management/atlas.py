@@ -2,7 +2,6 @@
 
 """Atlas related entities."""
 
-from typing import List
 
 from entity_management.base import BrainLocation, Derivation, Identifiable, Subject, attributes
 from entity_management.core import Contribution, DataDownload, Entity
@@ -112,7 +111,7 @@ class HemisphereAnnotationDataLayer(Entity):
 
 @attributes(
     {
-        "distribution": AttrOf(List[DataDownload]),
+        "distribution": AttrOf(list[DataDownload]),
     }
 )
 class ParcellationOntology(Entity):
@@ -177,9 +176,9 @@ class AtlasRelease(Entity):
 @attributes(
     {
         "atlasRelease": AttrOf(AtlasRelease, default=None),
-        "about": AttrOf(List[str], default=None),
+        "about": AttrOf(list[str], default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
-        "contribution": AttrOf(List[Contribution], default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
         "derivation": AttrOf(Derivation, default=None),
         "distribution": AttrOf(DataDownload),
         "subject": AttrOf(Subject, default=None),
@@ -191,10 +190,10 @@ class CellCompositionSummary(Entity):
 
 @attributes(
     {
-        "about": AttrOf(List[str], default=None),
+        "about": AttrOf(list[str], default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
-        "contribution": AttrOf(List[Contribution], default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
         "derivation": AttrOf(Derivation, default=None),
         "distribution": AttrOf(DataDownload),
         "subject": AttrOf(Subject, default=None),
@@ -206,13 +205,13 @@ class CellCompositionVolume(Entity):
 
 @attributes(
     {
-        "about": AttrOf(List[str], default=None),
+        "about": AttrOf(list[str], default=None),
         "atlasRelease": AttrOf(AtlasRelease),
         "atlasSpatialReferenceSystem": AttrOf(AtlasSpatialReferenceSystem, default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
         "cellCompositionSummary": AttrOf(CellCompositionSummary),
         "cellCompositionVolume": AttrOf(CellCompositionVolume),
-        "contribution": AttrOf(List[Contribution], default=None),
+        "contribution": AttrOf(list[Contribution], default=None),
     }
 )
 class CellComposition(Entity):

@@ -217,7 +217,7 @@ def update(id_url, rev, payload, sync_index=False, token=None):
     assert rev > 0
     params = {"rev": rev}
     if sync_index:
-        params |= {"indexing": "sync"}
+        params.update({"indexing": "sync"})
     response = requests.put(
         id_url, headers=_get_headers(token), params=params, json=payload, timeout=10
     )
@@ -232,7 +232,7 @@ def deprecate(id_url, rev, sync_index=False, token=None):
     assert rev > 0
     params = {"rev": rev}
     if sync_index:
-        params |= {"indexing": "sync"}
+        params.update({"indexing": "sync"})
     response = requests.delete(id_url, headers=_get_headers(token), params=params, timeout=10)
     response.raise_for_status()
     return _to_json(response)
@@ -297,7 +297,7 @@ def load_by_id(
 
     if params is None:
         params = {}
-    params |= revision_query
+    params.update(revision_query)
 
     url = f"{base_url}/{quote(resource_id)}"
     return load_by_url(url=url, params=params, stream=stream, token=token)
