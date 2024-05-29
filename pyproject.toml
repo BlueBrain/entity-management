@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 name = "entity-management"
 description = "Access to production entity management"
 readme = { file = "README.rst", content-type = "text/x-rst" }
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 license = { file = "LICENSE.txt" }
 authors = [
   { name = "Blue Brain Project, EPFL" },
@@ -66,7 +66,11 @@ local_scheme = "no-local-version"
 [tool.black]
 line-length = 100
 target-version = [
+    'py38',
+    'py39',
     'py310',
+    'py311',
+    'py312',
 ]
 include = 'entity_management\/.*\.py$|tests\/.*\.py$|doc\/source\/conf\.py$|setup\.py$'
 

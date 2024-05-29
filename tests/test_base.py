@@ -1,10 +1,13 @@
 # pylint: disable=missing-docstring,no-member
 import io
+import sys
 import json
 from datetime import datetime
 from typing import List, Dict
 from dateutil.parser import parse
 from unittest.mock import patch
+
+from typing import Dict, List, Union
 
 import pytest
 
@@ -152,12 +155,30 @@ class BlankNode2(BlankNode):
     pass
 
 
+def _skip(*args, min_version):
+    return pytest.param(
+        *args,
+        marks=pytest.mark.skipif(
+            sys.version_info < min_version,
+            reason=f"Test requres {min_version} or higher.",
+        ),
+    )
+
+
+def _eval(string_or_type):
+    if isinstance(string_or_type, str):
+        return eval(string_or_type)
+    return string_or_type
+
+
 @pytest.mark.parametrize(
     "data_type, data_raw, expected",
     [
         (str, None, None),
         (list, [], None),
+        (List, [], None),
         (dict, {}, None),
+        (Dict, {}, None),
         (datetime, {"@value": "2024-01-22T10:07:16.052123Z"}, parse("2024-01-22T10:07:16.052123Z")),
         (dict, {"a": "b"}, {"a": "b"}),
         (Dict, {"a": "b"}, {"a": "b"}),
@@ -165,35 +186,59 @@ class BlankNode2(BlankNode):
         (Dict, [{"a": "b"}], {"a": "b"}),
         (list, [{"a": "b"}], [{"a": "b"}]),
         (List, [{"a": "b"}], [{"a": "b"}]),
-        (list[dict], [{"a": "b"}], [{"a": "b"}]),
-        (list[dict], [], None),
+        _skip("list[dict]", [{"a": "b"}], [{"a": "b"}], min_version=(3, 9)),
+        _skip("list[dict]", [], None, min_version=(3, 9)),
         (List[dict], [{"a": "b"}], [{"a": "b"}]),
-        (list[dict], {"a": "b"}, [{"a": "b"}]),
+        (List[Dict], [{"a": "b"}], [{"a": "b"}]),
+        _skip("list[Dict]", [{"a": "b"}], [{"a": "b"}], min_version=(3, 9)),
+        _skip("list[dict]", {"a": "b"}, [{"a": "b"}], min_version=(3, 9)),
         (List[str], "Ringo", ["Ringo"]),
-        (list[str], "Ringo", ["Ringo"]),
-        (list[str], [], None),
-        (list[str], ["a", "b"], ["a", "b"]),
+        _skip("list[str]", "Ringo", ["Ringo"], min_version=(3, 9)),
+        _skip("list[str]", [], None, min_version=(3, 9)),
+        _skip("list[str]", ["a", "b"], ["a", "b"], min_version=(3, 9)),
         (List[int], 2, [2]),
-        (list[int], 2, [2]),
+        _skip("list[int]", 2, [2], min_version=(3, 9)),
         (List[float], 2.0, [2.0]),
-        (list[float], 2.0, [2.0]),
+        _skip("list[float]", 2.0, [2.0], min_version=(3, 9)),
         (List[bool], True, [True]),
-        (list[bool], False, [False]),
+        _skip("list[bool]", False, [False], min_version=(3, 9)),
         (Dummy, {"a": 1, "b": 2}, Dummy(a=1, b=2)),
         (List[Dummy], [{"a": 1, "b": 2}], [Dummy(a=1, b=2)]),
-        (list[Dummy], [{"a": 1, "b": 2}], [Dummy(a=1, b=2)]),
-        (list[Dummy], [], None),
+        _skip("list[Dummy]", [{"a": 1, "b": 2}], [Dummy(a=1, b=2)], min_version=(3, 9)),
+        _skip("list[Dummy]", [], None, min_version=(3, 9)),
         (List[Dummy], {"a": 1, "b": 2}, [Dummy(a=1, b=2)]),
-        (list[Dummy], {"a": 1, "b": 2}, [Dummy(a=1, b=2)]),
-        (list[Dummy], [{"a": 1, "b": 2}, {"a": 2, "b": 3}], [Dummy(a=1, b=2), Dummy(a=2, b=3)]),
+        _skip("list[Dummy]", {"a": 1, "b": 2}, [Dummy(a=1, b=2)], min_version=(3, 9)),
+        _skip(
+            "list[Dummy]",
+            [{"a": 1, "b": 2}, {"a": 2, "b": 3}],
+            [Dummy(a=1, b=2), Dummy(a=2, b=3)],
+            min_version=(3, 9),
+        ),
         (FrozenDummy, {"a": 1, "b": "2"}, FrozenDummy(a=1, b="2")),
         (List[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
-        (list[FrozenDummy], {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")]),
-        (list[FrozenDummy], [], None),
-        (dict[str, str], {"foo": "bar"}, {"foo": "bar"}),
-        (dict[str, Dummy], {"foo": {"a": 1, "b": "2"}}, {"foo": Dummy(a=1, b="2")}),
-        (dict[str, FrozenDummy], {"foo": {"a": 1, "b": "2"}}, {"foo": FrozenDummy(a=1, b="2")}),
-        (dict[str, list[Dummy]], {"foo": {"a": 1, "b": "2"}}, {"foo": [Dummy(a=1, b="2")]}),
+        _skip(
+            "list[FrozenDummy]", {"a": 1, "b": "2"}, [FrozenDummy(a=1, b="2")], min_version=(3, 9)
+        ),
+        _skip("list[FrozenDummy]", [], None, min_version=(3, 9)),
+        _skip("dict[str, str]", {"foo": "bar"}, {"foo": "bar"}, min_version=(3, 9)),
+        _skip(
+            "dict[str, Dummy]",
+            {"foo": {"a": 1, "b": "2"}},
+            {"foo": Dummy(a=1, b="2")},
+            min_version=(3, 9),
+        ),
+        _skip(
+            "dict[str, FrozenDummy]",
+            {"foo": {"a": 1, "b": "2"}},
+            {"foo": FrozenDummy(a=1, b="2")},
+            min_version=(3, 9),
+        ),
+        _skip(
+            "dict[str, list[Dummy]]",
+            {"foo": {"a": 1, "b": "2"}},
+            {"foo": [Dummy(a=1, b="2")]},
+            min_version=(3, 9),
+        ),
         (
             OntologyTerm,
             {"@id": "foo", "label": "bar", "@type": "zee"},
@@ -201,19 +246,35 @@ class BlankNode2(BlankNode):
         ),
         (datetime, "2024-02-21T18:03:18.804172", datetime(2024, 2, 21, 18, 3, 18, 804172)),
         (datetime, {"@type": "xsd:date", "@value": "2024-02-14"}, datetime(2024, 2, 14, 0, 0)),
-        (int | float, 2, 2),
-        (int | float, 1.0, 1.0),
-        (int | dict, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
-        (int | dict, 2, 2),
+        (Union[int, float], 2, 2),
+        _skip("int | float", 2, 2, min_version=(3, 10)),
+        (Union[int, float], 1.0, 1.0),
+        _skip("int | float", 1.0, 1.0, min_version=(3, 10)),
+        (Union[int, dict], {"a": 1, "b": 2}, {"a": 1, "b": 2}),
+        _skip("int | dict", {"a": 1, "b": 2}, {"a": 1, "b": 2}, min_version=(3, 10)),
+        (Union[int, dict], 2, 2),
+        _skip("int | dict", 2, 2, min_version=(3, 10)),
         (
-            BlankNode1 | BlankNode2,
+            Union[BlankNode1, BlankNode2],
             {"@type": "BlankNode1", "a": 2, "b": 3.0},
             BlankNode1(a=2, b=3.0),
         ),
+        _skip(
+            "BlankNode1 | BlankNode2",
+            {"@type": "BlankNode1", "a": 2, "b": 3.0},
+            BlankNode1(a=2, b=3.0),
+            min_version=(3, 10),
+        ),
         (
-            BlankNode1 | BlankNode2,
+            Union[BlankNode1, BlankNode2],
             {"@type": "BlankNode2", "c": 2, "d": 3.0},
             BlankNode2(c=2, d=3.0),
+        ),
+        _skip(
+            "BlankNode1 | BlankNode2",
+            {"@type": "BlankNode2", "c": 2, "d": 3.0},
+            BlankNode2(c=2, d=3.0),
+            min_version=(3, 10),
         ),
         (MaybeList[int], 1, 1),
         (MaybeList[int], [1, 2], [1, 2]),
@@ -226,11 +287,11 @@ class BlankNode2(BlankNode):
     ],
 )
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
-    assert _deserialize_json_to_datatype(data_type, data_raw) == expected
+    assert _deserialize_json_to_datatype(_eval(data_type), data_raw) == expected
 
 
 def _make_valid_resp(data):
-    essentials = {
+    res = {
         "@context": [
             "https://bluebrain.github.io/nexus/contexts/metadata.json",
             "https://bbp.neuroshapes.org",
@@ -245,7 +306,8 @@ def _make_valid_resp(data):
         "_updatedAt": "2024-01-22T10:07:16.052123Z",
         "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
     }
-    return essentials | data
+    res.update(data)
+    return res
 
 
 def test_deserialize_json_to_datatype__union(monkeypatch):
@@ -279,7 +341,7 @@ def test_deserialize_json_to_datatype__union(monkeypatch):
 
     monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t1)
 
-    res = _deserialize_json_to_datatype(T1 | T2, data_raw_t1)
+    res = _deserialize_json_to_datatype(Union[T1, T2], data_raw_t1)
     assert res == T1(a=1, b="2")
 
     data_raw_t2 = _make_valid_resp(
@@ -293,7 +355,7 @@ def test_deserialize_json_to_datatype__union(monkeypatch):
 
     monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t2)
 
-    res = _deserialize_json_to_datatype(T1 | T2, data_raw_t2)
+    res = _deserialize_json_to_datatype(Union[T1, T2], data_raw_t2)
     assert res == T2(c=1, d="2")
 
 
@@ -351,7 +413,7 @@ def test_deserialize_json_to_datatype__list_union(monkeypatch):
         raise
 
     monkeypatch.setattr(nexus, "load_by_id", mock_load_by_id)
-    res = _deserialize_json_to_datatype(list[T1 | T2 | T3], [data_raw_t3, data_raw_t1])
+    res = _deserialize_json_to_datatype(List[Union[T1, T2, T3]], [data_raw_t3, data_raw_t1])
     assert res == [T3(e=4, f="5"), T1(a=2, b="3")]
 
 

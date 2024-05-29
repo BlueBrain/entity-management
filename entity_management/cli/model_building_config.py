@@ -86,12 +86,13 @@ def _get_ids_from_dict(config):
         id_ = _get_key(config, "id")
         type_ = _get_key(config, "type")
         if id_ and type_:
-            if rev := (_get_key(config, "_rev") or _get_key(config, "rev")):
+            rev = _get_key(config, "_rev") or _get_key(config, "rev")
+            if rev:
                 id_ = f"{id_}?rev={rev}"
             ids.add(id_)
         for key, item in config.items():
             if key not in UNALLOWED_ID_KEYS:
-                ids |= _get_ids_from_dict(item)
+                ids.update(_get_ids_from_dict(item))
 
     return ids
 
@@ -128,14 +129,15 @@ def download_and_get_ids_from_distribution(entity, path, mapping):
         distribution = [distribution]
 
     for d_item in distribution:
-        if url := d_item.get("contentUrl"):
+        url = d_item.get("contentUrl")
+        if url:
             filename = _get_distribution_filename(entity, d_item)
             print(f"    {filename}")
             download_file(url, path, file_name=filename)
             mapping[url] = filename
             if d_item.get("encodingFormat", "") == "application/json":
                 content = file_as_dict(url)
-                ids |= _get_ids_from_dict(content)
+                ids.update(_get_ids_from_dict(content))
 
     return ids
 
@@ -160,7 +162,7 @@ def _download_entity_get_ids(id_, path, mapping):
 
     entity.pop("@id", None)
     ids = _get_ids_from_dict(entity)
-    ids |= download_and_get_ids_from_distribution(entity, path, mapping)
+    ids.update(download_and_get_ids_from_distribution(entity, path, mapping))
 
     return ids
 
