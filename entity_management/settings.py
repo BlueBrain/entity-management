@@ -3,6 +3,8 @@
 """Settings module"""
 
 import os
+import json
+import importlib.resources
 
 from rdflib import Namespace
 
@@ -27,3 +29,7 @@ PROV = Namespace("http://www.w3.org/ns/prov#")
 NSG = Namespace("https://neuroshapes.org/")
 DASH = Namespace("https://neuroshapes.org/dash/")
 NXV = Namespace("https://bluebrain.github.io/nexus/vocabulary/")
+
+
+with importlib.resources.open_text("entity_management.data", "schema_to_type_mapping.json") as file:
+    TYPE_TO_SCHEMA_MAPPING = {type_: schema for schema, type_ in json.load(file)["value"].items()}
