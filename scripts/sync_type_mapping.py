@@ -5,9 +5,12 @@ import json
 import logging
 
 from pathlib import Path
-from entity_management.settings import TYPE_TO_SCHEMA_MAPPING_FILE
 from entity_management.nexus import sparql_query, load_by_id
 from entity_management.context import get_resolved_context, expand
+
+
+L = logging.getLogger(__name__)
+
 
 ORG = "neurosciencegraph"
 PROJ = "datamodels"
