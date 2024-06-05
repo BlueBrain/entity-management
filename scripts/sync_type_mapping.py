@@ -1,3 +1,4 @@
+import sys
 import json
 from pathlib import Path
 from entity_management.settings import TYPE_TO_SCHEMA_MAPPING_FILE
@@ -9,7 +10,7 @@ ORG = "neurosciencegraph"
 PROJ = "datamodels"
 
 
-def main():
+def main(target_file):
     query = f'''
         PREFIX nxv: <https://bluebrain.github.io/nexus/vocabulary/>
         PREFIX bmoutils: <https://bbp.epfl.ch/ontologies/core/bmoutils/>
@@ -35,7 +36,7 @@ def main():
 
     type_to_schema_mapping = {v: k for k, v in schema_to_type_mapping.items()}
 
-    TYPE_TO_SCHEMA_MAPPING_FILE.write_text(json.dumps(type_to_schema_mapping, indent=2))
+    Path(target_file).write_text(json.dumps(type_to_schema_mapping, indent=2))
 
 
 def _expand_mapping(context, mapping):
@@ -48,5 +49,8 @@ def _expand_mapping(context, mapping):
 
 
 if __name__ == "__main__":
-    main()
+
+    target_file = sys.argv[1]
+
+    main(target_file)
 
