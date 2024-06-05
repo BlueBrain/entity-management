@@ -763,7 +763,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 schema_id = None
 
             json_ld = nexus.create(
-                get_base_url(base, org, proj, schema),
+                get_base_url(base, org, proj, schema_id=schema_id),
                 payload,
                 resource_id,
                 sync_index=sync_index,
