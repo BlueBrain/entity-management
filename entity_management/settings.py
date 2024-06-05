@@ -2,8 +2,8 @@
 
 """Settings module"""
 
-import os
 import json
+import os
 from pathlib import Path
 
 from rdflib import Namespace

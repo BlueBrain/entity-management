@@ -28,10 +28,10 @@ from entity_management.settings import (
     NSG,
     NXV,
     RDF,
+    TYPE_TO_SCHEMA_MAPPING,
 )
 from entity_management.state import get_base_resources, get_base_url, get_org, get_proj
 from entity_management.util import AttrOf, NotInstantiated, _clean_up_dict, quote
-from entity_management.settings import TYPE_TO_SCHEMA_MAPPING
 
 L = logging.getLogger(__name__)
 
