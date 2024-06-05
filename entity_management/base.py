@@ -768,7 +768,6 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 resource_id,
                 sync_index=sync_index,
                 token=use_auth,
-                schema=schema,
             )
 
         # Nexus truncates the contexts and expands the bmo types. For example:
