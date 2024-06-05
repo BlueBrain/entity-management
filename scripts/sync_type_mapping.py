@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from entity_management.settings import SCHEMA_TO_TYPE_MAPPING_FILE
+from entity_management.settings import TYPE_TO_SCHEMA_MAPPING_FILE
 from entity_management.nexus import sparql_query, load_by_id
 from entity_management.context import get_resolved_context, expand
 
@@ -35,7 +35,7 @@ def main():
 
     type_to_schema_mapping = {v: k for k, v in schema_to_type_mapping.items()}
 
-    SCHEMA_TO_TYPE_MAPPING_FILE.write_text(json.dumps(type_to_schema_mapping, indent=2))
+    TYPE_TO_SCHEMA_MAPPING_FILE.write_text(json.dumps(type_to_schema_mapping, indent=2))
 
 
 def _expand_mapping(context, mapping):
