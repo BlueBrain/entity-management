@@ -1,10 +1,13 @@
+"""Sync type mapping via NEXUS schema to type mapping resource."""
+
 import sys
 import json
+import logging
+
 from pathlib import Path
 from entity_management.settings import TYPE_TO_SCHEMA_MAPPING_FILE
 from entity_management.nexus import sparql_query, load_by_id
 from entity_management.context import get_resolved_context, expand
-
 
 ORG = "neurosciencegraph"
 PROJ = "datamodels"
@@ -29,6 +32,8 @@ def main(target_file):
 
     schema_id = hits[0]["id"]["value"]
 
+    L.info("Found SchemaToTypeMapping id: %s", schema_id)
+
     jsonld = load_by_id(schema_id, org=ORG, proj=PROJ)
 
     # expand the schema urls using the context
@@ -38,8 +43,11 @@ def main(target_file):
 
     Path(target_file).write_text(json.dumps(type_to_schema_mapping, indent=2))
 
+    L.info("Type to schema mapping sync with file %s completed.", target_file)
+
 
 def _expand_mapping(context, mapping):
+    """Expand schema urls using the respective context."""
 
     context = get_resolved_context(context, org=ORG, proj=PROJ)
 
@@ -49,8 +57,5 @@ def _expand_mapping(context, mapping):
 
 
 if __name__ == "__main__":
-
-    target_file = sys.argv[1]
-
-    main(target_file)
+    main(sys.argv[1])
 
