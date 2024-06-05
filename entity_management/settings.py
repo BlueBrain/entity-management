@@ -4,7 +4,7 @@
 
 import os
 import json
-import importlib.resources
+from pathlib import Path
 
 from rdflib import Namespace
 
@@ -31,5 +31,5 @@ DASH = Namespace("https://neuroshapes.org/dash/")
 NXV = Namespace("https://bluebrain.github.io/nexus/vocabulary/")
 
 
-with importlib.resources.open_text("entity_management.data", "schema_to_type_mapping.json") as file:
-    TYPE_TO_SCHEMA_MAPPING = {type_: schema for schema, type_ in json.load(file)["value"].items()}
+TYPE_TO_SCHEMA_MAPPING_FILE = Path(__file__).parent / "data/type_to_scema_mapping.json"
+TYPE_TO_SCHEMA_MAPPING = json.loads(TYPE_TO_SCHEMA_MAPPING_FILE.read_bytes())
