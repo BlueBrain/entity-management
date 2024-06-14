@@ -130,7 +130,7 @@ class BrainParcellationDataLayer(Entity):
 
 @attributes(
     {
-        "distribution": AttrOf(DataDownload),
+        "distribution": AttrOf(DataDownload, default=None),
     }
 )
 class AtlasSpatialReferenceSystem(Entity):
@@ -168,6 +168,7 @@ class PlacementHintsDataCatalog(Entity):
         "placementHintsDataCatalog": AttrOf(PlacementHintsDataCatalog, default=None),
         "cellOrientationField": AttrOf(CellOrientationField, default=None),
         "subject": AttrOf(Subject, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
     }
 )
 class AtlasRelease(Entity):
@@ -217,3 +218,18 @@ class CellCompositionVolume(Entity):
 )
 class CellComposition(Entity):
     """CellComposition"""
+
+
+@attributes(
+    {
+        "name": AttrOf(str),
+        "atlasRelease": AttrOf(AtlasRelease, default=None),
+        "brainLocation": AttrOf(BrainLocation),
+        "distribution": AttrOf(DataDownload),
+        "subject": AttrOf(Subject, default=None),
+        "derivation": AttrOf(Derivation, default=None),
+        "contribution": AttrOf(Contribution, default=None),
+    }
+)
+class METypeDensity(Entity):
+    """METypeDensity"""
