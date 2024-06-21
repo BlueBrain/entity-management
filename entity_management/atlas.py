@@ -168,6 +168,7 @@ class PlacementHintsDataCatalog(Entity):
         "placementHintsDataCatalog": AttrOf(PlacementHintsDataCatalog, default=None),
         "cellOrientationField": AttrOf(CellOrientationField, default=None),
         "subject": AttrOf(Subject, default=None),
+        "brainLocation": AttrOf(BrainLocation, default=None),
     }
 )
 class AtlasRelease(Entity):
