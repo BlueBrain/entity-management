@@ -532,7 +532,14 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
 
     @classmethod
     def _lazy_init(
-        cls, resource_id, type_=NotInstantiated, rev=NotInstantiated, tag=NotInstantiated, base=None, org=None, proj=None
+        cls,
+        resource_id,
+        type_=NotInstantiated,
+        rev=NotInstantiated,
+        tag=NotInstantiated,
+        base=None,
+        org=None,
+        proj=None,
     ):
         """Instantiate an object and put all its attributes to NotInstantiated."""
         # Running the validator has the side effect of instantiating

@@ -144,7 +144,7 @@ def test_load_by_id__cross_bucket():
         )
 
 
-def test_lod_by_id__with_revision():
+def test_load_by_id__with_revision():
     resource_id = "https://bbp.epfl.ch/neurosciencegraph/data/1"
     resource_id_with_revision = f"{resource_id}?rev=5"
     with patch("entity_management.nexus.load_by_url") as patched:
@@ -158,6 +158,25 @@ def test_lod_by_id__with_revision():
         patched.assert_called_once_with(
             url=f"my-base/resolvers/my-org/my-proj/_/{quote(resource_id)}",
             params={"rev": ["5"]},
+            stream=False,
+            token=None,
+        )
+
+
+def test_load_by_id__with_tag():
+    resource_id = "https://bbp.epfl.ch/neurosciencegraph/data/1"
+    resource_id_with_revision = f"{resource_id}?tag=v1.1"
+    with patch("entity_management.nexus.load_by_url") as patched:
+        nexus.load_by_id(
+            resource_id_with_revision,
+            base="my-base",
+            org="my-org",
+            proj="my-proj",
+            cross_bucket=True,
+        )
+        patched.assert_called_once_with(
+            url=f"my-base/resolvers/my-org/my-proj/_/{quote(resource_id)}",
+            params={"tag": ["v1.1"]},
             stream=False,
             token=None,
         )
