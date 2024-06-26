@@ -14,7 +14,7 @@ from entity_management.cli.model_building_config import (
 )
 from entity_management.config import ModelBuildingConfig
 from entity_management.nexus import load_by_id, load_by_url
-from entity_management.util import split_url_from_revision_query
+from entity_management.util import split_url_params
 
 
 @click.group()
@@ -58,7 +58,7 @@ def get(id_or_url, output, max_depth):
     if not_set := [v for v in ("NEXUS_TOKEN", "NEXUS_ORG", "NEXUS_PROJ") if not os.getenv(v)]:
         raise click.ClickException(f"Variable(s) {', '.join(not_set)} not set in environment.")
 
-    id_or_url, _ = split_url_from_revision_query(id_or_url)
+    id_or_url, _ = split_url_params(id_or_url)
 
     # In all tested cases `load_by_url` worked with the ID. `load_by_id` kept as a backup
     data = load_by_url(id_or_url) or load_by_id(id_or_url, cross_bucket=True)

@@ -24,7 +24,7 @@ from entity_management.state import (
     has_offline_token,
     refresh_token,
 )
-from entity_management.util import PP, quote, split_url_from_revision_query, unquote_uri_path
+from entity_management.util import PP, quote, split_url_params, unquote_uri_path
 
 L = logging.getLogger(__name__)
 
