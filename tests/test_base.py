@@ -544,6 +544,42 @@ def test_instantiate__with_rev(monkeypatch):
     assert r.get_rev() == 3
 
 
+def test_instantiate__with_tag(monkeypatch):
+    def load_by_id(resource_id, *args, **kwargs):
+        if resource_id == "foo?tag=v1.1":
+            return {"_rev": 3}
+        raise
+
+    monkeypatch.setattr(nexus, "load_by_id", load_by_id)
+
+    r = Identifiable._lazy_init(resource_id="foo", type_="Foo", tag="v1.1")
+
+    # check that before instantiation the _rev is set
+    assert object.__getattribute__(r, "_tag") == "v1.1"
+    r._instantiate()
+    # and that after instantiation the correct rev is fetched
+    assert r.get_rev() == 3
+
+
+def test_instantiate__precedence(monkeypatch):
+    def load_by_id(resource_id, *args, **kwargs):
+        if resource_id == "foo?rev=2":
+            return {"_rev": 2}
+        if resource_id == "foo?tag=v1.1":
+            return {"_rev": 3}
+        raise
+
+    monkeypatch.setattr(nexus, "load_by_id", load_by_id)
+
+    r = Identifiable._lazy_init(resource_id="foo", type_="Foo", tag="v1.1", rev=2)
+
+    # check that before instantiation the _rev is set
+    assert object.__getattribute__(r, "_tag") == "v1.1"
+    r._instantiate()
+    # and that after instantiation the correct rev is fetched
+    assert r.get_rev() == 3
+
+
 @pytest.mark.parametrize(
     "payload",
     [
