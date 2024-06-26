@@ -11,6 +11,7 @@ JSLD_TYPE = "@type"
 JSLD_CTX = "@context"
 JSLD_REV = "nxv:rev"
 JSLD_LINK_REV = "_rev"
+JSLD_LINK_TAG = "tag"
 JSLD_DEPRECATED = "nxv:deprecated"
 
 USERINFO = os.getenv("NEXUS_USERINFO", "https://bbp.epfl.ch/nexus/v1/identities")

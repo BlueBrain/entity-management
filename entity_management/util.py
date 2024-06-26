@@ -194,12 +194,12 @@ def quote(url):
     return parse_quote(url, safe="")
 
 
-def split_url_from_revision_query(url):
+def split_url_params(url):
     """Split url from revision query."""
     res = urlparse(url)
-    url_without_revision = f"{res.scheme}://{res.netloc}{res.path}"
-    revision_query = parse_qs(res.query)
-    return url_without_revision, revision_query
+    url = f"{res.scheme}://{res.netloc}{res.path}"
+    params = parse_qs(res.query)
+    return url, params
 
 
 class PP:

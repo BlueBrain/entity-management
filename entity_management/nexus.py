@@ -293,11 +293,12 @@ def load_by_id(
     """
     base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
 
-    resource_id, revision_query = split_url_from_revision_query(resource_id)
+    resource_id, url_params = split_url_params(resource_id)
 
     if params is None:
         params = {}
-    params.update(revision_query)
+
+    params.update(url_params)
 
     url = f"{base_url}/{quote(resource_id)}"
     return load_by_url(url=url, params=params, stream=stream, token=token)
