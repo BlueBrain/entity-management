@@ -62,6 +62,7 @@ def set_token(token):
     if token is None:
         return
 
+    # pylint: disable=unreachable
     token_info = jwt.decode(token, options={"verify_signature": False})
 
     if token_info["typ"] == "Bearer":

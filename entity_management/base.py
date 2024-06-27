@@ -23,6 +23,7 @@ from entity_management.settings import (
     JSLD_CTX,
     JSLD_ID,
     JSLD_LINK_REV,
+    JSLD_LINK_TAG,
     JSLD_TYPE,
     NSG,
     NXV,
@@ -414,6 +415,7 @@ def _deserialize_identifiable(data_type, data_raw, *, base, org, proj, token):
     resource_id = data_raw[JSLD_ID]
     type_ = data_raw[JSLD_TYPE]
     rev = data_raw.get(JSLD_LINK_REV, NotInstantiated)
+    tag = data_raw.get(JSLD_LINK_TAG, NotInstantiated)
 
     # if generic Identifiable class is declared find the more specific type
     if data_type is Identifiable:
@@ -426,7 +428,7 @@ def _deserialize_identifiable(data_type, data_raw, *, base, org, proj, token):
                 resource_id, base, org, proj, token=token, cross_bucket=True
             )
 
-    return data_type._lazy_init(resource_id, type_, rev=rev, base=base, org=org, proj=proj)
+    return data_type._lazy_init(resource_id, type_, rev=rev, tag=tag, base=base, org=org, proj=proj)
 
 
 def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
@@ -524,12 +526,20 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     _deprecated = NotInstantiated
     _project = NotInstantiated
     _rev = NotInstantiated
+    _tag = NotInstantiated
     _updatedAt = NotInstantiated
     _updatedBy = NotInstantiated
 
     @classmethod
     def _lazy_init(
-        cls, resource_id, type_=NotInstantiated, rev=NotInstantiated, base=None, org=None, proj=None
+        cls,
+        resource_id,
+        type_=NotInstantiated,
+        rev=NotInstantiated,
+        tag=NotInstantiated,
+        base=None,
+        org=None,
+        proj=None,
     ):
         """Instantiate an object and put all its attributes to NotInstantiated."""
         # Running the validator has the side effect of instantiating
@@ -539,6 +549,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         obj._force_attr("_id", resource_id)
         obj._force_attr("_type", type_)
         obj._force_attr("_rev", rev)
+        obj._force_attr("_tag", tag)
         obj._force_attr("_lazy_meta_", (base, org, proj))
         attr.set_run_validators(True)
         return obj
@@ -772,9 +783,18 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         else:
             base, org, proj = (None, None, None)
 
-        # use the revision in the retrieval if it's a priori available
+        # use the revision or tag in the retrieval if they are priori available
+        tag = object.__getattribute__(self, "_tag")
         rev = object.__getattribute__(self, "_rev")
-        resource_id = self._id if rev is NotInstantiated else f"{self._id}?rev={rev}"
+
+        # note that tag is given precedence over _rev becauce it avoids replaying history up to that
+        # revision, and is therefore faster
+        if tag is not NotInstantiated:
+            resource_id = f"{self._id}?tag={tag}"
+        elif rev is not NotInstantiated:
+            resource_id = f"{self._id}?rev={rev}"
+        else:
+            resource_id = self._id
 
         fetched_instance = type(self).from_id(
             resource_id, base=base, org=org, proj=proj, cross_bucket=True

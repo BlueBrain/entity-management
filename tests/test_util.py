@@ -146,3 +146,16 @@ def test_get_entity__raises_if_not_instantiated(patched):
         exception.EntityNotInstantiatedError, match="failed to be instantiated from id my-id"
     ):
         test_module.get_entity("my-id", cls=MyEntity)
+
+
+def test_url_params():
+
+    url = "https://foo/bar?rev=10"
+    res_url, res_params = test_module.split_url_params(url)
+    assert res_url == "https://foo/bar"
+    assert res_params == {"rev": ["10"]}
+
+    url = "https://foo/bar?tag=v1.1"
+    res_url, res_params = test_module.split_url_params(url)
+    assert res_url == "https://foo/bar"
+    assert res_params == {"tag": ["v1.1"]}
