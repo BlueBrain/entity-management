@@ -175,6 +175,10 @@ class AtlasRelease(Entity):
     """AtlasRelease resource representation."""
 
 
+class BrainAtlasRelease(AtlasRelease):
+    """BrainAtlasRelease resource representation."""
+
+
 @attributes(
     {
         "atlasRelease": AttrOf(AtlasRelease, default=None),
