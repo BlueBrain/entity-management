@@ -269,8 +269,11 @@ Simulation campaign analysis (multiple)
             href = "./generated/entity_management.simulation.html#entity_management.simulation.AnalysisSoftwareSourceCode"
             target = "_top"
         ]
-        Contribution [
+        Generation [
             shape = Mrecord style = filled fillcolor = lemonchiffon
+        ]
+        Activity [
+            shape = record style = filled fillcolor = lightblue
         ]
         WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
@@ -293,8 +296,9 @@ Simulation campaign analysis (multiple)
         CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
         CumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
-        CumulativeAnalysisReport -> Contribution [label = "contribution"];
-        Contribution -> AnalysisSoftwareSourceCode [label = "agent"];
+        CumulativeAnalysisReport -> Generation [label = "generation"];
+        Generation -> Activity [label = "activity"];
+        Activity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
         MultiCumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
@@ -351,8 +355,11 @@ EModel analysis (multiple)
             href = "./generated/entity_management.simulation.html#entity_management.simulation.AnalysisSoftwareSourceCode"
             target = "_top"
         ]
-        Contribution [
+        Generation [
             shape = Mrecord style = filled fillcolor = lemonchiffon
+        ]
+        Activity [
+            shape = record style = filled fillcolor = lightblue
         ]
         WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
@@ -371,8 +378,9 @@ EModel analysis (multiple)
         CumulativeAnalysisReport -> EModel [label = "derivation"];
         CumulativeAnalysisReport -> MultiEModelAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
-        CumulativeAnalysisReport -> Contribution [label = "contribution"];
-        Contribution -> AnalysisSoftwareSourceCode [label = "agent"];
+        CumulativeAnalysisReport -> Generation [label = "generation"];
+        Generation -> Activity [label = "activity"];
+        Activity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
         MultiCumulativeAnalysisReport -> MultiEModelAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }

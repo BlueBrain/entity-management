@@ -327,6 +327,7 @@ class SoftwareAgent(Agent):
         "wasStartedBy": AttrOf(Identifiable, default=None),
         "wasInformedBy": AttrOf(Identifiable, default=None),
         "wasInfluencedBy": AttrOf(Identifiable, default=None),
+        "wasAssociatedWith": AttrOf(Identifiable, default=None),
     }
 )
 class Activity(Identifiable):
@@ -345,6 +346,9 @@ class Activity(Identifiable):
             https://www.w3.org/TR/prov-o/#wasInformedBy
         wasInfluencedBy (Identifiable): Entity/Agent/Activity which influenced the activity.
             https://www.w3.org/TR/prov-o/#wasInfluencedBy
+        wasAssociatedWith (Identifiable): Entity/Agent/Activity that had some (unspecified)
+            responsibility for the occurrence of this activity.
+            https://www.w3.org/TR/prov-o/#wasAssociatedWith
     """
 
     def __attrs_post_init__(self):
@@ -444,6 +448,15 @@ class Contribution(BlankNode):
 
 @attributes(
     {
+        "activity": AttrOf(Activity),
+    }
+)
+class Generation(BlankNode):
+    """Generation"""
+
+
+@attributes(
+    {
         "name": AttrOf(str, default=None),
         "description": AttrOf(str, default=None),
         "wasAttributedTo": AttrOf(List[Agent], default=None),
@@ -452,6 +465,7 @@ class Contribution(BlankNode):
         "dateCreated": AttrOf(datetime, default=None),
         "distribution": AttrOf(MaybeList[DataDownload], default=None),
         "contribution": AttrOf(List[Contribution], default=None),
+        "generation": AttrOf(List[Generation], default=None),
     }
 )
 class Entity(Identifiable):
