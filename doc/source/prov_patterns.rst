@@ -272,7 +272,7 @@ Simulation campaign analysis (multiple)
         Generation [
             shape = Mrecord style = filled fillcolor = lemonchiffon
         ]
-        Activity [
+        GenerationActivity [
             shape = record style = filled fillcolor = lightblue
         ]
         WorkflowExecution [
@@ -297,8 +297,8 @@ Simulation campaign analysis (multiple)
         CumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
         CumulativeAnalysisReport -> Generation [label = "generation"];
-        Generation -> Activity [label = "activity"];
-        Activity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
+        Generation -> GenerationActivity [label = "activity"];
+        GenerationActivity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
         MultiCumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
@@ -358,7 +358,7 @@ EModel analysis (multiple)
         Generation [
             shape = Mrecord style = filled fillcolor = lemonchiffon
         ]
-        Activity [
+        GenerationActivity [
             shape = record style = filled fillcolor = lightblue
         ]
         WorkflowExecution [
@@ -379,8 +379,8 @@ EModel analysis (multiple)
         CumulativeAnalysisReport -> MultiEModelAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
         CumulativeAnalysisReport -> Generation [label = "generation"];
-        Generation -> Activity [label = "activity"];
-        Activity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
+        Generation -> GenerationActivity [label = "activity"];
+        GenerationActivity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
         MultiCumulativeAnalysisReport -> MultiEModelAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
