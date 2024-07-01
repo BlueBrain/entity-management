@@ -437,19 +437,6 @@ class WorkflowExecution(Activity):
     """
 
 
-class GenerationActivity(Activity):
-    """GenerationActivity."""
-
-
-@attributes(
-    {
-        "activity": AttrOf(GenerationActivity),
-    }
-)
-class Generation(BlankNode):
-    """Generation."""
-
-
 @attributes(
     {
         "agent": AttrOf(Agent),
@@ -457,6 +444,15 @@ class Generation(BlankNode):
 )
 class Contribution(BlankNode):
     """Contribution"""
+
+
+@attributes(
+    {
+        "activity": AttrOf(Activity),
+    }
+)
+class Generation(BlankNode):
+    """Generation."""
 
 
 @attributes(
