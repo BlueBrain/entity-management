@@ -5,7 +5,7 @@
 from typing import List
 
 from entity_management.base import BrainLocation, Derivation, Identifiable, Subject, attributes
-from entity_management.core import Contribution, DataDownload, Entity
+from entity_management.core import DataDownload, Entity
 from entity_management.util import AttrOf
 
 
@@ -184,7 +184,6 @@ class BrainAtlasRelease(AtlasRelease):
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "about": AttrOf(List[str], default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
-        "contribution": AttrOf(List[Contribution], default=None),
         "derivation": AttrOf(Derivation, default=None),
         "distribution": AttrOf(DataDownload),
         "subject": AttrOf(Subject, default=None),
@@ -199,7 +198,6 @@ class CellCompositionSummary(Entity):
         "about": AttrOf(List[str], default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "brainLocation": AttrOf(BrainLocation, default=None),
-        "contribution": AttrOf(List[Contribution], default=None),
         "derivation": AttrOf(Derivation, default=None),
         "distribution": AttrOf(DataDownload),
         "subject": AttrOf(Subject, default=None),
@@ -217,7 +215,6 @@ class CellCompositionVolume(Entity):
         "brainLocation": AttrOf(BrainLocation, default=None),
         "cellCompositionSummary": AttrOf(CellCompositionSummary),
         "cellCompositionVolume": AttrOf(CellCompositionVolume),
-        "contribution": AttrOf(List[Contribution], default=None),
     }
 )
 class CellComposition(Entity):
@@ -232,7 +229,6 @@ class CellComposition(Entity):
         "distribution": AttrOf(DataDownload),
         "subject": AttrOf(Subject, default=None),
         "derivation": AttrOf(Derivation, default=None),
-        "contribution": AttrOf(Contribution, default=None),
     }
 )
 class METypeDensity(Entity):
