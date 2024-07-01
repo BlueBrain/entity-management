@@ -37,9 +37,8 @@ def get_token():
     return ACCESS_TOKEN
 
 
-def get_token_info(token=None):
+def get_token_info(token):
     """Decode token."""
-    token = token or get_token()
     return jwt.decode(token, options={"verify_signature": False})
 
 
@@ -69,7 +68,7 @@ def set_token(token):
         return
 
     # pylint: disable=unreachable
-    token_info = get_token_info(token=token)
+    token_info = get_token_info(token)
 
     if token_info["typ"] == "Bearer":
         ACCESS_TOKEN = token
@@ -209,5 +208,6 @@ def get_user_id(base=None, org=None, token=None):
     """Construct user id."""
     org = org or ORG
     base = base or BASE
-    username = get_token_info(token=token)["preferred_username"]
+    token = token or get_token()
+    username = get_token_info(token)["preferred_username"]
     return f"{base}/realms/{org}/users/{username}"
