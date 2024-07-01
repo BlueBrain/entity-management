@@ -28,6 +28,7 @@ from entity_management.settings import (
     NSG,
     NXV,
     RDF,
+    TYPE_TO_SCHEMA_MAPPING,
 )
 from entity_management.state import get_base_resources, get_base_url, get_org, get_proj
 from entity_management.util import AttrOf, NotInstantiated, _clean_up_dict, quote
@@ -193,12 +194,20 @@ class _RegistryMeta(type):
     def __init__(cls, name, bases, attrs):
         # Always register constrained type hint, so we can recover in a unique way class from
         # _constrainedBy
-        constrained_by = str(DASH[name.lower()])
+        try:
+            schema = TYPE_TO_SCHEMA_MAPPING[name]
+        except KeyError:
+            schema = str(DASH[name.lower()])
+
+        constrained_by = schema
         nexus.register_type(constrained_by, cls)
         # also registre by class name so we can recover from @type
         nexus.register_type(name, cls)
 
         cls._nsg_type = NSG[name]
+
+        # using schema mapping add a schema to cls
+        cls._constrainedBy = schema
 
         super().__init__(name, bases, attrs)
 
@@ -452,7 +461,14 @@ def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
     data = data_type(**field_values)
 
     if issubclass(data_type, BlankNode):
-        data._force_attr("_type", data_raw[JSLD_TYPE])
+        try:
+            data._force_attr("_type", data_raw[JSLD_TYPE])
+        except KeyError:
+            # This is a workaround for entities that need to be migrated from Frozen to BlankNode
+            # These resources need to have a @type but it is not yet present in their data. To allow
+            # backward compatibity the data type's name is used when type is not found.
+            # If all the BlankNode resources have been updated with a @type, this can be removed.
+            data._force_attr("_type", data_type.__name__)
     return data
 
 
@@ -739,8 +755,13 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 token=use_auth,
             )
         else:
+            if self._constrainedBy is not NotInstantiated:
+                schema_id = quote(self._constrainedBy)
+            else:
+                schema_id = None
+
             json_ld = nexus.create(
-                get_base_url(base, org, proj),
+                get_base_url(base, org, proj, schema_id=schema_id),
                 payload,
                 resource_id,
                 sync_index=sync_index,
@@ -895,7 +916,7 @@ class OntologyTerm(Frozen):
 
 
 @attributes({"brainRegion": AttrOf(OntologyTerm)})
-class BrainLocation(Frozen):
+class BrainLocation(BlankNode):
     """Brain location.
 
     Args:
@@ -908,7 +929,7 @@ class BrainLocation(Frozen):
         "entity": AttrOf(Identifiable),
     }
 )
-class Derivation(Frozen):
+class Derivation(BlankNode):
     """Derivation."""
 
 
