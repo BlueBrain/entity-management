@@ -36,6 +36,11 @@ def get_token():
         refresh_token()
     return ACCESS_TOKEN
 
+def get_token_info(token=None):
+    """Decode token."""
+    token = token or get_token()
+    return jwt.decode(token, options={"verify_signature": False})
+
 
 def get_offline_token():
     """Get offline token."""
@@ -63,7 +68,7 @@ def set_token(token):
         return
 
     # pylint: disable=unreachable
-    token_info = jwt.decode(token, options={"verify_signature": False})
+    token_info = get_token_info(token=token)
 
     if token_info["typ"] == "Bearer":
         ACCESS_TOKEN = token
@@ -197,3 +202,11 @@ def get_base_resolvers(base=None):
         global ``Base`` variable value which is initialized from NEXUS_BASE environment variable.
     """
     return f"{base}/resolvers" if base else f"{BASE}/resolvers"
+
+
+def get_user_id(base=None, org=None, token=None):
+    """Construct user id."""
+    org = org or ORG
+    base = base or BASE
+    username = get_token_info(token=token)["preferred_username"]
+    return f"{base}/realms/{org}/users/{username}"
