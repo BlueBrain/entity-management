@@ -269,12 +269,6 @@ Simulation campaign analysis (multiple)
             href = "./generated/entity_management.simulation.html#entity_management.simulation.AnalysisSoftwareSourceCode"
             target = "_top"
         ]
-        Generation [
-            shape = Mrecord style = filled fillcolor = lemonchiffon
-        ]
-        GenerationActivity [
-            shape = record style = filled fillcolor = lightblue
-        ]
         WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
             label = "{WorkflowExecution|module\ltask\lversion\lparameters\l}"
@@ -296,9 +290,7 @@ Simulation campaign analysis (multiple)
         CumulativeAnalysisReport -> SimulationCampaign [label = "derivation"];
         CumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
-        CumulativeAnalysisReport -> Generation [label = "generation"];
-        Generation -> GenerationActivity [label = "activity"];
-        GenerationActivity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
+        CumulativeAnalysisReport -> AnalysisSoftwareSourceCode [label = "generation, activity, wasAssociatedWith"];
         MultiCumulativeAnalysisReport -> MultiCumulativeSimulationCampaignAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
@@ -355,12 +347,6 @@ EModel analysis (multiple)
             href = "./generated/entity_management.simulation.html#entity_management.simulation.AnalysisSoftwareSourceCode"
             target = "_top"
         ]
-        Generation [
-            shape = Mrecord style = filled fillcolor = lemonchiffon
-        ]
-        GenerationActivity [
-            shape = record style = filled fillcolor = lightblue
-        ]
         WorkflowExecution [
             shape = record style = filled fillcolor = lightblue
             label = "{WorkflowExecution|module\ltask\lversion\lparameters\l}"
@@ -378,9 +364,7 @@ EModel analysis (multiple)
         CumulativeAnalysisReport -> EModel [label = "derivation"];
         CumulativeAnalysisReport -> MultiEModelAnalysis [label = "wasGeneratedBy"];
         CumulativeAnalysisReport -> AnalysisReport [label = "hasPart"];
-        CumulativeAnalysisReport -> Generation [label = "generation"];
-        Generation -> GenerationActivity [label = "activity"];
-        GenerationActivity -> AnalysisSoftwareSourceCode [label = "wasAssociatedWith"];
+        CumulativeAnalysisReport -> AnalysisSoftwareSourceCode [label = "generation, activity, wasAssociatedWith"];
         MultiCumulativeAnalysisReport -> MultiEModelAnalysis [label = "wasGeneratedBy"];
         MultiCumulativeAnalysisReport -> CumulativeAnalysisReport [label = "hasPart"];
     }
