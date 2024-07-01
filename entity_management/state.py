@@ -36,6 +36,7 @@ def get_token():
         refresh_token()
     return ACCESS_TOKEN
 
+
 def get_token_info(token=None):
     """Decode token."""
     token = token or get_token()
