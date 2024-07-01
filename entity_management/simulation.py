@@ -515,6 +515,9 @@ class SimulationCampaignReportCollection(Entity):
 class AnalysisReport(Entity):
     """Analysis report.
 
+    .. deprecated:: 1.3.2
+        Use :class:`entity_management.analysis.AnalysisReport` instead.
+
     Args:
         distribution (DataDownload): Generated report.
         image (DataDownload): Generated report image preview when applicable.
