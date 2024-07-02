@@ -30,6 +30,8 @@ from entity_management.base import (
     attributes,
     AttrOf,
     Subject,
+    Derivation,
+    BrainLocation,
 )
 from entity_management import state
 from entity_management.state import get_org, get_proj
@@ -87,6 +89,38 @@ def test_serialize():
     assert _serialize_obj(dummy) == {"a": {1: 2}, "b": [{"@id": "A", "label": "B"}]}
 
     assert _serialize_obj(42) == 42
+
+
+def test_serialize__derivation():
+
+    @attributes(
+        {
+            "a": AttrOf(int),
+            "b": AttrOf(float),
+        }
+    )
+    class A(Identifiable):
+        pass
+
+    resp = _make_valid_resp({"@id": "my-id", "@type": "A", "a": 1, "b": 2.0})
+
+    with patch("entity_management.nexus.load_by_id", return_value=resp):
+        a = A.from_id("my-id")
+
+    derivation = Derivation(entity=a)
+
+    res = _serialize_obj(derivation)
+
+    assert res == {"entity": {"@id": "my-id", "@type": "A"}, "@type": "Derivation"}
+
+
+def test_serialize__brain_location():
+
+    brain_location = BrainLocation(brainRegion=OntologyTerm(url="foo"))
+
+    res = _serialize_obj(brain_location)
+
+    assert res == {"brainRegion": {"@id": "foo", "label": None}, "@type": "BrainLocation"}
 
 
 def test_serialize_obj__include_rev__instantiated_with_revision():

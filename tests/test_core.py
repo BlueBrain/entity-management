@@ -6,6 +6,7 @@ import pytest
 
 import entity_management.nexus as nexus
 from entity_management.core import DataDownload, WorkflowExecution, Entity, Activity, Person
+from entity_management import core as test_module
 
 
 @pytest.fixture(name="workflow_resp", scope="session")
