@@ -459,7 +459,7 @@ def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
             # These resources need to have a @type but it is not yet present in their data. To allow
             # backward compatibity the data type's name is used when type is not found.
             # If all the BlankNode resources have been updated with a @type, this can be removed.
-            data._force_attr("_type", data_type.__name__)
+            L.warning("No @type found in BlankNode data. The class type will be used instead.")
     return data
 
 

@@ -21,6 +21,7 @@ from entity_management.base import (
     Identifiable,
     OntologyTerm,
     _deserialize_list,
+    _deserialize_frozen,
     _deserialize_json_to_datatype,
     _serialize_obj,
     Unconstrained,
@@ -322,6 +323,12 @@ def _eval(string_or_type):
 )
 def test_deserialize_json_to_datatype(data_type, data_raw, expected):
     assert _deserialize_json_to_datatype(_eval(data_type), data_raw) == expected
+
+
+def test_deserialize_frozen():
+    # test that a frozen deserialized as BlankNode works for backward compatibility
+    res = _deserialize_frozen(BlankNode1, {"a": 2, "b": 3.0}, None, None, None, None, None)
+    assert res == BlankNode1(a=2, b=3.0)
 
 
 def _make_valid_resp(data):
