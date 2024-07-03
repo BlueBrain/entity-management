@@ -452,7 +452,14 @@ def _deserialize_frozen(data_type, data_raw, context, base, org, proj, token):
     data = data_type(**field_values)
 
     if issubclass(data_type, BlankNode):
-        data._force_attr("_type", data_raw[JSLD_TYPE])
+        try:
+            data._force_attr("_type", data_raw[JSLD_TYPE])
+        except KeyError:
+            # This is a workaround for entities that need to be migrated from Frozen to BlankNode
+            # These resources need to have a @type but it is not yet present in their data. To allow
+            # backward compatibity the data type's name is used when type is not found.
+            # If all the BlankNode resources have been updated with a @type, this can be removed.
+            L.warning("No @type found in BlankNode data. The class type will be used instead.")
     return data
 
 
@@ -895,7 +902,7 @@ class OntologyTerm(Frozen):
 
 
 @attributes({"brainRegion": AttrOf(OntologyTerm)})
-class BrainLocation(Frozen):
+class BrainLocation(BlankNode):
     """Brain location.
 
     Args:
@@ -908,7 +915,7 @@ class BrainLocation(Frozen):
         "entity": AttrOf(Identifiable),
     }
 )
-class Derivation(Frozen):
+class Derivation(BlankNode):
     """Derivation."""
 
 
