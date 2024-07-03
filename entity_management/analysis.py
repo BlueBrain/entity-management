@@ -18,6 +18,9 @@ from entity_management.workflow import BbpWorkflowActivity
 class AnalysisReportGenerationActivity(BlankNode):
     """AnalysisReportGenerationActivity."""
 
+    def __attrs_post_init__(self):
+        self._force_attr("_type", "Activity")
+
 
 @attributes(
     {
@@ -26,6 +29,9 @@ class AnalysisReportGenerationActivity(BlankNode):
 )
 class AnalysisReportGeneration(BlankNode):
     """AnalysisReportGeneration."""
+
+    def __attrs_post_init__(self):
+        self._force_attr("_type", "Generation")
 
 
 @attributes()
