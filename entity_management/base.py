@@ -231,11 +231,13 @@ def _serialize_obj(value, include_rev=False):
             attr_value = getattr(value, attr_name)
             if attr_value is not None:  # ignore empty values
                 if isinstance(attr_value, (tuple, list, set)):
-                    rv[attr_name] = [_serialize_obj(i) for i in attr_value]
+                    rv[attr_name] = [_serialize_obj(i, include_rev) for i in attr_value]
                 elif isinstance(attr_value, dict):
-                    rv[attr_name] = {kk: _serialize_obj(vv) for kk, vv in attr_value.items()}
+                    rv[attr_name] = {
+                        kk: _serialize_obj(vv, include_rev) for kk, vv in attr_value.items()
+                    }
                 else:
-                    rv[attr_name] = _serialize_obj(attr_value)
+                    rv[attr_name] = _serialize_obj(attr_value, include_rev)
         if hasattr(value, "_type"):  # BlankNode have types
             rv[JSLD_TYPE] = value._type
         return rv
