@@ -137,6 +137,13 @@ def test_serialize_obj__include_rev__instantiated_with_revision():
     res = _serialize_obj(a, include_rev=True)
     assert res == {JSLD_ID: "foo", JSLD_TYPE: "A", JSLD_LINK_REV: 5}
 
+    d = Derivation(entity=a)
+    res = _serialize_obj(d, include_rev=True)
+    assert res == {
+        "entity": {JSLD_ID: "foo", JSLD_TYPE: "A", JSLD_LINK_REV: 5},
+        JSLD_TYPE: "Derivation",
+    }
+
 
 def test_serialize_obj__include_rev__instantiated_wout_revision(monkeypatch):
 
