@@ -17,6 +17,7 @@ from entity_management.settings import DASH, JSLD_TYPE, NSG, USERINFO
 from entity_management.state import (
     get_base_files,
     get_base_url,
+    get_es_url,
     get_org,
     get_proj,
     get_sparql_url,
@@ -582,3 +583,30 @@ def sparql_query(query, base=None, org=None, proj=None, token=None):
     endpoint.setQuery(query)
     result = endpoint.query()
     return result._convertJSON()
+
+
+@_nexus_wrapper
+def es_query(query, base=None, org=None, proj=None, token=None):
+    """Execute Elasticsearch query.
+
+    Args:
+        query (dict): Elasticsearch dictionary query to serialize to json.
+        base (str): Nexus instance base url.
+        org (str): Nexus organization.
+        proj (str): Nexus project.
+        token (str): Optional OAuth token.
+
+    Returns:
+        Json response.
+    """
+    base_url = get_es_url(base, org, proj)
+
+    response = requests.post(
+        url=base_url,
+        headers=_get_headers(token, accept="application/json"),
+        json=query,
+        timeout=10,
+    )
+
+    response.raise_for_status()
+    return _to_json(response, query)
