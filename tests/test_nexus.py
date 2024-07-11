@@ -180,3 +180,37 @@ def test_load_by_id__with_tag():
             stream=False,
             token=None,
         )
+
+
+@responses.activate
+def test_es_query():
+
+    json_response = {
+        "hits": {
+            "hits": [
+                {
+                    "_id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/488e70c6-7163-414b-9e91-cae58bad9545",
+                    "_index": "nexus_ac626f52-a548-439a-9b4d-913304323ffe_1",
+                    "_score": 10.913751,
+                },
+            ],
+            "max_score": 10.913751,
+            "total": {"relation": "eq", "value": 1},
+        },
+        "timed_out": False,
+        "took": 1,
+        "_shards": {"failed": 0, "skipped": 0, "successful": 1, "total": 1},
+    }
+
+    responses.add(
+        responses.POST,
+        "https://foo/views/bar/zee/documents/_search",
+        json=json_response,
+        content_type="application/json",
+    )
+
+    query = {"query": {"term": {"@type": "Foo"}}}
+
+    res = nexus.es_query(query, base="https://foo", org="bar", proj="zee")
+
+    assert res == json_response
