@@ -58,4 +58,4 @@ def test_get_es_url():
         with patch("entity_management.state.PROJ", "my-proj"):
             with patch("entity_management.state.ORG", "my-org"):
                 res = test_module.get_es_url()
-                assert res == "foo/views/bar/zee/documents/_search"
+                assert res == "my-base/views/my-proj/my-org/documents/_search"
