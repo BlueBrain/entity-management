@@ -13,6 +13,7 @@ from functools import wraps
 import requests
 from SPARQLWrapper import JSON, POST, POSTDIRECTLY, SPARQLWrapper
 
+from entity_management.debug import PP
 from entity_management.settings import DASH, JSLD_TYPE, NSG, USERINFO
 from entity_management.state import (
     get_base_files,
@@ -93,11 +94,11 @@ def _print_nexus_error(http_error):
         response_data = response.text
     L.error(
         "Nexus error!\nmethod = %s\nurl = %s\npayload = %s\nstatus = %s\nresponse = %s",
-        request.method,
-        request.url,
-        request_data,
-        response.status_code,
-        response_data,
+        PP(request.method),
+        PP(request.url),
+        PP(request_data),
+        PP(response.status_code),
+        PP(response_data),
     )
 
 
@@ -106,10 +107,10 @@ def _to_json(response, payload=None):
     json = response.json()
     L.debug(
         "Nexus request\nmethod = %s\nurl = %s\npayload = %s\nresponse = %s",
-        response.request.method,
-        response.request.url,
-        payload,
-        json,
+        PP(response.request.method),
+        PP(response.request.url),
+        PP(payload),
+        PP(json),
     )
     return json
 
@@ -514,8 +515,8 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
         response.raise_for_status()
         L.debug(
             "Nexus request\nmethod = %s\nurl = %s",
-            response.request.method,
-            response.request.url,
+            PP(response.request.method),
+            PP(response.request.url),
         )
         if file_name is None:
             content_disposition = response.headers.get("content-disposition")
