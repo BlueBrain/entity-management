@@ -37,7 +37,6 @@ dependencies = [
   "rdflib",
   "pyjwt",
   "python-keycloak",
-  "devtools[pygments]",
   "click",
 ]
 dynamic = ["version"]
