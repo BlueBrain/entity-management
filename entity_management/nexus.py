@@ -24,7 +24,7 @@ from entity_management.state import (
     has_offline_token,
     refresh_token,
 )
-from entity_management.util import PP, quote, split_url_params, unquote_uri_path
+from entity_management.util import quote, split_url_params, unquote_uri_path
 
 L = logging.getLogger(__name__)
 
@@ -93,11 +93,11 @@ def _print_nexus_error(http_error):
         response_data = response.text
     L.error(
         "Nexus error!\nmethod = %s\nurl = %s\npayload = %s\nstatus = %s\nresponse = %s",
-        PP(request.method),
-        PP(request.url),
-        PP(request_data),
-        PP(response.status_code),
-        PP(response_data),
+        request.method,
+        request.url,
+        request_data,
+        response.status_code,
+        response_data,
     )
 
 
@@ -106,10 +106,10 @@ def _to_json(response, payload=None):
     json = response.json()
     L.debug(
         "Nexus request\nmethod = %s\nurl = %s\npayload = %s\nresponse = %s",
-        PP(response.request.method),
-        PP(response.request.url),
-        PP(payload),
-        PP(json),
+        response.request.method,
+        response.request.url,
+        payload,
+        json,
     )
     return json
 
@@ -514,8 +514,8 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
         response.raise_for_status()
         L.debug(
             "Nexus request\nmethod = %s\nurl = %s",
-            PP(response.request.method),
-            PP(response.request.url),
+            response.request.method,
+            response.request.url,
         )
         if file_name is None:
             content_disposition = response.headers.get("content-disposition")
