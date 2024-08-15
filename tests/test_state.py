@@ -47,3 +47,15 @@ def test_get_user_id():
         with patch("entity_management.state.ORG", "my-org"):
             res = test_module.get_user_id(base="base")
             assert res == "base/realms/my-org/users/foo"
+
+
+def test_get_es_url():
+
+    res = test_module.get_es_url(base="foo", org="bar", proj="zee")
+    assert res == "foo/views/bar/zee/documents/_search"
+
+    with patch("entity_management.state.BASE", "my-base"):
+        with patch("entity_management.state.PROJ", "my-proj"):
+            with patch("entity_management.state.ORG", "my-org"):
+                res = test_module.get_es_url()
+                assert res == "my-base/views/my-org/my-proj/documents/_search"

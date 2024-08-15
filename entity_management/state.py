@@ -176,6 +176,11 @@ def get_sparql_url(base=None, org=None, proj=None):
     return f"{get_base_views(base)}/{get_org(org)}/{get_proj(proj)}/graph/sparql"
 
 
+def get_es_url(base=None, org=None, proj=None):
+    """Get base elasticsearch url."""
+    return f"{get_base_views(base)}/{get_org(org)}/{get_proj(proj)}/documents/_search"
+
+
 def get_base_files(base=None):
     """Get url to nexus environment base for the files.
 
