@@ -757,10 +757,12 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
                 token=use_auth,
             )
         else:
+
             if self._constrainedBy is not NotInstantiated:
                 schema_id = quote(self._constrainedBy)
             else:
                 schema_id = None
+                L.warning("No schema found for %s. It will be registered as unconstrained.", self)
 
             json_ld = nexus.create(
                 get_base_url(base, org, proj, schema_id=schema_id),
