@@ -32,6 +32,11 @@ def test_base_url__cross_bucket():
                 assert res == "my-base/resolvers/my-org/my-proj/_"
 
 
+def test_base_url__schema_id():
+    res = test_module.get_base_url(base="base", org="org", proj="proj", schema_id="schema-id")
+    assert res == "base/resources/org/proj/schema-id"
+
+
 def test_get_user_id():
 
     mock_payload = {"preferred_username": "foo"}
