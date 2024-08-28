@@ -13,6 +13,7 @@ from functools import wraps
 import requests
 from SPARQLWrapper import JSON, POST, POSTDIRECTLY, SPARQLWrapper
 
+from entity_management.debug import PP
 from entity_management.settings import DASH, JSLD_TYPE, NSG, USERINFO
 from entity_management.state import (
     get_base_files,
@@ -25,7 +26,7 @@ from entity_management.state import (
     has_offline_token,
     refresh_token,
 )
-from entity_management.util import PP, quote, split_url_params, unquote_uri_path
+from entity_management.util import quote, split_url_params, unquote_uri_path
 
 L = logging.getLogger(__name__)
 

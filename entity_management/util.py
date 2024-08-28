@@ -11,7 +11,6 @@ from urllib.parse import unquote, urlparse
 import attr
 from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
-from devtools import pformat
 
 from entity_management import state, typecheck
 from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError
@@ -200,17 +199,6 @@ def split_url_params(url):
     url = f"{res.scheme}://{res.netloc}{res.path}"
     params = parse_qs(res.query)
     return url, params
-
-
-class PP:
-    """Lazy pretty printer with pformat from devtools."""
-
-    def __init__(self, value, highlight=True):
-        self.value = value
-        self.highlight = highlight
-
-    def __str__(self):
-        return pformat(self.value, highlight=self.highlight)
 
 
 def unquote_uri_path(uri):
