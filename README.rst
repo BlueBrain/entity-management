@@ -26,6 +26,16 @@ Tests
     pip install tox
     tox
 
+Logging
+=======
+
+To log responses from Nexus in a pretty format, you may want to ensure that the package `devtools <https://github.com/samuelcolvin/python-devtools>`__ is installed, and set the environment variables:
+
+.. code-block:: bash
+
+    PY_DEVTOOLS_ENABLE=1
+    PY_DEVTOOLS_HIGHLIGHT=1
+
 Acknowledgements
 ================
 
