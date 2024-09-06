@@ -28,13 +28,13 @@ from entity_management.util import AttrOf
         "prefLabel": AttrOf(str, default=None),
     }
 )
-class MTypeAnnotationBody(BlankNode):
-    """MTypeAnnotationBody."""
+class AnnotationBody(BlankNode):
+    """AnnotationBody."""
 
 
 @attributes(
     {
-        "hasBody": AttrOf(MTypeAnnotationBody),
+        "hasBody": AttrOf(AnnotationBody),
         "name": AttrOf(str, default=None),
     }
 )
@@ -44,22 +44,22 @@ class MTypeAnnotation(BlankNode):
 
 @attributes(
     {
-        "label": AttrOf(str),
-        "prefLabel": AttrOf(str, default=None),
-    }
-)
-class ETypeAnnotationBody(BlankNode):
-    """ETypeAnnotationBody."""
-
-
-@attributes(
-    {
-        "hasBody": AttrOf(ETypeAnnotationBody),
+        "hasBody": AttrOf(AnnotationBody),
         "name": AttrOf(str, default=None),
     }
 )
 class ETypeAnnotation(BlankNode):
     """ETypeAnnotation."""
+
+
+@attributes(
+    {
+        "hasBody": AttrOf(dict),
+        "name": AttrOf(str, default=None),
+    }
+)
+class QualityAnnotation(BlankNode):
+    """QualityAnnotation."""
 
 
 @attributes(
@@ -74,7 +74,9 @@ class ETypeAnnotation(BlankNode):
         "brainLocation": AttrOf(BrainLocation, default=None),
         "atlasRelease": AttrOf(AtlasRelease, default=None),
         "subject": AttrOf(Subject, default=None),
-        "annotation": AttrOf(List[Union[MTypeAnnotation, ETypeAnnotation]], default=None),
+        "annotation": AttrOf(
+            List[Union[MTypeAnnotation, ETypeAnnotation, QualityAnnotation]], default=None
+        ),
     }
 )
 class EModelEntity(MultiDistributionEntity):
