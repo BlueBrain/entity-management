@@ -36,6 +36,26 @@
         "label": "L6_LBC"
       },
       "name": "M-type annotation"
+    },
+    {
+      "@type": [
+        "QualityAnnotation",
+        "Annotation"
+      ],
+      "hasBody": {
+        "@id": "https://bbp.epfl.ch/ontologies/core/bmo/AnalysisSuitable",
+        "@type": [
+          "AnnotationBody",
+          "DataScope"
+        ],
+        "label": "Analysis Suitable"
+      },
+      "motivatedBy": {
+        "@id": "quality:Assessment",
+        "@type": "Motivation"
+      },
+      "name": "Data usage scope annotation",
+      "note": "Analysis can be run on this model."
     }
   ],
   "atlasRelease": {

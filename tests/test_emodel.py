@@ -61,7 +61,10 @@ def _has_agent_id(obj):
 
 
 def _has_body_label(obj):
-    assert all(_apply(lambda o: o.hasBody.label is not None, obj))
+    without_quality_annotation = [
+        o for o in obj if not isinstance(o, test_module.QualityAnnotation)
+    ]
+    assert all(_apply(lambda o: o.hasBody.label is not None, without_quality_annotation))
 
 
 def _nonempty_list(obj):
