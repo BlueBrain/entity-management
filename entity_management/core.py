@@ -448,15 +448,6 @@ class Contribution(BlankNode):
 
 @attributes(
     {
-        "activity": AttrOf(Activity),
-    }
-)
-class Generation(BlankNode):
-    """Generation."""
-
-
-@attributes(
-    {
         "name": AttrOf(str, default=None),
         "description": AttrOf(str, default=None),
         "wasAttributedTo": AttrOf(List[Agent], default=None),
@@ -465,7 +456,6 @@ class Generation(BlankNode):
         "dateCreated": AttrOf(datetime, default=None),
         "distribution": AttrOf(MaybeList[DataDownload], default=None),
         "contribution": AttrOf(List[Contribution], default=None),
-        "generation": AttrOf(List[Generation], default=None),
     }
 )
 class Entity(Identifiable):
