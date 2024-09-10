@@ -28,6 +28,7 @@ from entity_management.settings import (
     NSG,
     NXV,
     RDF,
+    SCHEMA_UNCONSTRAINED,
     TYPE_TO_SCHEMA_MAPPING,
 )
 from entity_management.state import get_base_resources, get_base_url, get_org, get_proj
@@ -194,20 +195,25 @@ class _RegistryMeta(type):
     def __init__(cls, name, bases, attrs):
         # Always register constrained type hint, so we can recover in a unique way class from
         # _constrainedBy
-        try:
-            schema = TYPE_TO_SCHEMA_MAPPING[name]
-        except KeyError:
-            schema = str(DASH[name.lower()])
 
-        constrained_by = schema
-        nexus.register_type(constrained_by, cls)
-        # also registre by class name so we can recover from @type
+        schema = TYPE_TO_SCHEMA_MAPPING.get(name, None)
+
+        # Maintain backwards compatibility by registering a schema hint.
+        # If there is no existing schema stored, predict one that may be incorrect.
+        hint = schema or str(DASH[name.lower()])
+
+        # register the schema hint
+        nexus.register_type(hint, cls)
+
+        # also register by class name so we can recover from @type
         nexus.register_type(name, cls)
 
         cls._nsg_type = NSG[name]
 
-        # using schema mapping add a schema to cls
-        cls._constrainedBy = schema
+        # If a schema is not in the local mapping, the entity will be unconstrained.
+        # This allows entity-management to work with custom entities in projects that do not have
+        # schema validation enforced. It's up to NEXUS to complain if the schema is unconstrained.
+        cls._constrainedBy = schema or SCHEMA_UNCONSTRAINED
 
         super().__init__(name, bases, attrs)
 
@@ -758,11 +764,13 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
             )
         else:
 
-            if self._constrainedBy is not NotInstantiated:
-                schema_id = quote(self._constrainedBy)
-            else:
+            # Maintain backwards compatibility by registering entities that are not constrained by
+            # a schema as unconstrained, i.e. without specifying a schema in the request.
+            if self._constrainedBy in {NotInstantiated, SCHEMA_UNCONSTRAINED}:
                 schema_id = None
                 L.warning("No schema found for %s. It will be registered as unconstrained.", self)
+            else:
+                schema_id = quote(self._constrainedBy)
 
             json_ld = nexus.create(
                 get_base_url(base, org, proj, schema_id=schema_id),

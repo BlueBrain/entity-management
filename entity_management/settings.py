@@ -16,6 +16,8 @@ JSLD_LINK_REV = "_rev"
 JSLD_LINK_TAG = "tag"
 JSLD_DEPRECATED = "nxv:deprecated"
 
+SCHEMA_UNCONSTRAINED = "https://bluebrain.github.io/nexus/schemas/unconstrained.json"
+
 USERINFO = os.getenv("NEXUS_USERINFO", "https://bbp.epfl.ch/nexus/v1/identities")
 DEFAULT_TAG = "v0.1.0"
 
