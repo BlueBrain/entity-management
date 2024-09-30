@@ -1,0 +1,103 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: MorphologyAssignmentConfig distribution schema
+'$defs':
+  uri:
+    type: string
+    format: uri
+    pattern: '^https?:\/\/[^?#]*$'  # uri without query or fragment
+  revision:
+    type: integer
+    minimum: 1
+  variant_info:
+    type: object
+    required:
+      - algorithm
+      - version
+    algorithm:
+      type: string
+    version:
+      type: string
+  variant_entry:
+      type: object
+      required:
+        - '@id'
+      properties:
+        '@id':
+          '$ref': '#/$defs/uri'
+        '_rev':
+          '$ref': '#/$defs/revision'
+type: object
+required:
+  - variantDefinition
+  - defaults
+  - configuration
+properties:
+
+  version:
+    type: integer
+
+  variantDefinition:
+    type: object
+    required:
+      - topological_synthesis
+      - placeholder_assignment
+    properties:
+      topological_synthesis:
+        "$ref": "#/$defs/variant_info"
+      placeholder_assignment:
+        "$ref": "#/$defs/variant_info"
+
+  defaults:
+    type: object
+    required:
+      - topological_synthesis
+      - placeholder_assignment
+    properties:
+      topological_synthesis:
+        "$ref": "#/$defs/variant_entry"
+      placeholder_assignment:
+        "$ref": "#/$defs/variant_entry"
+
+  configuration:
+    type: object
+    properties:
+      topological_synthesis:
+        type: object
+        patternProperties:
+          '^https?:\/\/.*\/Structure\/\d*$':  # brain regions finishing in /Structure/int
+            type: object
+            patternProperties:
+              '^https?:\/\/[^?#]*$':  # mtypes
+                type: object
+                properties:
+                  '@id':
+                    '$ref': '#/$defs/uri'
+                  '_rev':
+                    '$ref': '#/$defs/revision'
+                  overrides:
+                    type: object
+                    properties:
+                      apical_dendrite:
+                        type: object
+                        properties:
+                          randomness:
+                            type: number
+                          step_size:
+                            type: object
+                            properties:
+                              norm:
+                                type: object
+                                properties:
+                                  mean:
+                                    type: number
+                                  std:
+                                    type: number
+                                additionalProperties: false
+                            additionalProperties: false
+                          targeting:
+                            type: number
+                  additionalProperties: false
+            additionalProperties: false
+        additionalProperties: false

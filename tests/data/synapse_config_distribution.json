@@ -1,0 +1,42 @@
+{
+  "variantDefinition": {
+    "algorithm": "synapses",
+    "version": "v2"
+  },
+  "defaults": {
+    "synapse_properties": {
+      "id": "https://bbp.epfl.ch/neurosciencegraph/data/synapticassignment/d57536aa-d576-4b3b-a89b-b7888f24eb21",
+      "type": [
+        "Dataset",
+        "SynapticParameterAssignment"
+      ],
+      "rev": 9
+    },
+    "synapses_classification": {
+      "id": "https://bbp.epfl.ch/neurosciencegraph/data/synapticparameters/cf25c2bf-e6e4-4367-acd8-94004bfcfe49",
+      "type": [
+        "Dataset",
+        "SynapticParameter"
+      ],
+      "rev": 6
+    }
+  },
+  "configuration": {
+    "synapse_properties": {
+      "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/839a8b83-1620-4fe7-8f58-658ded0ea1e8",
+      "type": [
+        "Dataset",
+        "SynapticParameterAssignment"
+      ],
+      "rev": 1
+    },
+    "synapses_classification": {
+      "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/d133e408-bd00-41ca-9334-e5fab779ad99",
+      "type": [
+        "Dataset",
+        "SynapticParameter"
+      ],
+      "rev": 3
+    }
+  }
+}

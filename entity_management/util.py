@@ -3,19 +3,46 @@
 """Utilities"""
 
 import typing
+from importlib import resources
 from typing import Optional
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
 from urllib.parse import unquote, urlparse
 
 import attr
+import jsonschema
+import yaml
 from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
 
 from entity_management import state, typecheck
-from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError
+from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError, SchemaValidationError
 
 # copied from attrs, their standard way to make validators
+
+
+@attr.s(repr=False, slots=True, hash=True)
+class LazySchemaValidator:
+    """Validate lazily the distribution schema.
+
+    The validator decorates DataDownload's as_dict method by enforcing schema validation.
+    """
+
+    schema = attr.ib()
+
+    def _lazy_schema_validation(self, func):
+        """Decorator for adding schema validation to as_dict method."""
+
+        def validated(*args, **kwargs):
+            result = func(*args, **kwargs)
+            validate_schema(data=result, schema_name=self.schema)
+            return result
+
+        return validated
+
+    def __call__(self, inst, attribute, value):
+
+        value._force_attr("as_dict", self._lazy_schema_validation(value.as_dict))
 
 
 @attr.s(repr=False, slots=True, hash=True)
@@ -263,3 +290,34 @@ def get_entity(
             f"cross_bucket : {cross_bucket}"
         )
     return entity
+
+
+def validate_schema(data: dict, schema_name: str) -> None:
+    """Validata data against the schema with 'schema_name'."""
+
+    def _read_schema(schema_name: str) -> dict:
+        """Load a schema and return the result as a dictionary."""
+        resource = resources.files(__package__) / "schemas" / schema_name
+        content = resource.read_text()
+        return yaml.safe_load(content)
+
+    def _format_error(error) -> str:
+        paths = " -> ".join(map(str, error.absolute_path))
+        return f"[{paths}]: {error.message}"
+
+    schema = _read_schema(schema_name)
+
+    cls = jsonschema.validators.validator_for(schema)
+    cls.check_schema(schema)
+    validator = cls(schema)
+    errors = validator.iter_errors(data)
+
+    messages: list[str] = []
+    for error in errors:
+        if error.context:
+            messages.extend(map(_format_error, error.context))
+        else:
+            messages.append(_format_error(error))
+
+    if messages:
+        raise SchemaValidationError("\n".join(messages))

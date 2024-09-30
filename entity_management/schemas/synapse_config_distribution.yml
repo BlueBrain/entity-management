@@ -1,0 +1,104 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: SynapseConfig distribution schema
+
+'$defs':
+  uri:
+    type: string
+    format: uri
+    pattern: '^https?:\/\/[^?#]*$'  # uri without query or fragment
+
+  revision:
+    type: integer
+    minimum: 1
+
+  variant_info:
+    type: object
+    required:
+      - algorithm
+      - version
+    algorithm:
+      type: string
+    version:
+      type: string
+
+  synaptic_parameter_assignment:
+    type: object
+    required:
+      - id
+      - type
+    properties:
+      id:
+        '$ref': '#/$defs/uri'
+      type:
+        'oneOf':
+          - type: string
+            const: SynapticParameterAssignment
+          - type: array
+            maxItems: 2
+            items:
+              type: string
+              enum:
+                - Dataset
+                - SynapticParameterAssignment
+      rev:
+        '$ref': '#/$defs/revision'
+
+  synaptic_parameter:
+    type: object
+    required:
+      - id
+      - type
+    properties:
+      id:
+        '$ref': '#/$defs/uri'
+      type:
+        'oneOf':
+          - type: string
+            const: SynapticParameter
+          - type: array
+            maxItems: 2
+            items:
+              type: string
+              enum:
+                - Dataset
+                - SynapticParameter
+      rev:
+        '$ref': '#/$defs/revision'
+
+type: object
+
+required:
+  - variantDefinition
+  - defaults
+  - configuration
+
+properties:
+
+  variantDefinition:
+    '$ref': '#/$defs/variant_info'
+
+  defaults:
+    type: object
+    required:
+      - synapse_properties
+      - synapses_classification
+    properties:
+      synapse_properties:
+        '$ref': '#/$defs/synaptic_parameter_assignment'
+      synapses_classification:
+        '$ref': '#/$defs/synaptic_parameter' 
+    additionalProperties: false
+
+  configuration:
+    type: object
+    required:
+      - synapse_properties
+      - synapses_classification
+    properties:
+      synapse_properties:
+        '$ref': '#/$defs/synaptic_parameter_assignment'
+      synapses_classification:
+        '$ref': '#/$defs/synaptic_parameter' 
+    additionalProperties: false

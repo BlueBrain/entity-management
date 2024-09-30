@@ -8,8 +8,8 @@
 """
 
 from entity_management.base import Frozen, _NexusBySparqlIterator, attributes
-from entity_management.core import Entity
-from entity_management.util import AttrOf
+from entity_management.core import DataDownload, Entity
+from entity_management.util import AttrOf, LazySchemaValidator
 from entity_management.workflow import BbpWorkflowConfig, GeneratorTaskActivity
 
 
@@ -49,38 +49,110 @@ class _SubConfig(BbpWorkflowConfig):
         return self.distribution.as_dict()
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("brain_region_selector_config_distribution.yml")],
+        )
+    }
+)
 class BrainRegionSelectorConfig(_SubConfig):
     """BrainRegionSelectorConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("cell_composition_config_distribution.yml")],
+        )
+    }
+)
 class CellCompositionConfig(_SubConfig):
     """CellCompositionConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("cell_position_config_distribution.yml")],
+        )
+    }
+)
 class CellPositionConfig(_SubConfig):
     """CellPositionConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("emodel_assignment_config_distribution.yml")],
+        )
+    }
+)
 class EModelAssignmentConfig(_SubConfig):
     """EModelAssignmentConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("macro_connectome_config_distribution.yml")],
+        )
+    }
+)
 class MacroConnectomeConfig(_SubConfig):
     """MacroConnectomeConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("micro_connectome_config_distribution.yml")],
+        )
+    }
+)
 class MicroConnectomeConfig(_SubConfig):
     """MicroConnectomeConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("morphology_assignment_config_distribution.yml")],
+        )
+    }
+)
 class MorphologyAssignmentConfig(_SubConfig):
     """MorphologyAssignmentConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("synapse_config_distribution.yml")],
+        )
+    }
+)
 class SynapseConfig(_SubConfig):
     """SynapseConfig"""
 
 
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("me_model_config_distribution.yml")],
+        )
+    }
+)
 class MEModelConfig(_SubConfig):
     """MEModelConfig"""
 
