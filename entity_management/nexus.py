@@ -14,7 +14,7 @@ import requests
 from SPARQLWrapper import JSON, POST, POSTDIRECTLY, SPARQLWrapper
 
 from entity_management.debug import PP
-from entity_management.settings import DASH, JSLD_TYPE, NSG, USERINFO
+from entity_management.settings import DASH, JSLD_TYPE, NSG, SCHEMA_UNCONSTRAINED, USERINFO
 from entity_management.state import (
     get_base_files,
     get_base_url,
@@ -31,7 +31,6 @@ from entity_management.util import quote, split_url_params, unquote_uri_path
 L = logging.getLogger(__name__)
 
 _HINT_TO_CLS_MAP = {}
-_UNCONSTRAINED = "https://bluebrain.github.io/nexus/schemas/unconstrained.json"
 
 
 def register_type(key, cls):
@@ -166,7 +165,7 @@ def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cr
     response.raise_for_status()
     response_json = response.json()
     constrained_by = response_json["_constrainedBy"]
-    if constrained_by == _UNCONSTRAINED:
+    if constrained_by == SCHEMA_UNCONSTRAINED:
         return _HINT_TO_CLS_MAP[_find_type(response_json[JSLD_TYPE])]
     else:
         constrained_by = constrained_by.replace("dash:", str(DASH)).replace("nsg:", str(NSG))

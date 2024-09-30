@@ -2,7 +2,9 @@
 
 """Settings module"""
 
+import json
 import os
+from pathlib import Path
 
 from rdflib import Namespace
 
@@ -13,6 +15,8 @@ JSLD_REV = "nxv:rev"
 JSLD_LINK_REV = "_rev"
 JSLD_LINK_TAG = "tag"
 JSLD_DEPRECATED = "nxv:deprecated"
+
+SCHEMA_UNCONSTRAINED = "https://bluebrain.github.io/nexus/schemas/unconstrained.json"
 
 USERINFO = os.getenv("NEXUS_USERINFO", "https://bbp.epfl.ch/nexus/v1/identities")
 DEFAULT_TAG = "v0.1.0"
@@ -27,3 +31,7 @@ PROV = Namespace("http://www.w3.org/ns/prov#")
 NSG = Namespace("https://neuroshapes.org/")
 DASH = Namespace("https://neuroshapes.org/dash/")
 NXV = Namespace("https://bluebrain.github.io/nexus/vocabulary/")
+
+
+TYPE_TO_SCHEMA_MAPPING_FILE = Path(__file__).parent / "data/type_to_schema_mapping.json"
+TYPE_TO_SCHEMA_MAPPING = json.loads(TYPE_TO_SCHEMA_MAPPING_FILE.read_bytes())
