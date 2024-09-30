@@ -16,7 +16,11 @@ from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
 
 from entity_management import state, typecheck
-from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError, SchemaValidationError
+from entity_management.exception import (
+    EntityNotInstantiatedError,
+    ResourceNotFoundError,
+    SchemaValidationError,
+)
 
 # copied from attrs, their standard way to make validators
 
