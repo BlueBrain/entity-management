@@ -7,7 +7,7 @@
 
 """
 
-from entity_management.base import Frozen, _NexusBySparqlIterator, attributes
+from entity_management.base import Derivation, Frozen, _NexusBySparqlIterator, attributes
 from entity_management.core import DataDownload, Entity
 from entity_management.util import AttrOf, LazySchemaValidator
 from entity_management.workflow import BbpWorkflowConfig, GeneratorTaskActivity
@@ -136,6 +136,32 @@ class MorphologyAssignmentConfig(_SubConfig):
     {
         "distribution": AttrOf(
             DataDownload,
+            validators=[LazySchemaValidator("canonical_morphology_model_config_distribution.yml")],
+        ),
+        "derivation": AttrOf(Derivation, default=None),
+    }
+)
+class CanonicalMorphologyModelConfig(Entity):
+    """Canonical config in MorphologyAssignmentConfig distribution."""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("placeholder_morphology_config_distribution.yml")],
+        ),
+        "derivation": AttrOf(Derivation, default=None),
+    }
+)
+class PlaceholderMorphologyConfig(Entity):
+    """Placeholder morphologies config in MorphologyAssignmentConfig distribution."""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
             validators=[LazySchemaValidator("synapse_config_distribution.yml")],
         )
     }
@@ -154,6 +180,18 @@ class SynapseConfig(_SubConfig):
 )
 class MEModelConfig(_SubConfig):
     """MEModelConfig"""
+
+
+@attributes(
+    {
+        "distribution": AttrOf(
+            DataDownload,
+            validators=[LazySchemaValidator("placeholder_emodel_config_distribution.yml")],
+        )
+    }
+)
+class PlaceholderEModelConfig(Entity):
+    """PlaceholderEModelConfig in MEModelConfig distribution."""
 
 
 @attributes(

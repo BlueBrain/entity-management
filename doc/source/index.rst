@@ -61,6 +61,7 @@ class is available under `Bases` section.
 
    Home <self>
    prov_patterns
+   building_entities
    examples
    api
    cli

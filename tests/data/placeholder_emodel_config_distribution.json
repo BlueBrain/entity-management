@@ -1,0 +1,76 @@
+{
+  "hasPart": {
+    "http://api.brain-map.org/api/v2/data/Structure/23": {
+      "label": "Anterior amygdalar area",
+      "notation": "AAA",
+      "about": "BrainRegion",
+      "hasPart": {
+        "https://bbp.epfl.ch/ontologies/core/bmo/GenericExcitatoryNeuronMType": {
+          "label": "GEN_mtype",
+          "about": "MType",
+          "hasPart": {
+            "https://bbp.epfl.ch/ontologies/core/bmo/GenericExcitatoryNeuronEType": {
+              "label": "GEN_etype",
+              "about": "EType",
+              "hasPart": {
+                "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/65d6a42a-ec6f-4a17-b1d2-b6ff1c7225b8": {
+                  "about": "EModel",
+                  "_rev": 2
+                }
+              }
+            }
+          }
+        },
+        "https://bbp.epfl.ch/ontologies/core/bmo/GenericInhibitoryNeuronMType": {
+          "label": "GIN_mtype",
+          "about": "MType",
+          "hasPart": {
+            "https://bbp.epfl.ch/ontologies/core/bmo/GenericInhibitoryNeuronEType": {
+              "label": "GIN_etype",
+              "about": "EType",
+              "hasPart": {
+                "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/ff571ada-fc08-4e6b-9b5c-1c21ee22ccb2": {
+                  "about": "EModel",
+                  "_rev": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "http://api.brain-map.org/api/v2/data/Structure/935": {
+      "label": "Anterior cingulate area, dorsal part, layer 1",
+      "notation": "ACAd1",
+      "about": "BrainRegion",
+      "hasPart": {
+        "http://uri.interlex.org/base/ilx_0383192": {
+          "label": "L1_DAC",
+          "about": "MType",
+          "hasPart": {
+            "http://uri.interlex.org/base/ilx_0738203": {
+              "label": "bNAC",
+              "about": "EType",
+              "hasPart": {
+                "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/af16d001-7e73-4b10-88ef-868567d77242": {
+                  "about": "EModel",
+                  "_rev": 1
+                }
+              }
+            },
+            "http://uri.interlex.org/base/ilx_0738201": {
+              "label": "cNAC",
+              "about": "EType",
+              "hasPart": {
+                "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/292427f3-fbdc-4e26-9731-d89b114441b3": {
+                  "about": "EModel",
+                  "_rev": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
