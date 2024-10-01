@@ -3,6 +3,7 @@
 """Utilities"""
 
 import typing
+from functools import wraps
 from importlib import resources
 from typing import Optional
 from urllib.parse import parse_qs
@@ -30,6 +31,9 @@ class LazySchemaValidator:
     """Validate lazily the distribution schema.
 
     The validator decorates DataDownload's as_dict method by enforcing schema validation.
+
+    Attributes:
+        schema: The schema filename located at entity_management/schemas. Example: my_schema.yml
     """
 
     schema = attr.ib()
@@ -37,6 +41,7 @@ class LazySchemaValidator:
     def _lazy_schema_validation(self, func):
         """Decorator for adding schema validation to as_dict method."""
 
+        @wraps(func)
         def validated(*args, **kwargs):
             result = func(*args, **kwargs)
             validate_schema(data=result, schema_name=self.schema)
@@ -45,8 +50,22 @@ class LazySchemaValidator:
         return validated
 
     def __call__(self, inst, attribute, value):
+        """Lazily apply schema validator to as_dict method.
 
-        value._force_attr("as_dict", self._lazy_schema_validation(value.as_dict))
+        Note: It mutates the Frozen DataDownload in order to introduce this behavior.
+        """
+        if not hasattr(value, "as_dict"):
+            raise RuntimeError(f"Expected instance with as_dict method. Got {value}")
+
+        try:
+            old_method = value.as_dict
+        except AttributeError as e:
+            raise RuntimeError(
+                f"Expected instance with 'as_dict' method, e.g. a DataDownload. Got {value}"
+            ) from e
+
+        decorated_method = self._lazy_schema_validation(old_method)
+        value._force_attr("as_dict", decorated_method)
 
 
 @attr.s(repr=False, slots=True, hash=True)
