@@ -11,6 +11,7 @@ DATA_DIR = Path(__file__).parent / "data"
 @pytest.mark.parametrize(
     "schema_name",
     [
+        "brain_region_selector_config_distribution",
         "cell_composition_config_distribution",
         "cell_position_config_distribution",
         "morphology_assignment_config_distribution",

@@ -89,7 +89,6 @@ class CellPositionConfig(_SubConfig):
     {
         "distribution": AttrOf(
             DataDownload,
-            validators=[LazySchemaValidator("emodel_assignment_config_distribution.yml")],
         )
     }
 )

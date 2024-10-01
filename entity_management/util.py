@@ -38,6 +38,14 @@ class LazySchemaValidator:
 
     schema = attr.ib()
 
+    @property
+    def _schema_path(self):
+        return resources.files(__package__) / "schemas" / self.schema
+
+    def __attrs_post_init__(self):
+        if not self._schema_path.exists():
+            raise FileNotFoundError(f"Schema {self.schema} not found.")
+
     def _lazy_schema_validation(self, func):
         """Decorator for adding schema validation to as_dict method."""
 

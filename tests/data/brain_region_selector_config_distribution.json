@@ -1,0 +1,44 @@
+{
+  "selection": [
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/593",
+      "notation": "VISp1",
+      "label": "Primary visual area, layer 1"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/614454330",
+      "notation": "VISp2",
+      "label": "Primary visual area, layer 2"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/821",
+      "notation": "VISp2/3",
+      "label": "Primary visual area, layer 2/3"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/614454331",
+      "notation": "VISp3",
+      "label": "Primary visual area, layer 3"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/721",
+      "notation": "VISp4",
+      "label": "Primary visual area, layer 4"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/778",
+      "notation": "VISp5",
+      "label": "Primary visual area, layer 5"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/33",
+      "notation": "VISp6a",
+      "label": "Primary visual area, layer 6a"
+    },
+    {
+      "@id": "http://api.brain-map.org/api/v2/data/Structure/305",
+      "notation": "VISp6b",
+      "label": "Primary visual area, layer 6b"
+    }
+  ]
+}

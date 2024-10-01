@@ -235,3 +235,15 @@ def test_lazy_schema_validator(tmp_path):
     # should not pass because the distribution object has no 'as_dict'
     with pytest.raises(RuntimeError, match="Expected instance with as_dict method. Got Wrong()"):
         C(distribution=Wrong()).distribution.as_dict()
+
+    with pytest.raises(FileNotFoundError, match="Schema fake.yml not found."):
+
+        @attributes(
+            {
+                "distribution": AttrOf(
+                    Wrong, validators=[test_module.LazySchemaValidator(schema="fake.yml")]
+                )
+            }
+        )
+        class D(Entity):
+            pass
