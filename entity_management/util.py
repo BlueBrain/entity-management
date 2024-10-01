@@ -10,11 +10,6 @@ from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
 from urllib.parse import unquote, urlparse
 
-if sys.version_info < (3, 9):
-    import importlib_resources as resources
-else:
-    from importlib import resources
-
 import attr
 import jsonschema
 import yaml
@@ -27,6 +22,11 @@ from entity_management.exception import (
     ResourceNotFoundError,
     SchemaValidationError,
 )
+
+if sys.version_info < (3, 9):
+    import importlib_resources as resources
+else:
+    from importlib import resources
 
 # copied from attrs, their standard way to make validators
 
