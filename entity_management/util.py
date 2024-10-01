@@ -348,7 +348,7 @@ def validate_schema(data: dict, schema_name: str) -> None:
     validator = cls(schema)
     errors = validator.iter_errors(data)
 
-    messages: list[str] = []
+    messages = []
     for error in errors:
         if error.context:
             messages.extend(map(_format_error, error.context))
