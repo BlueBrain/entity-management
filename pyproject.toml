@@ -38,7 +38,8 @@ dependencies = [
   "pyjwt",
   "python-keycloak",
   "click",
-  "jsonschema"
+  "jsonschema",
+  "importlib-resources; python_version <= '3.8'",
 ]
 dynamic = ["version"]
 
