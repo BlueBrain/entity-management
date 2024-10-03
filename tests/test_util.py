@@ -2,7 +2,7 @@ from unittest.mock import patch, Mock
 import attr
 
 import sys
-import json
+import yaml
 import pytest
 from typing import Union, List
 from entity_management import exception
@@ -171,7 +171,7 @@ def test_lazy_schema_validator(tmp_path):
     }
 
     schema1_file = tmp_path / "test_schema1.yml"
-    schema1_file.write_text(json.dumps(schema1))
+    schema1_file.write_text(yaml.dump(schema1))
 
     schema2 = {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -180,7 +180,7 @@ def test_lazy_schema_validator(tmp_path):
     }
 
     schema2_file = tmp_path / "test_schema2.yml"
-    schema2_file.write_text(json.dumps(schema2))
+    schema2_file.write_text(yaml.dump(schema2))
 
     data = {
         "foo": "foo",
