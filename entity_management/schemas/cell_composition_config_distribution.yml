@@ -1,0 +1,99 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: CellCompositionConfig distribution schema
+
+'$defs':
+  uri:
+    type: string
+    format: uri
+    pattern: '^https?:\/\/[^?#]*$'  # uri without query or fragment
+
+  revision:
+    type: integer
+    minimum: 1
+
+  variant_info:
+    type: object
+    required:
+      - algorithm
+      - version
+    algorithm:
+      type: string
+    version:
+      type: string
+
+  input_entry:
+    type: object
+    required:
+      - name
+      - type
+      - id
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      id:
+        type: string
+
+additionalProperties: false
+patternProperties:
+  '^http://api.brain-map.org/api/v2/data/Structure/997$':
+    type: object
+    required:
+      - variantDefinition
+      - inputs
+      - configuration
+
+    additionalProperties: false
+    properties:
+
+      variantDefinition:
+        '$ref': '#/$defs/variant_info'
+
+      inputs:
+        type: array
+        items:
+          '$ref': '#/$defs/input_entry'
+
+      configuration:
+        type: object
+        required:
+          - overrides
+        properties:
+          overrides:
+            additionalProperties: false
+            patternProperties:
+              '^https?:\/\/.*\/Structure\/\d*$':  # brain regions finishing in /Structure/int
+                type: object
+                required:
+                  - label
+                  - hasPart
+                properties:
+                  label:
+                    type: string
+                  hasPart:
+                    type: object
+                    additionalProperties: false
+                    patternProperties:
+                      '^https?:\/\/[^?#]*$':  # etypes
+                        type: object
+                        properties:
+                          label:
+                            type: string
+                          '_rev':
+                            type: integer
+                          composition:
+                            type: object
+                            required:
+                              - neuron
+                            properties:
+                              neuron:
+                                type: object
+                                required:
+                                  - density
+                                properties:
+                                  density:
+                                    type: number
+

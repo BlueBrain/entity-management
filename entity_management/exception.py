@@ -13,3 +13,7 @@ class ResourceNotFoundError(EntityManagementError):
 
 class EntityNotInstantiatedError(EntityManagementError):
     """Error related to entities failing to be instantiated."""
+
+
+class SchemaValidationError(EntityManagementError):
+    """Schema validation exception class."""

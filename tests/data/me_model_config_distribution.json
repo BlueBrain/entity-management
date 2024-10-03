@@ -1,0 +1,30 @@
+{
+    "variantDefinition": {
+        "neurons_me_model": {
+            "algorithm": "neurons_me_model",
+            "version": "v1"
+        }
+    },
+    "defaults": {
+        "neurons_me_model": {
+            "@id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/2ec96e9f-7254-44b5-bbcb-fdea3e18f110",
+            "@type": ["PlaceholderEModelConfig", "Entity"]
+        }
+    },
+    "overrides": {
+        "neurons_me_model": {
+            "http://api.brain-map.org/api/v2/data/Structure/614454342": {
+                "http://uri.interlex.org/base/ilx_0381367": {
+                    "http://bbp.epfl.ch/neurosciencegraph/ontologies/etypes/cADpyr": {
+                        "assignmentAlgorithm": "assignOne",
+                        "emodel": {
+                            "@id": "https://bbp.epfl.ch/neurosciencegraph/data/f91eeb30-c6e7-40f8-8917-fd8007ec8917",
+                            "_rev": 2
+                        },
+                        "axonInitialSegmentAssignment": {"fixedValue": {"value": 1}}
+                    }
+                }
+            }
+        }
+    }
+}

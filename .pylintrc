@@ -1,5 +1,5 @@
 [MESSAGES CONTROL]
-disable=fixme,invalid-name,len-as-condition,no-else-return,protected-access
+disable=fixme,invalid-name,len-as-condition,no-else-return,protected-access, too-many-positional-arguments
 
 [FORMAT]
 # Maximum number of characters on a single line.

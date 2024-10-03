@@ -1,0 +1,82 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: MorphologyAssignmentConfig distribution schema
+'$defs':
+  uri:
+    type: string
+    format: uri
+    pattern: '^https?:\/\/[^?#]*$'  # uri without query or fragment
+  revision:
+    type: integer
+    minimum: 1
+  variant_info:
+    type: object
+    required:
+      - algorithm
+      - version
+    algorithm:
+      type: string
+    version:
+      type: string
+  entity_entry:
+      type: object
+      required:
+        - '@id'
+      properties:
+        '@id':
+          '$ref': '#/$defs/uri'
+        '_rev':
+          '$ref': '#/$defs/revision'
+type: object
+required:
+  - variantDefinition
+  - defaults
+properties:
+
+  version:
+    type: integer
+    minimim: 1
+
+  variantDefinition:
+    type: object
+    properties:
+      neurons_me_model:
+        "$ref": "#/$defs/variant_info"
+
+  defaults:
+    type: object
+    properties:
+      neurons_me_model:
+        "$ref": "#/$defs/entity_entry"
+
+  overrides:
+    type: object
+    properties:
+      neurons_me_model:
+        type: object
+        patternProperties:
+          '^https?:\/\/.*\/Structure\/\d*$':  # brain regions finishing in /Structure/int
+            type: object
+            patternProperties:
+              '^https?:\/\/[^?#]*$':  # mtypes
+                type: object
+                patternProperties:
+                  '^https?:\/\/[^?#]*$':  # etypes
+                    type: object
+                    properties:
+                      assignmentAlgorithm:
+                        const: "assignOne"
+                      eModel:
+                        "$ref": "#/$defs/entity_entry"
+                      axonInitialSegmentAssignment:
+                        type: object
+                        properties:
+                          fixedValue:
+                            type: object
+                            properties:
+                              value:
+                                type: number
+                            additionalProperties: false
+                        additionalProperties: false
+                      additionalProperties: false

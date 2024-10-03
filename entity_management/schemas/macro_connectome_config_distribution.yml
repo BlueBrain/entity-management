@@ -1,0 +1,60 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: MacroConnectomeConfig distribution schema
+
+'$defs':
+
+  uri:
+    type: string
+    format: uri
+    pattern: '^https?:\/\/[^?#]*$'  # uri without query or fragment
+
+  revision:
+    type: integer
+    minimum: 1
+
+
+required:
+  - initial
+
+properties:
+
+  initial:
+    type: object
+    properties:
+      connection_strength:
+        type: object
+        additionalProperties: false
+        properties:
+          id:
+            '$ref': '#/$defs/uri'
+          type:
+            'oneOf':
+              - type: string
+                const: BrainConnectomeStrength
+              - type: array
+                contains:
+                  type: string
+                  const: BrainConnectomeStrength
+          rev:
+            '$ref': '#/$defs/revision'
+  overrides:
+    type: object
+    properties:
+      connection_strength:
+        type: object
+        additionalProperties: false
+        properties:
+          id:
+            '$ref': '#/$defs/uri'
+          type:
+            'oneOf':
+              - type: string
+                const: BrainConnectomeStrengthOverrides
+              - type: array
+                contains:
+                  type: string
+                  const: BrainConnectomeStrengthOverrides
+          rev:
+            '$ref': '#/$defs/revision'

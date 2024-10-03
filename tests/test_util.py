@@ -1,14 +1,15 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import attr
 
 import sys
+import yaml
 import pytest
 from typing import Union, List
 from entity_management import exception
 from entity_management import util as test_module
 from entity_management.core import Entity, attributes
 from entity_management.util import AttrOf
-from entity_management.base import BlankNode
+from entity_management.base import BlankNode, Frozen
 from entity_management.typing import MaybeList
 
 
@@ -159,3 +160,90 @@ def test_url_params():
     res_url, res_params = test_module.split_url_params(url)
     assert res_url == "https://foo/bar"
     assert res_params == {"tag": ["v1.1"]}
+
+
+def test_lazy_schema_validator(tmp_path):
+
+    schema1 = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "my-schema1",
+        "properties": {"foo": {"type": "string"}, "bar": {"type": "integer"}},
+    }
+
+    schema1_file = tmp_path / "test_schema1.yml"
+    schema1_file.write_text(yaml.dump(schema1))
+
+    schema2 = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "my-schema2",
+        "properties": {"foo": {"type": "string"}, "bar": {"type": "string"}},
+    }
+
+    schema2_file = tmp_path / "test_schema2.yml"
+    schema2_file.write_text(yaml.dump(schema2))
+
+    data = {
+        "foo": "foo",
+        "bar": 2,
+    }
+
+    class MockDataDownload(Frozen):
+        def as_dict(self):
+            return data
+
+    class Wrong(Frozen):
+        pass
+
+    @attributes(
+        {
+            "distribution": AttrOf(
+                MockDataDownload, validators=[test_module.LazySchemaValidator(schema=schema1_file)]
+            )
+        }
+    )
+    class A(Entity):
+        pass
+
+    # should pass schema validation
+    res = A(distribution=MockDataDownload()).distribution.as_dict()
+    assert res == data
+
+    @attributes(
+        {
+            "distribution": AttrOf(
+                MockDataDownload, validators=[test_module.LazySchemaValidator(schema=schema2_file)]
+            )
+        }
+    )
+    class B(Entity):
+        pass
+
+    # should not pass because 2 is not a string
+    with pytest.raises(test_module.SchemaValidationError):
+        B(distribution=MockDataDownload()).distribution.as_dict()
+
+    @attributes(
+        {
+            "distribution": AttrOf(
+                Wrong, validators=[test_module.LazySchemaValidator(schema=schema1_file)]
+            )
+        }
+    )
+    class C(Entity):
+        pass
+
+    # should not pass because the distribution object has no 'as_dict'
+    with pytest.raises(RuntimeError, match="Expected instance with as_dict method. Got Wrong()"):
+        C(distribution=Wrong()).distribution.as_dict()
+
+    with pytest.raises(FileNotFoundError, match="Schema fake.yml not found."):
+
+        @attributes(
+            {
+                "distribution": AttrOf(
+                    Wrong, validators=[test_module.LazySchemaValidator(schema="fake.yml")]
+                )
+            }
+        )
+        class D(Entity):
+            pass

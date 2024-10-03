@@ -1,0 +1,27 @@
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: BrainRegionSelectorConfig distribution schema
+'$defs':
+  selection_entry:
+    type: object
+    required:
+      - '@id'
+      - 'notation'
+      - 'label'
+    properties:
+      '@id':
+        type: string
+        # brain region finishing in /Structure/int
+        pattern: '^https?:\/\/.*\/Structure\/\d*$'
+      notation:
+        type: string
+      label:
+        type: string
+type: object
+required:
+  - selection
+properties:
+  selection:
+    type: array
+    items:
+      type: object
+      '$ref': '#/$defs/selection_entry'

@@ -1,0 +1,220 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: MicroConnectomeConfig distribution schema
+
+'$defs':
+
+  uri:
+    type: string
+    format: uri
+    pattern: '^https?:\/\/[^?#]*$'  # uri without query or fragment
+
+  revision:
+    type: integer
+    minimum: 1
+
+  param:
+    type: object
+    additionalProperties: false
+    properties:
+      type:
+        type: string
+      unitCode:
+        type: string
+      default:
+        type: number
+
+
+type: object
+
+required:
+  - variants
+  - initial
+  - overrides
+
+properties:
+
+  variants:
+    type: object
+    properties:
+      placeholder__erdos_renyi:
+        type: object
+        additionalProperties: false
+        properties:
+          algorithm:
+            type: string
+          version:
+            type: string
+          params:
+            type: object
+            properties:
+              weight:
+                '$ref': '#/$defs/param'
+              nsynconn_mean:
+                '$ref': '#/$defs/param'
+              nsynconn_std:
+                '$ref': '#/$defs/param'
+              delay_velocity:
+                '$ref': '#/$defs/param'
+              delay_offset:
+                '$ref': '#/$defs/param'
+      placeholder__distance_dependent:
+        type: object
+        additionalProperties: false
+        properties:
+          algorithm:
+            type: string
+          version:
+            type: string
+          params:
+            type: object
+            properties:
+              weight:
+                '$ref': '#/$defs/param'
+              exponent:
+                '$ref': '#/$defs/param'
+              nsynconn_mean:
+                '$ref': '#/$defs/param'
+              nsynconn_std:
+                '$ref': '#/$defs/param'
+              delay_velocity:
+                '$ref': '#/$defs/param'
+              delay_offset:
+                '$ref': '#/$defs/param'
+    initial:
+      type: object
+      additionalProperties: false
+      required:
+        - variants
+        - placeholder__erdos_renyi
+        - placeholder__distance_dependent
+      properties:
+        variants:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              '$ref': '#/$defs/uri'
+            type:
+              'oneOf':
+                - type: string
+                  const: MicroConnectomeVariantSelection
+                - type: array
+                  items:
+                    type: string
+                  contains:
+                    type: string
+                    const: MicroConnectomeVariantSelection
+            rev:
+              '$ref': '#/$defs/revision'
+        placeholder__erdos_renyi:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              '$ref': '#/$defs/uri'
+            type:
+              'oneOf':
+                - type: string
+                  const: MicroConnectomeData
+                - type: array
+                  items:
+                    type: string
+                  contains:
+                    type: string
+                    const: MicroConnectomeData
+            rev:
+              '$ref': '#/$defs/revision'
+        placeholder__distance_dependent:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              '$ref': '#/$defs/uri'
+            type:
+              'oneOf':
+                - type: string
+                  const: MicroConnectomeData
+                - type: array
+                  items:
+                    type: string
+                  contains:
+                    type: string
+                    const: MicroConnectomeData
+            rev:
+              '$ref': '#/$defs/revision'
+    overrides:
+      type: object
+      additionalProperties: false
+      required:
+        - variants
+        - placeholder__erdos_renyi
+        - placeholder__distance_dependent
+      properties:
+        variants:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              '$ref': '#/$defs/uri'
+            type:
+              'oneOf':
+                - type: string
+                  const: MicroConnectomeVariantSelectionOverrides
+                - type: array
+                  items:
+                    type: string
+                  contains:
+                    type: string
+                    const: MicroConnectomeVariantSelectionOverrides
+            rev:
+              '$ref': '#/$defs/revision'
+        placeholder__erdos_renyi:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              '$ref': '#/$defs/uri'
+            type:
+              'oneOf':
+                - type: string
+                  const: MicroConnectomeDataOverrides
+                - type: array
+                  items:
+                    type: string
+                  contains:
+                    type: string
+                    const: MicroConnectomeDataOverrides
+            rev:
+              '$ref': '#/$defs/revision'
+        placeholder__distance_dependent:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              '$ref': '#/$defs/uri'
+            type:
+              'oneOf':
+                - type: string
+                  const: MicroConnectomeDataOverrides
+                - type: array
+                  items:
+                    type: string
+                  contains:
+                    type: string
+                    const: MicroConnectomeDataOverrides
+            rev:
+              '$ref': '#/$defs/revision'

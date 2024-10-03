@@ -1,0 +1,40 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: CellCompositionConfig distribution schema
+
+'$defs':
+  variant_info:
+    type: object
+    required:
+      - algorithm
+      - version
+    algorithm:
+      type: string
+    version:
+      type: string
+
+additionalProperties: false
+patternProperties:
+  '^http://api.brain-map.org/api/v2/data/Structure/997$':
+    type: object
+    required:
+      - variantDefinition
+      - configuration
+    properties:
+      variantDefinition:
+        '$ref': '#/$defs/variant_info'
+      configuration:
+        type: object
+        required:
+          - place_cells
+        properties:
+          place_cells:
+            type: object
+            properties:
+              soma_placement:
+                type: string
+              density_factor:
+                type: number
+              seed:
+                type: integer

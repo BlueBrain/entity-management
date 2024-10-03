@@ -1,0 +1,132 @@
+{
+  "variants": {
+    "placeholder__erdos_renyi": {
+      "algorithm": "placeholder",
+      "version": "v3",
+      "params": {
+        "weight": {
+          "type": "float32",
+          "unitCode": "#synapses/connection",
+          "default": 0
+        },
+        "nsynconn_mean": {
+          "type": "float32",
+          "unitCode": "#synapses/connection",
+          "default": 3
+        },
+        "nsynconn_std": {
+          "type": "float32",
+          "unitCode": "#synapses/connection",
+          "default": 1.5
+        },
+        "delay_velocity": {
+          "type": "float32",
+          "unitCode": "um/ms",
+          "default": 250
+        },
+        "delay_offset": {
+          "type": "float32",
+          "unitCode": "ms",
+          "default": 0.8
+        }
+      }
+    },
+    "placeholder__distance_dependent": {
+      "algorithm": "placeholder",
+      "version": "v3",
+      "params": {
+        "weight": {
+          "type": "float32",
+          "unitCode": "#synapses/connection",
+          "default": 0
+        },
+        "exponent": {
+          "type": "float32",
+          "unitCode": "1/um",
+          "default": 0.008
+        },
+        "nsynconn_mean": {
+          "type": "float32",
+          "unitCode": "#synapses/connection",
+          "default": 3
+        },
+        "nsynconn_std": {
+          "type": "float32",
+          "unitCode": "#synapses/connection",
+          "default": 1.5
+        },
+        "delay_velocity": {
+          "type": "float32",
+          "unitCode": "um/ms",
+          "default": 250
+        },
+        "delay_offset": {
+          "type": "float32",
+          "unitCode": "ms",
+          "default": 0.8
+        }
+      }
+    }
+  },
+  "initial": {
+    "variants": {
+      "id": "https://bbp.epfl.ch/neurosciencegraph/data/a46a442c-5baa-4a5c-9907-bfb359dd9e5d",
+      "rev": 9,
+      "type": [
+        "Entity",
+        "Dataset",
+        "MicroConnectomeVariantSelection"
+      ]
+    },
+    "placeholder__erdos_renyi": {
+      "id": "https://bbp.epfl.ch/neurosciencegraph/data/microconnectomedata/009413eb-e51b-40bc-9199-8b98bfc53f87",
+      "rev": 7,
+      "type": [
+        "Entity",
+        "Dataset",
+        "MicroConnectomeData"
+      ]
+    },
+    "placeholder__distance_dependent": {
+      "id": "https://bbp.epfl.ch/neurosciencegraph/data/microconnectomedata/c7e1d215-2dad-4216-8565-6b1e4c161f46",
+      "rev": 7,
+      "type": [
+        "Entity",
+        "Dataset",
+        "MicroConnectomeData"
+      ]
+    }
+  },
+  "overrides": {
+    "variants": {
+      "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/deee5e86-1d7b-45f6-8fad-259a71c35c6a",
+      "type": [
+        "Entity",
+        "Dataset",
+        "MicroConnectomeVariantSelectionOverrides"
+      ],
+      "rev": 1
+    },
+    "placeholder__erdos_renyi": {
+      "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/36426136-201d-4dfd-93d9-b541e113a6bf",
+      "type": [
+        "Entity",
+        "Dataset",
+        "MicroConnectomeDataOverrides"
+      ],
+      "rev": 1
+    },
+    "placeholder__distance_dependent": {
+      "id": "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/4bb03c2b-b99d-4a5d-8a8b-12e1a30619aa",
+      "type": [
+        "Entity",
+        "Dataset",
+        "MicroConnectomeDataOverrides"
+      ],
+      "rev": 1
+    }
+  },
+  "_ui_data": {
+    "editHistory": []
+  }
+}

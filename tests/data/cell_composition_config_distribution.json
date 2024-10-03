@@ -1,0 +1,44 @@
+{
+  "http://api.brain-map.org/api/v2/data/Structure/997": {
+    "variantDefinition": {
+      "algorithm": "cell_composition_manipulation",
+      "version": "v3"
+    },
+    "inputs": [
+      {
+        "name": "base_cell_composition_id",
+        "type": "Dataset",
+        "id": "https://bbp.epfl.ch/neurosciencegraph/data/cellcompositions/54818e46-cf8c-4bd6-9b68-34dffbc8a68c?tag=v1.1.0"
+      }
+    ],
+    "configuration": {
+      "version": 1,
+      "unitCode": {
+        "density": "mm^-3"
+      },
+      "overrides": {
+        "http://api.brain-map.org/api/v2/data/Structure/23": {
+          "label": "Anterior amygdalar area",
+          "about": "BrainRegion",
+          "hasPart": {
+            "https://bbp.epfl.ch/ontologies/core/bmo/GenericExcitatoryNeuronMType": {
+              "label": "GEN_mtype",
+              "about": "MType",
+              "hasPart": {
+                "https://bbp.epfl.ch/ontologies/core/bmo/GenericExcitatoryNeuronEType": {
+                  "label": "GEN_etype",
+                  "about": "EType",
+                  "composition": {
+                    "neuron": {
+                      "density": 1200
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

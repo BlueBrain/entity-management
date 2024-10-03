@@ -2,20 +2,83 @@
 
 """Utilities"""
 
+import sys
 import typing
+from functools import wraps
 from typing import Optional
 from urllib.parse import parse_qs
 from urllib.parse import quote as parse_quote
 from urllib.parse import unquote, urlparse
 
 import attr
+import jsonschema
+import yaml
 from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
 
 from entity_management import state, typecheck
-from entity_management.exception import EntityNotInstantiatedError, ResourceNotFoundError
+from entity_management.exception import (
+    EntityNotInstantiatedError,
+    ResourceNotFoundError,
+    SchemaValidationError,
+)
+
+if sys.version_info < (3, 9):
+    import importlib_resources as resources
+else:
+    from importlib import resources
 
 # copied from attrs, their standard way to make validators
+
+
+@attr.s(repr=False, slots=True, hash=True)
+class LazySchemaValidator:
+    """Validate lazily the distribution schema.
+
+    The validator decorates DataDownload's as_dict method by enforcing schema validation.
+
+    Attributes:
+        schema: The schema filename located at entity_management/schemas. Example: my_schema.yml
+    """
+
+    schema = attr.ib()
+
+    @property
+    def _schema_path(self):
+        return resources.files(__package__) / "schemas" / self.schema
+
+    def __attrs_post_init__(self):
+        if not self._schema_path.exists():
+            raise FileNotFoundError(f"Schema {self.schema} not found.")
+
+    def _lazy_schema_validation(self, func):
+        """Decorator for adding schema validation to as_dict method."""
+
+        @wraps(func)
+        def validated(*args, **kwargs):
+            result = func(*args, **kwargs)
+            validate_schema(data=result, schema_name=self.schema)
+            return result
+
+        return validated
+
+    def __call__(self, inst, attribute, value):
+        """Lazily apply schema validator to as_dict method.
+
+        Note: It mutates the Frozen DataDownload in order to introduce this behavior.
+        """
+        if not hasattr(value, "as_dict"):
+            raise RuntimeError(f"Expected instance with as_dict method. Got {value}")
+
+        try:
+            old_method = value.as_dict
+        except AttributeError as e:
+            raise RuntimeError(
+                f"Expected instance with 'as_dict' method, e.g. a DataDownload. Got {value}"
+            ) from e
+
+        decorated_method = self._lazy_schema_validation(old_method)
+        value._force_attr("as_dict", decorated_method)
 
 
 @attr.s(repr=False, slots=True, hash=True)
@@ -263,3 +326,34 @@ def get_entity(
             f"cross_bucket : {cross_bucket}"
         )
     return entity
+
+
+def validate_schema(data: dict, schema_name: str) -> None:
+    """Validata data against the schema with 'schema_name'."""
+
+    def _read_schema(schema_name: str) -> dict:
+        """Load a schema and return the result as a dictionary."""
+        resource = resources.files(__package__) / "schemas" / schema_name
+        content = resource.read_text()
+        return yaml.safe_load(content)
+
+    def _format_error(error) -> str:
+        paths = " -> ".join(map(str, error.absolute_path))
+        return f"[{paths}]: {error.message}"
+
+    schema = _read_schema(schema_name)
+
+    cls = jsonschema.validators.validator_for(schema)
+    cls.check_schema(schema)
+    validator = cls(schema)
+    errors = validator.iter_errors(data)
+
+    messages = []
+    for error in errors:
+        if error.context:
+            messages.extend(map(_format_error, error.context))
+        else:
+            messages.append(_format_error(error))
+
+    if messages:
+        raise SchemaValidationError("\n".join(messages))

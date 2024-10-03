@@ -1,0 +1,21 @@
+{
+  "http://api.brain-map.org/api/v2/data/Structure/997": {
+    "variantDefinition": {
+      "algorithm": "neurons_cell_position",
+      "version": "v3"
+    },
+    "inputs": [],
+    "configuration": {
+      "place_cells": {
+        "soma_placement": "basic",
+        "density_factor": 1,
+        "sort_by": [
+          "region",
+          "mtype"
+        ],
+        "seed": 0,
+        "mini_frequencies": false
+      }
+    }
+  }
+}
