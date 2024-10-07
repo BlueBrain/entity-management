@@ -19,6 +19,9 @@ DATA_DIR = Path(__file__).parent / "data"
         "macro_connectome_config_distribution",
         "micro_connectome_config_distribution",
         "synapse_config_distribution",
+        "canonical_morphology_model_config_distribution",
+        "placeholder_morphology_config_distribution",
+        "placeholder_emodel_config_distribution",
     ],
 )
 def test_config_distribution_schema(schema_name):

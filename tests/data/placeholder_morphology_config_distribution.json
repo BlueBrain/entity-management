@@ -1,0 +1,48 @@
+{
+  "hasPart": {
+    "http://api.brain-map.org/api/v2/data/Structure/23": {
+      "label": "Anterior amygdalar area",
+      "notation": "AAA",
+      "about": "BrainRegion",
+      "hasPart": {
+        "https://bbp.epfl.ch/ontologies/core/bmo/GenericExcitatoryNeuronMType": {
+          "label": "GEN_mtype",
+          "about": "NeuronMorphology",
+          "hasPart": {
+            "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/9829da8e-33e1-4a04-97ec-7943a4a969eb": {
+              "about": "NeuronMorphology",
+              "_rev": 3
+            }
+          }
+        },
+        "https://bbp.epfl.ch/ontologies/core/bmo/GenericInhibitoryNeuronMType": {
+          "label": "GIN_mtype",
+          "about": "NeuronMorphology",
+          "hasPart": {
+            "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/9829da8e-33e1-4a04-97ec-7943a4a969eb": {
+              "about": "NeuronMorphology",
+              "_rev": 3
+            }
+          }
+        }
+      }
+    },
+    "http://api.brain-map.org/api/v2/data/Structure/935": {
+      "label": "Anterior cingulate area, dorsal part, layer 1",
+      "notation": "ACAd1",
+      "about": "BrainRegion",
+      "hasPart": {
+        "http://uri.interlex.org/base/ilx_0383192": {
+          "label": "L1_DAC",
+          "about": "NeuronMorphology",
+          "hasPart": {
+            "https://bbp.epfl.ch/data/bbp/mmb-point-neuron-framework-model/9829da8e-33e1-4a04-97ec-7943a4a969eb": {
+              "about": "NeuronMorphology",
+              "_rev": 3
+            }
+          }
+        }
+      }
+    }
+  }
+}

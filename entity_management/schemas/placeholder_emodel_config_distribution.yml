@@ -1,0 +1,51 @@
+%YAML 1.1
+---
+"$schema": https://json-schema.org/draft/2020-12/schema
+title: PlaceholderEModelConfig distribution schema
+type: object
+required:
+- hasPart
+properties:
+  version:
+    type: integer
+    const: 1
+  hasPart:
+    additionalProperties: false
+    patternProperties:
+      '^https?:\/\/.*\/Structure\/\d*$':  # brain regions finishing in /Structure/int
+        type: object
+        required:
+          - notation
+          - hasPart
+        properties:
+          notation:
+            type: string
+          hasPart:
+            type: object
+            additionalProperties: false
+            patternProperties:
+              '^https?:\/\/[^?#]*$':  # mtypes
+                type: object
+                required:
+                  - label
+                  - hasPart
+                properties:
+                  label:
+                    type: string
+                  hasPart:
+                    type: object
+                    patternProperties:
+                      '^https?:\/\/[^?#]*$':  # etypes
+                        type: object
+                        properties:
+                          label:
+                            type: string
+                          hasPart:
+                            type: object
+                            patternProperties:
+                              '^https?:\/\/[^?#]*$':  # EModel ids
+                                type: object
+                                required:
+                                  - '_rev'
+                            additionalProperties: false
+                    additionalProperties: false
