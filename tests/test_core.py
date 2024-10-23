@@ -7,16 +7,18 @@ import pytest
 import entity_management.nexus as nexus
 from entity_management.core import DataDownload, WorkflowExecution, Entity, Activity, Person
 
+from util import TEST_DATA_DIR
+
 
 @pytest.fixture(name="workflow_resp", scope="session")
 def fixture_workflow_resp():
-    with open("tests/data/workflow_resp.json") as f:
+    with open(TEST_DATA_DIR / "workflow_resp.json") as f:
         return json.load(f)
 
 
 @pytest.fixture(name="file_resp", scope="session")
 def fixture_file_resp():
-    with open("tests/data/file_resp.json") as f:
+    with open(TEST_DATA_DIR / "file_resp.json") as f:
         return json.load(f)
 
 
@@ -146,7 +148,7 @@ def test_publish_activity_with_workflow(monkeypatch):
 
 @pytest.fixture(name="file_link_resp", scope="session")
 def fixture_file_link_resp():
-    with open("tests/data/file_link_resp.json") as f:
+    with open(TEST_DATA_DIR / "file_link_resp.json") as f:
         return json.load(f)
 
 
@@ -162,7 +164,7 @@ def test_data_download_link_file(monkeypatch, file_link_resp):
 
 @pytest.fixture(name="entity_data_download_resp")
 def fixture_entity_data_download_resp():
-    with open("tests/data/entity_data_download_resp.json") as f:
+    with open(TEST_DATA_DIR / "entity_data_download_resp.json") as f:
         return json.load(f)
 
 

@@ -6,9 +6,9 @@ import json
 import logging
 import os
 import re
+from json import JSONDecodeError
 
 import attr
-from requests.exceptions import JSONDecodeError
 
 from entity_management.atlas import CellComposition
 from entity_management.config import BrainRegionSelectorConfig, MacroConnectomeConfig
