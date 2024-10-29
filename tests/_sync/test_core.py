@@ -1,13 +1,15 @@
+# Automatically generated, DO NOT EDIT.
 # pylint: disable=missing-docstring,no-member
 import json
 import tempfile
+from unittest.mock import MagicMock
 
 import pytest
 
 import entity_management.nexus as nexus
-from entity_management.core import DataDownload, WorkflowExecution, Entity, Activity, Person
-
-from util import TEST_DATA_DIR
+from entity_management import core
+from entity_management.core import Activity, DataDownload, Entity, Person, WorkflowExecution
+from tests.util import TEST_DATA_DIR
 
 
 @pytest.fixture(name="workflow_resp", scope="session")
@@ -23,8 +25,8 @@ def fixture_file_resp():
 
 
 def test_workflow_execution(monkeypatch, workflow_resp, file_resp):
-    monkeypatch.setattr(nexus, "upload_file", lambda *a, **b: file_resp)
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: workflow_resp)
+    monkeypatch.setattr(nexus, "upload_file", MagicMock(return_value=file_resp))
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value=workflow_resp))
 
     with tempfile.NamedTemporaryFile(suffix=".zip") as temp:
         temp.write(b"Some data")  # 9 bytes of data
@@ -50,14 +52,14 @@ def test_data_download_no_url_and_content_url_provided():
 
 def test_publish_with_attribution(monkeypatch):
     entity = Entity(name="test")
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     entity = entity.publish(was_attributed_to=Person(email="email"))
     assert entity.wasAttributedTo[0].email == "email"
 
 
 def test_publish_with_existing_attribution(monkeypatch):
     entity = Entity(name="test", wasAttributedTo=[Person(email="email1")])
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     entity = entity.publish(was_attributed_to=Person(email="email2"))
     emails = [person.email for person in entity.wasAttributedTo]
     assert "email1" in emails
@@ -66,14 +68,14 @@ def test_publish_with_existing_attribution(monkeypatch):
 
 def test_publish_without_workflow(monkeypatch):
     entity = Entity(name="test")
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     entity.publish()
 
 
 def test_entity_publish_with_activity(monkeypatch):
     entity = Entity(name="test")
     activity = Activity(name="activity")
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     entity = entity.publish(activity=activity)
     assert entity.wasGeneratedBy.name == activity.name
 
@@ -81,14 +83,14 @@ def test_entity_publish_with_activity(monkeypatch):
 def test_activity_publish_with_activity(monkeypatch):
     activity1 = Activity(name="activity1")
     activity2 = Activity(name="activity2")
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     activity1 = activity1.publish(activity=activity2)
     assert activity1.wasInformedBy.name == activity2.name
 
 
 def test_publish_with_activity_override(monkeypatch):
     entity = Entity(name="test", wasGeneratedBy=Activity(name="activity1"))
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     entity = entity.publish(activity=Activity(name="activity2"))
     assert entity.wasGeneratedBy.name == "activity2", (
         "Original entity wasGeneratedBy activity should be overriden by the one "
@@ -98,7 +100,7 @@ def test_publish_with_activity_override(monkeypatch):
 
 def test_publish_activity_with_activity_no_override(monkeypatch):
     activity = Activity(name="test", wasInformedBy=Activity(name="activity1"))
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     activity = activity.publish(activity=Activity(name="activity2"))
     assert activity.wasInformedBy.name == "activity1", (
         "Original activity wasStartedBy activity should not be overriden by the one "
@@ -107,41 +109,41 @@ def test_publish_activity_with_activity_no_override(monkeypatch):
 
 
 def test_publish_entity_with_workflow(monkeypatch):
-    monkeypatch.setattr("entity_management.core.WORKFLOW", "workflow_id")
+    monkeypatch.setattr(core, "WORKFLOW", "workflow_id")
     monkeypatch.setattr(
         WorkflowExecution,
         "from_id",
-        classmethod(
-            lambda *a, **b: WorkflowExecution(
+        MagicMock(
+            return_value=WorkflowExecution(
                 name="workflow", module="module", task="task", version="1"
             )
         ),
     )
     entity = Entity(name="name")
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     entity = entity.publish()
     assert entity.wasGeneratedBy.name == "workflow"
 
 
 def test_publish_activity(monkeypatch):
     activity = Activity()
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     activity.publish()
 
 
 def test_publish_activity_with_workflow(monkeypatch):
-    monkeypatch.setattr("entity_management.core.WORKFLOW", "workflow_id")
+    monkeypatch.setattr(core, "WORKFLOW", "workflow_id")
     monkeypatch.setattr(
         WorkflowExecution,
         "from_id",
-        classmethod(
-            lambda *a, **b: WorkflowExecution(
+        MagicMock(
+            return_value=WorkflowExecution(
                 name="workflow", module="module", task="task", version="1"
             )
         ),
     )
     activity = Activity()
-    monkeypatch.setattr(nexus, "create", lambda *a, **b: {})
+    monkeypatch.setattr(nexus, "create", MagicMock(return_value={}))
     activity = activity.publish()
     assert activity.wasInfluencedBy.name == "workflow"
 
@@ -153,7 +155,7 @@ def fixture_file_link_resp():
 
 
 def test_data_download_link_file(monkeypatch, file_link_resp):
-    monkeypatch.setattr(nexus, "link_file", lambda *a, **b: file_link_resp)
+    monkeypatch.setattr(nexus, "link_file", MagicMock(return_value=file_link_resp))
 
     with tempfile.NamedTemporaryFile(suffix=".zip") as temp:
         file_path = temp.name
@@ -169,8 +171,8 @@ def fixture_entity_data_download_resp():
 
 
 def test_data_download_get_location(monkeypatch, entity_data_download_resp, file_link_resp):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *a, **b: entity_data_download_resp)
-    monkeypatch.setattr(nexus, "_get_file_metadata", lambda *a, **b: file_link_resp)
+    monkeypatch.setattr(nexus, "load_by_url", MagicMock(return_value=entity_data_download_resp))
+    monkeypatch.setattr(nexus, "_get_file_metadata", MagicMock(return_value=file_link_resp))
 
     entity = Entity.from_id("id")
     assert (
@@ -180,15 +182,15 @@ def test_data_download_get_location(monkeypatch, entity_data_download_resp, file
 
 
 def test_data_download_get_location_path(monkeypatch, entity_data_download_resp, file_link_resp):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *a, **b: entity_data_download_resp)
-    monkeypatch.setattr(nexus, "_get_file_metadata", lambda *a, **b: file_link_resp)
+    monkeypatch.setattr(nexus, "load_by_url", MagicMock(return_value=entity_data_download_resp))
+    monkeypatch.setattr(nexus, "_get_file_metadata", MagicMock(return_value=file_link_resp))
 
     entity = Entity.from_id("id")
     assert entity.distribution.get_location_path() == "/bucket/relative/path/to/file.zip"
 
 
 def test_data_download_get_url_as_path(monkeypatch, entity_data_download_resp):
-    monkeypatch.setattr(nexus, "load_by_url", lambda *a, **b: entity_data_download_resp)
+    monkeypatch.setattr(nexus, "load_by_url", MagicMock(return_value=entity_data_download_resp))
     entity = Entity.from_id("id")
     assert entity.distribution.get_url_as_path() == "/gpfs/distribution_path.json"
 
@@ -196,7 +198,7 @@ def test_data_download_get_url_as_path(monkeypatch, entity_data_download_resp):
 def test_data_download_get_url_as_path__raises(monkeypatch, entity_data_download_resp):
 
     del entity_data_download_resp["distribution"]["url"]
-    monkeypatch.setattr(nexus, "load_by_url", lambda *a, **b: entity_data_download_resp)
+    monkeypatch.setattr(nexus, "load_by_url", MagicMock(return_value=entity_data_download_resp))
     entity = Entity.from_id("id")
 
     with pytest.raises(AssertionError, match="No url!"):

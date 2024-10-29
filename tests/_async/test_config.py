@@ -1,11 +1,9 @@
 import json
-from pathlib import Path
 
 import pytest
-from entity_management import config as test_module
-from entity_management.util import validate_schema
 
-DATA_DIR = Path(__file__).parent / "data"
+from entity_management_async.util import validate_schema
+from tests.util import TEST_DATA_DIR as DATA_DIR
 
 
 @pytest.mark.parametrize(

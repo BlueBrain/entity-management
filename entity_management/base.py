@@ -1,3 +1,4 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """
@@ -7,6 +8,7 @@ Base simulation entities
    :parts: 2
 """
 
+import inspect
 import logging
 import typing
 from datetime import datetime
@@ -55,8 +57,13 @@ SYS_ATTRS = {
 def _copy_sys_meta(src, dest):
     """Copy system metadata from source to destination entity."""
     for attribute in SYS_ATTRS:
-        if hasattr(src, attribute):
-            dest._force_attr(attribute, getattr(src, attribute))
+        try:
+            # get the attribute without triggering custom_getattr
+            value = object.__getattribute__(src, attribute)
+        except AttributeError:
+            pass
+        else:
+            dest._force_attr(attribute, value)
 
 
 def _type_class(type_):
@@ -72,6 +79,8 @@ def custom_getattr(obj, name):
 
     value = object.__getattribute__(obj, name)
     if value is NotInstantiated and obj._id is not None:
+        if inspect.iscoroutinefunction(obj._instantiate):
+            raise RuntimeError(f"Cannot access not instantiated {obj.__class__.__name__}.{name}")
         obj._instantiate()
         return getattr(obj, name)
     else:
@@ -554,6 +563,17 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
     _updatedAt = NotInstantiated
     _updatedBy = NotInstantiated
 
+    @property
+    def instantiated(self):
+        """Return True if the object has been instantiated from Nexus."""
+        # check _context because it's always set after loading the resource from Nexus
+        return object.__getattribute__(self, "_context") is not NotInstantiated
+
+    def __attrs_post_init__(self):
+        # Enforce the type as the name of the class.
+        # It can be overridden in subclasses, but it's not overridden from Nexus.
+        self._force_attr("_type", type(self).__name__)
+
     @classmethod
     def _lazy_init(
         cls,
@@ -811,6 +831,8 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
 
     def _instantiate(self):
         """Fetch nexus object with id=self._id if it was not initialized before."""
+        if self.instantiated:
+            return self
         if hasattr(self, "_lazy_meta_"):
             base, org, proj = getattr(self, "_lazy_meta_")
         else:
@@ -820,7 +842,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         tag = object.__getattribute__(self, "_tag")
         rev = object.__getattribute__(self, "_rev")
 
-        # note that tag is given precedence over _rev becauce it avoids replaying history up to that
+        # note that tag is given precedence over _rev because it avoids replaying history up to that
         # revision, and is therefore faster
         if tag is not NotInstantiated:
             resource_id = f"{self._id}?tag={tag}"
@@ -836,6 +858,7 @@ class Identifiable(Frozen, metaclass=_IdentifiableMeta):
         for attribute in attr.fields(type(self)):
             self._force_attr(attribute.name, getattr(fetched_instance, attribute.name))
         _copy_sys_meta(fetched_instance, self)
+        return self
 
     def deprecate(self, sync_index=False, use_auth=None):
         """Mark entity as deprecated.

@@ -1,12 +1,12 @@
 import json
-import pytest
-from entity_management import nexus
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import AsyncMock
 
-from entity_management import atlas as test_module
+import pytest
 
-DATA_DIR = Path(__file__).parent / "data"
+from entity_management_async import atlas as test_module
+from entity_management_async import nexus
+from tests.util import TEST_DATA_DIR as DATA_DIR
 
 
 @pytest.fixture
@@ -14,11 +14,11 @@ def atlas_release_metadata():
     return json.loads(Path(DATA_DIR, "atlas_release_resp.json").read_bytes())
 
 
-def test_atlas_release(monkeypatch, atlas_release_metadata):
+async def test_atlas_release(monkeypatch, atlas_release_metadata):
 
-    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: atlas_release_metadata)
+    monkeypatch.setattr(nexus, "load_by_url", AsyncMock(return_value=atlas_release_metadata))
 
-    res = test_module.AtlasRelease.from_id(None)
+    res = await test_module.AtlasRelease.from_id(None)
 
     assert res.get_id() is not None
     assert res.brainTemplateDataLayer.get_id() is not None

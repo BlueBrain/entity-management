@@ -1,9 +1,13 @@
 *.pyc
 *.swp
+*.bak
 coverage.xml
 *.egg-info
 .coverage
 doc/build
 doc/source/generated
 .tox
+.idea
+.venv
+venv
 build

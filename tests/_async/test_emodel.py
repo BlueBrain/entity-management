@@ -1,19 +1,16 @@
 import json
 import typing
-from pathlib import Path
-from unittest.mock import patch
 from datetime import datetime
+from unittest.mock import patch
 
 import attr
 import pytest
 
-from entity_management import nexus
-from entity_management.core import DataDownload
-from entity_management import emodel as test_module
-from entity_management.electrophysiology import Trace
-
-
-DATA_DIR = Path(__file__).parent / "data"
+from entity_management_async import emodel as test_module
+from entity_management_async import nexus
+from entity_management_async.core import DataDownload
+from entity_management_async.electrophysiology import Trace
+from tests.util import TEST_DATA_DIR as DATA_DIR
 
 
 def _follow(obj, string):
@@ -24,10 +21,10 @@ def _follow(obj, string):
     return current
 
 
-def _instantiate(cls, response_file):
+async def _instantiate(cls, response_file):
     response = json.loads(response_file.read_bytes())
-    with patch("entity_management.nexus.load_by_url", return_value=response):
-        return cls.from_id(None)
+    with patch(f"{nexus.__name__}.load_by_url", return_value=response):
+        return await cls.from_id(None)
 
 
 def _apply(func, obj):
@@ -79,13 +76,9 @@ def _has_emodel_elements(obj_list):
     assert all(isinstance(obj, test_module.EModel) for obj in obj_list)
 
 
-def _get_path_result(obj, path, test_type):
-    return _test_type(_follow(path, obj), test_type)
-
-
 @pytest.fixture(scope="module")
-def emodel_release():
-    return _instantiate(test_module.EModelRelease, DATA_DIR / "emodel_release_resp.json")
+async def emodel_release():
+    return await _instantiate(test_module.EModelRelease, DATA_DIR / "emodel_release_resp.json")
 
 
 @pytest.mark.parametrize(
@@ -111,8 +104,10 @@ ENTITY_TESTS = [
 
 
 @pytest.fixture(scope="module")
-def emodel_data_catalog():
-    return _instantiate(test_module.EModelDataCatalog, DATA_DIR / "emodel_data_catalog_resp.json")
+async def emodel_data_catalog():
+    return await _instantiate(
+        test_module.EModelDataCatalog, DATA_DIR / "emodel_data_catalog_resp.json"
+    )
 
 
 @pytest.mark.parametrize(
@@ -132,8 +127,8 @@ def test_EModelDataCatalog(path, test_func, emodel_data_catalog):
 
 
 @pytest.fixture(scope="module")
-def emodel():
-    return _instantiate(test_module.EModel, DATA_DIR / "emodel_resp.json")
+async def emodel():
+    return await _instantiate(test_module.EModel, DATA_DIR / "emodel_resp.json")
 
 
 def _has_data_download_elements(obj_list):
@@ -163,8 +158,8 @@ def test_EModel(path, test_func, emodel):
 
 
 @pytest.fixture(scope="module")
-def emodel_configuration():
-    return _instantiate(
+async def emodel_configuration():
+    return await _instantiate(
         test_module.EModelConfiguration, DATA_DIR / "emodel_configuration_resp.json"
     )
 
@@ -206,8 +201,8 @@ def test_EModelConfiguration(path, test_func, emodel_configuration):
 
 
 @pytest.fixture(scope="module")
-def emodel_script():
-    return _instantiate(test_module.EModelScript, DATA_DIR / "emodel_script_resp.json")
+async def emodel_script():
+    return await _instantiate(test_module.EModelScript, DATA_DIR / "emodel_script_resp.json")
 
 
 @pytest.mark.parametrize(
@@ -230,8 +225,8 @@ def test_EModelScript(path, test_func, emodel_script):
 
 
 @pytest.fixture(scope="module")
-def sub_cellular_model_script():
-    return _instantiate(
+async def sub_cellular_model_script():
+    return await _instantiate(
         test_module.SubCellularModelScript, DATA_DIR / "sub_cellular_model_script_resp.json"
     )
 
@@ -264,8 +259,8 @@ def test_SubCellularModelScript(path, test_func, sub_cellular_model_script):
 
 
 @pytest.fixture(scope="module")
-def emodel_pipeline_settings():
-    return _instantiate(
+async def emodel_pipeline_settings():
+    return await _instantiate(
         test_module.EModelPipelineSettings, DATA_DIR / "emodel_pipeline_settings_resp.json"
     )
 
@@ -289,8 +284,8 @@ def test_EModelPipelineSettings(path, test_func, emodel_pipeline_settings):
 
 
 @pytest.fixture(scope="module")
-def extraction_targets_configuration():
-    return _instantiate(
+async def extraction_targets_configuration():
+    return await _instantiate(
         test_module.ExtractionTargetsConfiguration,
         DATA_DIR / "extraction_targets_configuration_resp.json",
     )
@@ -317,8 +312,8 @@ def test_ExtractionTargetsConfiguration(path, test_func, extraction_targets_conf
 
 
 @pytest.fixture(scope="module")
-def fitness_calculator_configuration():
-    return _instantiate(
+async def fitness_calculator_configuration():
+    return await _instantiate(
         test_module.FitnessCalculatorConfiguration,
         DATA_DIR / "fitness_calculator_configuration_resp.json",
     )
@@ -343,8 +338,8 @@ def test_FitnessCalculatorConfiguration(path, test_func, fitness_calculator_conf
 
 
 @pytest.fixture(scope="module")
-def emodel_workflow():
-    return _instantiate(test_module.EModelWorkflow, DATA_DIR / "emodel_workflow_resp.json")
+async def emodel_workflow():
+    return await _instantiate(test_module.EModelWorkflow, DATA_DIR / "emodel_workflow_resp.json")
 
 
 def _validate_emodel_workflow_hasPart(obj_list):
@@ -385,8 +380,8 @@ def test_EModelWorkflow(path, test_func, emodel_workflow):
 
 
 @pytest.fixture(scope="module")
-def trace():
-    return _instantiate(Trace, DATA_DIR / "trace_resp.json")
+async def trace():
+    return await _instantiate(Trace, DATA_DIR / "trace_resp.json")
 
 
 @pytest.mark.parametrize(

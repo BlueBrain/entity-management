@@ -33,7 +33,6 @@ dependencies = [
   "attrs",
   "httpx",
   "python-dateutil",
-  "sparqlwrapper",
   "rdflib",
   "pyjwt",
   "python-keycloak",
@@ -59,7 +58,7 @@ Issues = "https://github.com/BlueBrain/entity-management/issues"
 entity-management = "entity_management.cli.base:cli"
 
 [tool.setuptools.packages.find]
-include = ["entity_management"]
+include = ["entity_management", "entity_management_async", "entity_management_common"]
 namespaces = false
 
 [tool.setuptools_scm]
@@ -74,8 +73,22 @@ target-version = [
     'py311',
     'py312',
 ]
-include = 'entity_management\/.*\.py$|tests\/.*\.py$|doc\/source\/conf\.py$|setup\.py$'
+include = 'entity_management.*\.py$|tests\/.*\.py$|doc\/source\/conf\.py$|setup\.py$'
 
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "-vv",
+    "-ra",
+    "--durations=10",
+    "--durations-min=1.0",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "module"
+testpaths = [
+    "tests",
+]

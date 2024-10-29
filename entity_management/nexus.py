@@ -1,3 +1,4 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """New nexus access layer"""
@@ -10,9 +11,7 @@ import sys
 from email.header import decode_header
 from functools import wraps
 
-import httpx
-from SPARQLWrapper import JSON, POST, POSTDIRECTLY, SPARQLWrapper
-
+from entity_management import httpw
 from entity_management.debug import PP
 from entity_management.settings import DASH, JSLD_TYPE, NSG, SCHEMA_UNCONSTRAINED, USERINFO
 from entity_management.state import (
@@ -131,7 +130,7 @@ def _nexus_wrapper(func):
 
         try:
             return func(*args, **kwargs)
-        except httpx.HTTPStatusError as http_error:
+        except httpw.HTTPStatusError as http_error:
             # retry function call only when got Unauthorized, we have offline token to produce the
             # new access token and token was not explicitly provided
             if (
@@ -142,7 +141,7 @@ def _nexus_wrapper(func):
                 kwargs["token"] = refresh_token()
                 try:
                     return func(*args, **kwargs)
-                except httpx.HTTPStatusError as http_error_nested:
+                except httpw.HTTPStatusError as http_error_nested:
                     _print_nexus_error(http_error_nested)
                     raise
             _print_nexus_error(http_error)
@@ -161,7 +160,7 @@ def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cr
     """Get type which corresponds to the id_url"""
     base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
     url = f"{base_url}/{quote(resource_id)}"
-    response = httpx.get(url, headers=_get_headers(token), timeout=10)
+    response = httpw.get(url, headers=_get_headers(token), timeout=10)
     response.raise_for_status()
     response_json = response.json()
     constrained_by = response_json["_constrainedBy"]
@@ -190,11 +189,11 @@ def create(base_url, payload, resource_id=None, sync_index=False, token=None):
         params = {}
     if resource_id:
         url = f"{base_url}/{resource_id}"
-        response = httpx.put(
+        response = httpw.put(
             url, headers=_get_headers(token), params=params, json=payload, timeout=10
         )
     else:
-        response = httpx.post(
+        response = httpw.post(
             base_url, headers=_get_headers(token), params=params, json=payload, timeout=10
         )
     response.raise_for_status()
@@ -219,7 +218,7 @@ def update(id_url, rev, payload, sync_index=False, token=None):
     params = {"rev": rev}
     if sync_index:
         params.update({"indexing": "sync"})
-    response = httpx.put(
+    response = httpw.put(
         id_url, headers=_get_headers(token), params=params, json=payload, timeout=10
     )
     response.raise_for_status()
@@ -234,7 +233,7 @@ def deprecate(id_url, rev, sync_index=False, token=None):
     params = {"rev": rev}
     if sync_index:
         params.update({"indexing": "sync"})
-    response = httpx.delete(id_url, headers=_get_headers(token), params=params, timeout=10)
+    response = httpw.delete(id_url, headers=_get_headers(token), params=params, timeout=10)
     response.raise_for_status()
     return _to_json(response)
 
@@ -252,7 +251,7 @@ def load_by_url(url, params=None, stream=False, token=None):
     Returns:
         if stream is true then the response content is returned as bytes, otherwise as json.
     """
-    response = httpx.get(url, headers=_get_headers(token), params=params, timeout=10)
+    response = httpw.get(url, headers=_get_headers(token), params=params, timeout=10)
 
     # if not found then return None
     if response.status_code == 404:
@@ -310,7 +309,7 @@ def get_current_agent(token=None):
     if token is None:
         return None
 
-    response = httpx.get(
+    response = httpw.get(
         USERINFO,
         headers={"accept": "application/json", "authorization": "Bearer " + token},
         timeout=10,
@@ -326,7 +325,7 @@ def _get_files_endpoint():
 @_nexus_wrapper
 def _get_file_metadata(url, tag=None, token=None):
     """Helper function"""
-    response = httpx.get(
+    response = httpw.get(
         url, headers=_get_headers(token), params={"tag": tag if tag else None}, timeout=10
     )
 
@@ -345,7 +344,8 @@ def get_file_rev(url, tag=None, token=None):
     Returns:
         File revision.
     """
-    return _get_file_metadata(url, tag=tag, token=token)["_rev"]
+    metadata = _get_file_metadata(url, tag=tag, token=token)
+    return metadata["_rev"]
 
 
 def get_file_location(url, tag=None, token=None):
@@ -359,7 +359,8 @@ def get_file_location(url, tag=None, token=None):
     Returns:
         File revision.
     """
-    return _get_file_metadata(url, tag=tag, token=token).get("_location")
+    metadata = _get_file_metadata(url, tag=tag, token=token)
+    return metadata.get("_location")
 
 
 def get_unquoted_uri_path(url, tag=None, token=None):
@@ -385,7 +386,8 @@ def get_file_name(url, tag=None, token=None):
     Returns:
         File name.
     """
-    return _get_file_metadata(url, tag=tag, token=token)["_filename"]
+    metadata = _get_file_metadata(url, tag=tag, token=token)
+    return metadata["_filename"]
 
 
 @_nexus_wrapper
@@ -421,7 +423,7 @@ def upload_file(
     """
     if resource_id:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}"
-        response = httpx.put(
+        response = httpw.put(
             url,
             headers=_get_headers(token),
             params={"rev": rev if rev else None, "storage": storage_id if storage_id else None},
@@ -430,7 +432,7 @@ def upload_file(
         )
     else:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}"
-        response = httpx.post(
+        response = httpw.post(
             url,
             headers=_get_headers(token),
             params={"storage": storage_id if storage_id else None},
@@ -475,10 +477,10 @@ def link_file(
     json = {"filename": name, "path": file_path, "mediaType": content_type}
     if resource_id:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}"
-        response = httpx.put(url, headers=_get_headers(token), params=params, json=json, timeout=10)
+        response = httpw.put(url, headers=_get_headers(token), params=params, json=json, timeout=10)
     else:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}"
-        response = httpx.post(
+        response = httpw.post(
             url, headers=_get_headers(token), params=params, json=json, timeout=10
         )
 
@@ -501,7 +503,7 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
     Returns:
         str: Path to the downloaded file.
     """
-    with httpx.stream(
+    with httpw.stream(
         "GET",
         url,
         headers=_get_headers(token, accept=None),
@@ -521,7 +523,8 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
             file_name = encoded_file_name.decode(encoding)
         file_ = os.path.join(path, file_name)
         with open(file_, "wb") as f:
-            for chunk in response.iter_bytes(chunk_size=1024):
+            chunk_size = int(os.getenv("HTTP_STREAM_CHUNK_SIZE", "1024"))
+            for chunk in response.iter_bytes(chunk_size=chunk_size):
                 f.write(chunk)
 
     return os.path.join(os.path.realpath(path), file_name)
@@ -540,7 +543,7 @@ def file_as_dict(url, tag=None, rev=None, token=None):
     Returns:
         Raw response.
     """
-    with httpx.stream(
+    with httpw.stream(
         "GET",
         url,
         headers=_get_headers(token, accept=None),
@@ -553,8 +556,12 @@ def file_as_dict(url, tag=None, rev=None, token=None):
 
 
 @_nexus_wrapper
-def sparql_query(query, base=None, org=None, proj=None, token=None):
+def sparql_query(query, base=None, org=None, proj=None, token=None, operation="query"):
     """Execute SPARQL query.
+
+    It supports query via POST directly only.
+
+    See: https://www.w3.org/TR/sparql11-protocol/
 
     Args:
         query (str): SPARQL query.
@@ -562,18 +569,28 @@ def sparql_query(query, base=None, org=None, proj=None, token=None):
         org (str): Nexus organization.
         proj (str): Nexus project.
         token (str): Optional OAuth token.
+        operation (str): SPARQL operation, one of ``query`` (default) or ``update``.
 
     Returns:
         Json response.
     """
-    endpoint = SPARQLWrapper(get_sparql_url(base, org, proj))
-    endpoint.addCustomHttpHeader("authorization", f"bearer {token}")
-    endpoint.setMethod(POST)
-    endpoint.setReturnFormat(JSON)
-    endpoint.setRequestMethod(POSTDIRECTLY)
-    endpoint.setQuery(query)
-    result = endpoint.query()
-    return result._convertJSON()
+    content_type = {
+        "query": "application/sparql-query",
+        "update": "application/sparql-update",
+    }[operation]
+    base_url = get_sparql_url(base, org, proj)
+    headers = {
+        **_get_headers(token, accept="application/sparql-results+json"),
+        "Content-Type": content_type,
+    }
+    response = httpw.post(
+        url=base_url,
+        headers=headers,
+        content=query.encode("utf-8"),
+        timeout=10,
+    )
+    response.raise_for_status()
+    return _to_json(response, query)
 
 
 @_nexus_wrapper
@@ -592,7 +609,7 @@ def es_query(query, base=None, org=None, proj=None, token=None):
     """
     base_url = get_es_url(base, org, proj)
 
-    response = httpx.post(
+    response = httpw.post(
         url=base_url,
         headers=_get_headers(token, accept="application/json"),
         json=query,

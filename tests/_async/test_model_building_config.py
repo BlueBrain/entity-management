@@ -1,9 +1,10 @@
 import json
 from json import JSONDecodeError
+from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import attr
-from unittest.mock import patch, call, Mock, MagicMock
-import entity_management.cli.model_building_config as test_module
+
+import entity_management_async.cli.model_building_config as test_module
 
 
 def test__write_json(tmp_path):
@@ -109,9 +110,14 @@ def test__get_distribution_filename():
     assert res == "fake_timestamp__fake_distribution.fake_extension"
 
 
-@patch.object(test_module, "download_file", new=Mock())
-@patch.object(test_module, "file_as_dict")
-def test_download_and_get_ids_from_distribution(mock_file_as_dict):
+async def test_download_and_get_ids_from_distribution(monkeypatch):
+    monkeypatch.setattr(test_module, "download_file", AsyncMock())
+    monkeypatch.setattr(
+        test_module,
+        "file_as_dict",
+        AsyncMock(return_value={"id": "another_fake_id", "type": "fake_type"}),
+    )
+
     entity = {
         "_createdAt": "fake_time",
         "distribution": {
@@ -121,21 +127,18 @@ def test_download_and_get_ids_from_distribution(mock_file_as_dict):
         },
     }
 
-    mock_file_as_dict.return_value = {"id": "another_fake_id", "type": "fake_type"}
-
     mapping = {}
-    res = test_module.download_and_get_ids_from_distribution(entity, "fake_path", mapping)
+    res = await test_module.download_and_get_ids_from_distribution(entity, "fake_path", mapping)
     assert res == {"another_fake_id"}
     assert mapping == {"fake_url": "fake_time__test_file.json"}
 
 
-@patch.object(test_module, "load_by_id")
-def test__download_entity_get_ids(mock_load, tmp_path):
+async def test__download_entity_get_ids(monkeypatch, tmp_path):
     mapping = {}
     fake_entity = {"@id": "fake_id", "@type": "fake_type", "_createdAt": "fake_time"}
-    mock_load.return_value = {**fake_entity}
+    monkeypatch.setattr(test_module, "load_by_id", AsyncMock(return_value={**fake_entity}))
 
-    res = test_module._download_entity_get_ids("fake_id", tmp_path, mapping)
+    res = await test_module._download_entity_get_ids("fake_id", tmp_path, mapping)
     file_name = "fake_time__fake_type.json"
     assert mapping == {"fake_id": file_name}
     assert res == set()
@@ -146,41 +149,46 @@ def test__download_entity_get_ids(mock_load, tmp_path):
     assert file_dict == fake_entity
 
 
-@patch.object(test_module, "load_by_id")
-@patch.object(test_module, "_get_entity_filename")
-def test__download_entity_get_ids_errors(mock_get_filename, mock_load):
+async def test__download_entity_get_ids_errors(monkeypatch):
+    mock_get_filename = Mock()
+    mock_load = AsyncMock()
+    monkeypatch.setattr(test_module, "_get_entity_filename", mock_get_filename)
+    monkeypatch.setattr(test_module, "load_by_id", mock_load)
+
     # load_by_id: JSONDecodeError
     mock_load.side_effect = JSONDecodeError("", "", 666)
-    res = test_module._download_entity_get_ids("fake_id", "fake_path", "fake_mapping")
+    res = await test_module._download_entity_get_ids("fake_id", "fake_path", "fake_mapping")
     assert res == set()
-    mock_get_filename.assert_not_called()
+    assert mock_get_filename.call_count == 0
 
     # load_by_id: returns None
     mock_load.reset_mock(side_effect=True)
     mock_load.return_value = None
-    res = test_module._download_entity_get_ids("fake_id", "fake_path", "fake_mapping")
+    res = await test_module._download_entity_get_ids("fake_id", "fake_path", "fake_mapping")
     assert res == set()
-    mock_get_filename.assert_not_called()
+    assert mock_get_filename.call_count == 0
 
 
-@patch.object(test_module, "_download_entity_get_ids")
-def test__download_entity_recursive(mock_download):
-    mock_download.return_value = ["another_fake_id"]
+async def test__download_entity_recursive(monkeypatch):
+    mock_download = AsyncMock(return_value=["another_fake_id"])
+    monkeypatch.setattr(test_module, "_download_entity_get_ids", mock_download)
 
     # Test that recursion stops if id is in mapping (already checked)
     mapping = {"fake_id": 666}
-    res = test_module._download_entity_recursive("fake_id", "fake_path", depth=0, mapping=mapping)
-    mock_download.assert_not_called()
+    res = await test_module._download_entity_recursive(
+        "fake_id", "fake_path", depth=0, mapping=mapping
+    )
+    assert mock_download.call_count == 0
     assert res == mapping
 
     # Test that recursion stops if depth has reached 0
-    res = test_module._download_entity_recursive("fake_id", "fake_path", depth=0)
-    mock_download.assert_called_once_with("fake_id", "fake_path", {})
+    res = await test_module._download_entity_recursive("fake_id", "fake_path", depth=0)
+    mock_download.assert_awaited_once_with("fake_id", "fake_path", {})
     # function adding the id to mapping is mocked, so this is expected to be an empty dict
     assert res == {}
 
     mock_download.reset_mock()
-    res = test_module._download_entity_recursive("fake_id", "fake_path", depth=1)
+    res = await test_module._download_entity_recursive("fake_id", "fake_path", depth=1)
     mock_download.assert_has_calls(
         [
             call("fake_id", "fake_path", {}),
@@ -189,14 +197,16 @@ def test__download_entity_recursive(mock_download):
     )
 
 
-@patch.object(test_module, "_write_json")
-@patch.object(test_module, "_download_entity_recursive")
-def test_download_model_config(mock_download, mock_write, tmp_path):
-    mock_download.return_value = "fake_mapping"
+async def test_download_model_config(monkeypatch, tmp_path):
+    mock_download = AsyncMock(return_value="fake_mapping")
+    mock_write = Mock()
+    monkeypatch.setattr(test_module, "_download_entity_recursive", mock_download)
+    monkeypatch.setattr(test_module, "_write_json", mock_write)
+
     outdir = tmp_path / "test_dir"
     model_config = Mock(get_id=Mock(return_value="fake_id"))
-    test_module.download_model_config(model_config, outdir, depth=666)
+    await test_module.download_model_config(model_config, outdir, depth=666)
 
     assert outdir.exists()
     mock_write.assert_called_once_with("fake_mapping", outdir, "id_url_file_mapping.json")
-    mock_download.assert_called_once_with("fake_id", outdir, 666)
+    mock_download.assert_awaited_once_with("fake_id", outdir, 666)

@@ -28,7 +28,8 @@ def main(target_file):
         }}
         LIMIT 1
     '''
-    hits = sparql_query(query, org=ORG, proj=PROJ)["results"]["bindings"]
+    response = sparql_query(query, org=ORG, proj=PROJ)
+    hits = response["results"]["bindings"]
 
     if not hits:
         raise RuntimeError("No SchemaToTypeMapping Resource found.")
@@ -60,5 +61,5 @@ def _expand_mapping(context, mapping):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     main(sys.argv[1])
-

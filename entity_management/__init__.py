@@ -1,10 +1,11 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """entity-management"""
 
 from importlib.metadata import version
 
-__version__ = version(__package__)
+__version__ = version("entity_management")
 
 import logging
 

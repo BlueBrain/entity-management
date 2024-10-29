@@ -1,3 +1,4 @@
+# Automatically generated, DO NOT EDIT.
 """Debug utilities."""
 
 import os

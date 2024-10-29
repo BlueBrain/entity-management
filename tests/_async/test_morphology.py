@@ -2,23 +2,13 @@
 import json
 
 from pytest_httpx import IteratorStream
-from six.moves import builtins
 
-from unittest.mock import patch
-
-from entity_management.state import (
-    get_org,
-    get_proj,
-    get_base_resources,
-    get_base_resolvers,
-    get_base_url,
-)
-from entity_management.settings import NSG, DASH
-from entity_management.core import Entity
-from entity_management.morphology import ReconstructedPatchedCell
-from entity_management.util import quote
-
-from test_nexus import FILE_RESPONSE, FILE_ID, FILE_URL, FILE_NAME_EXT
+from entity_management_async.core import Entity
+from entity_management_async.morphology import ReconstructedPatchedCell
+from entity_management_async.settings import DASH, NSG
+from entity_management_async.state import get_base_url
+from entity_management_async.util import quote
+from tests._async.test_nexus import FILE_ID, FILE_NAME_EXT, FILE_RESPONSE, FILE_URL
 
 CELL_NAME = "mycell"
 CELL_ID = NSG[CELL_NAME]
@@ -133,7 +123,7 @@ CELL_LIST_RESPONSE = {
 }
 
 
-def test_reconstructed_patched_cell(tmp_path, httpx_mock):
+async def test_reconstructed_patched_cell(tmp_path, httpx_mock):
     stream = json.dumps(FILE_RESPONSE).encode("utf-8")
     httpx_mock.add_response(
         stream=IteratorStream([stream[: len(stream) // 2], stream[len(stream) // 2 :]]),
@@ -155,13 +145,15 @@ def test_reconstructed_patched_cell(tmp_path, httpx_mock):
     )
 
     cells = ReconstructedPatchedCell.list_by_schema()
-    cell = next(cells)
+    cell = await cells.__anext__()
+    cell = await cell
+
     assert cell.name == "cell_name"
     assert isinstance(cell.wasDerivedFrom[0], Entity)
 
-    file_path = cell.distribution[0].download(path=str(tmp_path))
+    file_path = await cell.distribution[0].download(path=str(tmp_path))
 
     expected_path = tmp_path / FILE_NAME_EXT
     assert file_path == str(expected_path)
-    assert expected_path.is_file()
+    assert expected_path.is_file() is True
     assert expected_path.read_bytes() == stream

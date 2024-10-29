@@ -3,25 +3,18 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
-import entity_management.core as core
-from entity_management import nexus
-from entity_management.state import get_base_url
-from entity_management.settings import NSG, JSLD_CTX
-from entity_management.core import DataDownload
-from entity_management.util import quote
-from entity_management.simulation import (
-    ModelReleaseIndex,
-    MorphologyRelease,
-    Morphology,
-    IonChannelMechanismRelease,
+import entity_management_async.core as core
+from entity_management_async import nexus
+from entity_management_async.core import DataDownload
+from entity_management_async.settings import JSLD_CTX, NSG
+from entity_management_async.simulation import (
     Configuration,
-    SimulationCampaignConfiguration,
     DetailedCircuit,
+    SimulationCampaignConfiguration,
 )
-
-DATA_DIR = Path(__file__).parent / "data"
+from entity_management_async.state import get_base_url
+from entity_management_async.util import quote
+from tests.util import TEST_DATA_DIR as DATA_DIR
 
 UUID = "0c7d5e80-c275-4187-897e-946da433b642"
 DUMMY_PERSON = core.Person(email="dummy_email")
@@ -313,14 +306,14 @@ ACTIVITY_JSLD = {
 }
 
 
-def test_get_configuration(httpx_mock):
+async def test_get_configuration(httpx_mock):
     httpx_mock.add_response(
         method="GET",
         url="%s/%s" % (get_base_url(), quote(CFG_ID)),
         json=CFG_JSLD,
     )
 
-    cfg = Configuration.from_id(CFG_ID)
+    cfg = await Configuration.from_id(CFG_ID)
     assert cfg._id == str(CFG_ID)
 
 
@@ -337,7 +330,7 @@ def test_sim_campaign_config_serialization():
     assert json_ld[JSLD_CTX][0]
 
 
-def _mock_circuit_load_by_id(resource_id, *args, **kwargs):
+async def _mock_circuit_load_by_id(resource_id, *args, **kwargs):
     if resource_id == "circuit-id":
         return json.loads(Path(DATA_DIR, "detailed_circuit_resp.json").read_bytes())
 
@@ -365,19 +358,19 @@ def _mock_circuit_load_by_id(resource_id, *args, **kwargs):
     raise ValueError(resource_id)
 
 
-def test_detailed_circuit(monkeypatch):
+async def test_detailed_circuit(monkeypatch):
     monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
-    res = DetailedCircuit.from_id("circuit-id")
+    res = await DetailedCircuit.from_id("circuit-id")
     assert res.atlasRelease.get_id() is not None
 
     # revision exists in the linked metadata
     assert res.atlasRelease.get_rev() == 5
 
 
-def test_detailed_circuit__as_json_ld__include_revision(monkeypatch):
+async def test_detailed_circuit__as_json_ld__include_revision(monkeypatch):
     monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
 
-    circuit = DetailedCircuit.from_id("circuit-id")
+    circuit = await DetailedCircuit.from_id("circuit-id")
 
     res = circuit.as_json_ld(include_rev=False)
 
@@ -392,28 +385,28 @@ def test_detailed_circuit__as_json_ld__include_revision(monkeypatch):
     assert res["atlasRelease"]["_rev"] == 5
 
 
-def test_detailed_circuit__publish__wout_revision(monkeypatch):
+async def test_detailed_circuit__publish__wout_revision(monkeypatch):
     monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
 
-    circuit = DetailedCircuit.from_id("circuit-id")
+    circuit = await DetailedCircuit.from_id("circuit-id")
     circuit._force_attr("_id", None)
 
-    with patch("entity_management.nexus.create") as patched:
-        circuit.publish()
+    with patch(f"{nexus.__name__}.create", return_value={}) as patched:
+        await circuit.publish()
         payload = patched.call_args[0][1]
         assert "_rev" not in payload["brainLocation"]
         assert "_rev" not in payload["circuitConfigPath"]
         assert "_rev" not in payload["atlasRelease"]
 
 
-def test_detailed_circuit__publish__with_revision(monkeypatch):
+async def test_detailed_circuit__publish__with_revision(monkeypatch):
     monkeypatch.setattr(nexus, "load_by_id", _mock_circuit_load_by_id)
 
-    circuit = DetailedCircuit.from_id("circuit-id")
+    circuit = await DetailedCircuit.from_id("circuit-id")
     circuit._force_attr("_id", None)
 
-    with patch("entity_management.nexus.create") as patched:
-        circuit.publish(include_rev=True)
+    with patch(f"{nexus.__name__}.create", return_value={}) as patched:
+        await circuit.publish(include_rev=True)
         payload = patched.call_args[0][1]
         assert "_rev" not in payload["brainLocation"]
         assert "_rev" not in payload["circuitConfigPath"]
@@ -443,7 +436,7 @@ def test_detailed_circuit__publish__with_revision(monkeypatch):
 #
 #
 # @responses.activate
-# @patch('entity_management.core.nexus.get_current_agent')
+# @patch('entity_management_async.core.nexus.get_current_agent')
 # def test_update_morphology_release(get_current_agent):
 #     get_current_agent.return_value = None
 #     responses.add(responses.GET, '%s/%s' % (MorphologyRelease.base_url, UUID),

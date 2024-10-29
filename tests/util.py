@@ -1,9 +1,7 @@
 # pylint: disable=missing-docstring
 import re
 import sys
-
 from contextlib import contextmanager
-
 from io import StringIO
 from pathlib import Path
 
