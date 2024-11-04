@@ -1,10 +1,9 @@
 import sys
-import pytest
-import types
-import typing
-from typing import List, Union, Tuple, Dict
+from typing import Dict, List, Tuple, Union
 
-from entity_management import typecheck as test_module
+import pytest
+
+from entity_management_async import typecheck as test_module
 
 
 def _skip(*args, min_version):
@@ -12,7 +11,7 @@ def _skip(*args, min_version):
         *args,
         marks=pytest.mark.skipif(
             sys.version_info < min_version,
-            reason=f"Test requres {min_version} or higher.",
+            reason=f"Test requires {min_version} or higher.",
         ),
     )
 

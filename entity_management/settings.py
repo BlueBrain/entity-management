@@ -1,12 +1,14 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """Settings module"""
 
 import json
 import os
-from pathlib import Path
 
 from rdflib import Namespace
+
+from entity_management.compat import resources
 
 JSLD_ID = "@id"
 JSLD_TYPE = "@type"
@@ -32,6 +34,8 @@ NSG = Namespace("https://neuroshapes.org/")
 DASH = Namespace("https://neuroshapes.org/dash/")
 NXV = Namespace("https://bluebrain.github.io/nexus/vocabulary/")
 
-
-TYPE_TO_SCHEMA_MAPPING_FILE = Path(__file__).parent / "data/type_to_schema_mapping.json"
-TYPE_TO_SCHEMA_MAPPING = json.loads(TYPE_TO_SCHEMA_MAPPING_FILE.read_bytes())
+TYPE_TO_SCHEMA_MAPPING = json.loads(
+    (
+        resources.files("entity_management_common") / "data" / "type_to_schema_mapping.json"
+    ).read_bytes()
+)

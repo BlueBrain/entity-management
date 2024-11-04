@@ -1,8 +1,10 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """Utilities"""
 
-import sys
+import asyncio
+import inspect
 import typing
 from functools import wraps
 from typing import Optional
@@ -17,16 +19,12 @@ from attr.validators import instance_of as instance_of_validator
 from attr.validators import optional as optional_validator
 
 from entity_management import state, typecheck
+from entity_management.compat import resources
 from entity_management.exception import (
     EntityNotInstantiatedError,
     ResourceNotFoundError,
     SchemaValidationError,
 )
-
-if sys.version_info < (3, 9):
-    import importlib_resources as resources
-else:
-    from importlib import resources
 
 # copied from attrs, their standard way to make validators
 
@@ -45,7 +43,7 @@ class LazySchemaValidator:
 
     @property
     def _schema_path(self):
-        return resources.files(__package__) / "schemas" / self.schema
+        return resources.files("entity_management_common") / "schemas" / self.schema
 
     def __attrs_post_init__(self):
         if not self._schema_path.exists():
@@ -333,13 +331,16 @@ def validate_schema(data: dict, schema_name: str) -> None:
 
     def _read_schema(schema_name: str) -> dict:
         """Load a schema and return the result as a dictionary."""
-        resource = resources.files(__package__) / "schemas" / schema_name
+        resource = resources.files("entity_management_common") / "schemas" / schema_name
         content = resource.read_text()
         return yaml.safe_load(content)
 
     def _format_error(error) -> str:
         paths = " -> ".join(map(str, error.absolute_path))
         return f"[{paths}]: {error.message}"
+
+    if not isinstance(data, dict):
+        raise SchemaValidationError(f"Expected dict, found {type(data).__name__}")
 
     schema = _read_schema(schema_name)
 
@@ -357,3 +358,19 @@ def validate_schema(data: dict, schema_name: str) -> None:
 
     if messages:
         raise SchemaValidationError("\n".join(messages))
+
+
+def run_maybe_async(func):
+    """Run a function defined with either an `async def` or `def` syntax.
+
+    It cannot be called when another asyncio event loop is running.
+    """
+
+    @wraps
+    def _wrapper(*args, **kwargs):
+        if inspect.iscoroutinefunction(func):
+            return asyncio.run(func(*args, **kwargs))
+        else:
+            return func(*args, **kwargs)
+
+    return _wrapper

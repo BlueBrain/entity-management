@@ -1,7 +1,7 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """Command line interface."""
-
 import logging
 import os
 from pprint import pprint
@@ -14,7 +14,7 @@ from entity_management.cli.model_building_config import (
 )
 from entity_management.config import ModelBuildingConfig
 from entity_management.nexus import load_by_id, load_by_url
-from entity_management.util import split_url_params
+from entity_management.util import run_maybe_async, split_url_params
 
 
 @click.group()
@@ -55,6 +55,11 @@ def get(id_or_url, output, max_depth):
 
     NOTE: Does not support revisions. I.e., only retrieves the current revision of the entity.
     """
+    _get(id_or_url, output, max_depth)
+
+
+@run_maybe_async
+def _get(id_or_url, output, max_depth):
     if not_set := [v for v in ("NEXUS_TOKEN", "NEXUS_ORG", "NEXUS_PROJ") if not os.getenv(v)]:
         raise click.ClickException(f"Variable(s) {', '.join(not_set)} not set in environment.")
 

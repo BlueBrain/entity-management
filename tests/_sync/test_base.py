@@ -1,45 +1,46 @@
-# pylint: disable=missing-docstring,no-member
-import io
-import sys
+# Automatically generated, DO NOT EDIT.
 import json
+import re
+import sys
 from datetime import datetime
-from dateutil.parser import parse
-from unittest.mock import patch
-
 from typing import Dict, List, Union
-
-import pytest
+from unittest.mock import MagicMock
 
 import attr
-from SPARQLWrapper import Wrapper
+import pytest
+from dateutil.parser import parse
 
-from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE, JSLD_LINK_REV
-from entity_management.state import set_proj, get_base_resources, set_base, get_base_url
+import entity_management.nexus as nexus
+from entity_management import state
 from entity_management.base import (
+    AttrOf,
+    BlankNode,
+    BrainLocation,
+    Derivation,
+    Frozen,
     Identifiable,
+    NotInstantiated,
     OntologyTerm,
-    _deserialize_list,
+    Subject,
+    Unconstrained,
     _deserialize_frozen,
     _deserialize_json_to_datatype,
     _serialize_obj,
-    Unconstrained,
-    NotInstantiated,
-    Frozen,
-    BlankNode,
     attributes,
-    AttrOf,
-    Subject,
-    Derivation,
-    BrainLocation,
 )
-from entity_management import state
-from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
 from entity_management.morphology import ReconstructedPatchedCell
-import entity_management.nexus as nexus
+from entity_management.settings import JSLD_ID, JSLD_LINK_REV, JSLD_REV, JSLD_TYPE
+from entity_management.state import (
+    get_base_resources,
+    get_base_url,
+    get_org,
+    get_proj,
+    set_base,
+    set_proj,
+)
 from entity_management.typing import MaybeList
-
-from util import TEST_DATA_DIR
+from tests.util import TEST_DATA_DIR
 
 state.ACCESS_TOKEN = "foo"
 
@@ -48,10 +49,16 @@ def test_id_type(monkeypatch):
     class Dummy(Identifiable):
         """A dummy class"""
 
-    dummy = Dummy()
     monkeypatch.setattr(
-        nexus, "create", lambda *args, **kwargs: {JSLD_ID: "id", JSLD_REV: 1, JSLD_TYPE: "Dummy"}
+        nexus,
+        "create",
+        MagicMock(return_value={JSLD_ID: "id", JSLD_REV: 1, JSLD_TYPE: "Dummy"}),
     )
+
+    dummy = Dummy()
+    assert dummy._id is None
+    assert dummy._type == "Dummy"
+
     dummy = dummy.publish()
     assert dummy._id == "id"
     assert dummy._type == "Dummy"
@@ -65,8 +72,11 @@ def test_id_type__nexus_expanded_response(monkeypatch):
     monkeypatch.setattr(
         nexus,
         "create",
-        lambda *args, **kwargs: {JSLD_ID: "id", JSLD_REV: 1, JSLD_TYPE: "expanded/Dummy"},
+        MagicMock(return_value={JSLD_ID: "id", JSLD_REV: 1, JSLD_TYPE: "expanded/Dummy"}),
     )
+    assert dummy._id is None
+    assert dummy._type == "Dummy"
+
     dummy = dummy.publish()
     assert dummy._id == "id"
     assert dummy._type == "Dummy"
@@ -78,7 +88,7 @@ def test_serialize():
     assert _serialize_obj(OntologyTerm(url="A", label="B")) == {"@id": "A", "label": "B"}
 
     @attr.s
-    class Dummy(object):
+    class Dummy:
         a = attr.ib(default=42)
         b = attr.ib(default=None)
 
@@ -91,7 +101,7 @@ def test_serialize():
     assert _serialize_obj(42) == 42
 
 
-def test_serialize__derivation():
+def test_serialize__derivation(monkeypatch):
 
     @attributes(
         {
@@ -104,8 +114,13 @@ def test_serialize__derivation():
 
     resp = _make_valid_resp({"@id": "my-id", "@type": "A", "a": 1, "b": 2.0})
 
-    with patch("entity_management.nexus.load_by_id", return_value=resp):
-        a = A.from_id("my-id")
+    monkeypatch.setattr(
+        nexus,
+        "load_by_id",
+        MagicMock(return_value=resp),
+    )
+
+    a = A.from_id("my-id")
 
     derivation = Derivation(entity=a)
 
@@ -146,7 +161,11 @@ def test_serialize_obj__include_rev__instantiated_with_revision():
 
 def test_serialize_obj__include_rev__instantiated_wout_revision(monkeypatch):
 
-    monkeypatch.setattr(nexus, "load_by_url", lambda *args, **kwargs: {"@type": "A", "_rev": 8})
+    monkeypatch.setattr(
+        nexus,
+        "load_by_url",
+        MagicMock(return_value={"@id": "foo", "@type": "A", "_rev": 8}),
+    )
 
     class A(Identifiable):
         pass
@@ -201,7 +220,7 @@ def _skip(*args, min_version):
         *args,
         marks=pytest.mark.skipif(
             sys.version_info < min_version,
-            reason=f"Test requres {min_version} or higher.",
+            reason=f"Test requires {min_version} or higher.",
         ),
     )
 
@@ -386,7 +405,11 @@ def test_deserialize_json_to_datatype__union(monkeypatch):
         }
     )
 
-    monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t1)
+    monkeypatch.setattr(
+        nexus,
+        "load_by_id",
+        MagicMock(return_value=data_raw_t1),
+    )
 
     res = _deserialize_json_to_datatype(Union[T1, T2], data_raw_t1)
     assert res == T1(a=1, b="2")
@@ -400,7 +423,11 @@ def test_deserialize_json_to_datatype__union(monkeypatch):
         }
     )
 
-    monkeypatch.setattr(nexus, "load_by_id", lambda *args, **kwargs: data_raw_t2)
+    monkeypatch.setattr(
+        nexus,
+        "load_by_id",
+        MagicMock(return_value=data_raw_t2),
+    )
 
     res = _deserialize_json_to_datatype(Union[T1, T2], data_raw_t2)
     assert res == T2(c=1, d="2")
@@ -471,7 +498,11 @@ def fixture_unconstrained():
 
 
 def test_unconstrained(monkeypatch, unconstrained_resp):
-    monkeypatch.setattr(nexus, "create", lambda *args, **kwargs: unconstrained_resp)
+    monkeypatch.setattr(
+        nexus,
+        "create",
+        MagicMock(return_value=unconstrained_resp),
+    )
     obj = Unconstrained(json=dict(key1="value1", key2="value2"))
     assert get_base_url() == "%s/%s/%s/_" % (get_base_resources(), get_org(), get_proj())
     obj = obj.publish()
@@ -518,32 +549,35 @@ def test_list_by_schema(httpx_mock, cells_page1_resp, cells_page2_resp):
     )
 
     cells = ReconstructedPatchedCell.list_by_schema(page_size=2)
-    cell = next(cells)
+    cell = cells.__next__()
+    assert isinstance(cell, ReconstructedPatchedCell)
     assert cells.total_items == 3
     ids = [
         "https://bbp.epfl.ch/neurosciencegraph/data/0d3f11ac-2c85-43d5-becd-4a248a7010da",
         "https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52",
     ]
     assert cell.get_id() in ids
-    assert next(cells).get_id() in ids
 
-    assert (
-        next(cells).get_id()
-        == "https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed"
+    cell = cells.__next__()
+    assert cell.get_id() in ids
+
+    cell = cells.__next__()
+    assert cell.get_id() == (
+        "https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed"
     )
 
 
-def test_list_by_sparql(monkeypatch):
+def test_list_by_sparql(httpx_mock):
+    httpx_mock.add_response(
+        json=json.loads((TEST_DATA_DIR / "sparql_resp.json").read_bytes()),
+        method="POST",
+        url=re.compile("https?://.*/views/bbp/test/graph/sparql"),
+        headers={"Content-Type": "application/sparql-query"},
+    )
 
-    with monkeypatch.context() as m:
-        m.setattr(
-            Wrapper,
-            "urlopener",
-            lambda *args, **kwargs: io.FileIO(TEST_DATA_DIR / "sparql_resp.json"),
-        )
-        params = ModelRuntimeParameters.list_by_model("dummy_model_resource_id")
-        param = next(params)
-        assert param.get_id().endswith("org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38")
+    params = ModelRuntimeParameters.list_by_model("dummy_model_resource_id")
+    param = params.__next__()
+    assert param.get_id().endswith("org/proj/_/fdc9b964-5737-4d58-8d18-cb9af0a1ef38")
 
 
 def test_instantiate__wout_rev(monkeypatch):
@@ -562,7 +596,7 @@ def test_instantiate__wout_rev(monkeypatch):
 
     r._instantiate()
 
-    # after instantation the _rev should be 1
+    # after instantiation the _rev should be 1
     assert r.get_rev() == 1
 
 
@@ -650,7 +684,7 @@ def test_instantiate__precedence(monkeypatch):
         },
     ],
 )
-def test_subject(payload):
+def test_subject(payload, monkeypatch):
     """Test Subject loading and pyblishing with old and new metadata."""
 
     def _mock_load_by_id(resource_id, *args, **kwargs):
@@ -672,8 +706,12 @@ def test_subject(payload):
     class Test(Identifiable):
         pass
 
-    with patch("entity_management.nexus.load_by_id", side_effect=_mock_load_by_id):
-        res = Test.from_id("t1-id")
+    monkeypatch.setattr(
+        nexus,
+        "load_by_id",
+        MagicMock(side_effect=_mock_load_by_id),
+    )
+    res = Test.from_id("t1-id")
 
     # Ensure that a Frozen structure is initialized with an ontology term in both cases.
     assert isinstance(res.subject, Frozen)
@@ -681,28 +719,29 @@ def test_subject(payload):
     assert res.subject.species.label == "Mus musculus"
 
     # Ensure that we are writing the Subject without and @id in both cases.
-    with patch("entity_management.nexus.update") as patched:
-        res.publish()
-        patched.assert_called_once_with(
-            "t1-url",
-            1,
-            {
-                "subject": {
-                    "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
-                    "@type": "Subject",
-                },
-                "@context": [
-                    "https://bluebrain.github.io/nexus/contexts/metadata.json",
-                    "https://bbp.neuroshapes.org",
-                ],
-                "@type": "Test",
+    update_mock = MagicMock(return_value={})
+    monkeypatch.setattr(nexus, "update", update_mock)
+    res.publish()
+    update_mock.assert_called_once_with(
+        "t1-url",
+        1,
+        {
+            "subject": {
+                "species": {"@id": "NCBITaxon:10090", "label": "Mus musculus"},
+                "@type": "Subject",
             },
-            sync_index=False,
-            token=None,
-        )
+            "@context": [
+                "https://bluebrain.github.io/nexus/contexts/metadata.json",
+                "https://bbp.neuroshapes.org",
+            ],
+            "@type": "Test",
+        },
+        sync_index=False,
+        token=None,
+    )
 
 
-def test_Identifiable_clone():
+def test_Identifiable_clone(monkeypatch):
 
     @attributes(
         {
@@ -715,8 +754,12 @@ def test_Identifiable_clone():
 
     resp = _make_valid_resp({"@id": "my-id", "@type": "A", "a": 1, "b": 2.0})
 
-    with patch("entity_management.nexus.load_by_id", return_value=resp):
-        a = A.from_id("my-id")
+    monkeypatch.setattr(
+        nexus,
+        "load_by_id",
+        MagicMock(return_value=resp),
+    )
+    a = A.from_id("my-id")
 
     assert a.get_id() is not None
 

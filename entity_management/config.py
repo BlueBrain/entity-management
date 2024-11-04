@@ -1,3 +1,4 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """Entities for Model building config
@@ -47,6 +48,10 @@ class _SubConfig(BbpWorkflowConfig):
         """Return content of the config."""
         # pylint: disable=no-member
         return self.distribution.as_dict()
+
+    def get_content(self):
+        """Return content of the config."""
+        return self.content
 
 
 @attributes(

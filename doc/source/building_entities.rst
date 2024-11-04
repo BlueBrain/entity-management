@@ -122,7 +122,7 @@ where ``density`` is used to update the voxels with the specific value and ``den
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/cell_composition_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/cell_composition_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -157,7 +157,7 @@ Distribution Keys
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/cell_position_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/cell_position_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -269,7 +269,7 @@ It is also possible to specify overrides for the topological synthesis configura
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/morphology_assignment_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/morphology_assignment_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -314,7 +314,7 @@ overrides
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/me_model_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/me_model_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -348,7 +348,7 @@ Distribution Keys
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/macro_connectome_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/macro_connectome_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -383,7 +383,7 @@ Distribution Keys
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/micro_connectome_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/micro_connectome_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -418,7 +418,7 @@ Distribution Keys
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/synapse_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/synapse_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -438,7 +438,7 @@ The ``CanonicalMorphologyModelConfig`` is a configuration entity that stores the
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/canonical_morphology_model_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/canonical_morphology_model_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -458,7 +458,7 @@ The ``PlaceholderMorphologyConfig`` is a configuration entity that stores placeh
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/placeholder_morphology_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/placeholder_morphology_config_distribution.yml
    :language: yaml
 
 Distribution Example
@@ -478,7 +478,7 @@ The ``PlaceholderEModelsConfig`` is a configuration entity that stores the place
 Distribution Schema
 ~~~~~~~~~~~~~~~~~~~
 
-.. literalinclude:: ../../entity_management/schemas/placeholder_emodel_config_distribution.yml
+.. literalinclude:: ../../entity_management_common/schemas/placeholder_emodel_config_distribution.yml
    :language: yaml
 
 Distribution Example

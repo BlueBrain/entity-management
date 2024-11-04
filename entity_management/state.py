@@ -1,3 +1,4 @@
+# Automatically generated, DO NOT EDIT.
 # SPDX-License-Identifier: Apache-2.0
 
 """State of the interaction with nexus. For example current project to use.
@@ -56,7 +57,8 @@ def refresh_token():
     """Get new access token from the offline token."""
     global ACCESS_TOKEN  # pylint: disable=global-statement
     if OFFLINE_TOKEN:
-        ACCESS_TOKEN = KEYCLOAK.refresh_token(OFFLINE_TOKEN)["access_token"]
+        data = KEYCLOAK.refresh_token(OFFLINE_TOKEN)
+        ACCESS_TOKEN = data["access_token"]
     return ACCESS_TOKEN
 
 
