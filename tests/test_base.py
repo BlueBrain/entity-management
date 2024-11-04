@@ -3,7 +3,6 @@ import io
 import sys
 import json
 from datetime import datetime
-from typing import List, Dict
 from dateutil.parser import parse
 from unittest.mock import patch
 
@@ -12,7 +11,6 @@ from typing import Dict, List, Union
 import pytest
 
 import attr
-import requests
 from SPARQLWrapper import Wrapper
 
 from entity_management.settings import JSLD_ID, JSLD_REV, JSLD_TYPE, JSLD_LINK_REV
@@ -41,6 +39,7 @@ from entity_management.morphology import ReconstructedPatchedCell
 import entity_management.nexus as nexus
 from entity_management.typing import MaybeList
 
+from util import TEST_DATA_DIR
 
 state.ACCESS_TOKEN = "foo"
 
@@ -467,7 +466,7 @@ def test_deserialize_json_to_datatype__list_union(monkeypatch):
 
 @pytest.fixture(name="unconstrained_resp", scope="session")
 def fixture_unconstrained():
-    with open("tests/data/unconstrained_resp.json") as f:
+    with open(TEST_DATA_DIR / "unconstrained_resp.json") as f:
         return json.load(f)
 
 
@@ -496,58 +495,51 @@ def test_env_change():
 
 @pytest.fixture(name="cells_page1_resp", scope="session")
 def fixture_reconstructed_patched_cells_page1():
-    with open("tests/data/cells_page1_resp.json") as f:
+    with open(TEST_DATA_DIR / "cells_page1_resp.json") as f:
         return f.read()
 
 
 @pytest.fixture(name="cells_page2_resp", scope="session")
 def fixture_reconstructed_patched_cells_page2():
-    with open("tests/data/cells_page2_resp.json") as f:
+    with open(TEST_DATA_DIR / "cells_page2_resp.json") as f:
         return f.read()
 
 
-def test_list_by_schema(monkeypatch, cells_page1_resp, cells_page2_resp):
-    class MockResponsePage1:
-        status_code = 200
-        content = cells_page1_resp
+def test_list_by_schema(httpx_mock, cells_page1_resp, cells_page2_resp):
+    httpx_mock.add_response(
+        text=cells_page1_resp,
+        method="GET",
+        url=f"{ReconstructedPatchedCell.get_constrained_url()}?from=0&size=2&deprecated=false",
+    )
+    httpx_mock.add_response(
+        text=cells_page2_resp,
+        method="GET",
+        url=f"{ReconstructedPatchedCell.get_constrained_url()}?from=2&size=2&deprecated=false",
+    )
 
-        @staticmethod
-        def raise_for_status():
-            pass
+    cells = ReconstructedPatchedCell.list_by_schema(page_size=2)
+    cell = next(cells)
+    assert cells.total_items == 3
+    ids = [
+        "https://bbp.epfl.ch/neurosciencegraph/data/0d3f11ac-2c85-43d5-becd-4a248a7010da",
+        "https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52",
+    ]
+    assert cell.get_id() in ids
+    assert next(cells).get_id() in ids
 
-    class MockResponsePage2:
-        status_code = 200
-        content = cells_page2_resp
-
-        @staticmethod
-        def raise_for_status():
-            pass
-
-    with monkeypatch.context() as m:
-        m.setattr(requests, "get", lambda *args, **kwargs: MockResponsePage1)
-        cells = ReconstructedPatchedCell.list_by_schema(page_size=2)
-        cell = next(cells)
-        assert cells.total_items == 3
-        ids = [
-            "https://bbp.epfl.ch/neurosciencegraph/data/0d3f11ac-2c85-43d5-becd-4a248a7010da",
-            "https://bbp.epfl.ch/neurosciencegraph/data/1ad83c37-b3b3-4f0e-b729-f6f7bc07ea52",
-        ]
-        assert cell.get_id() in ids
-        assert next(cells).get_id() in ids
-
-    with monkeypatch.context() as m:
-        m.setattr(requests, "get", lambda *args, **kwargs: MockResponsePage2)
-        assert (
-            next(cells).get_id()
-            == "https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed"
-        )
+    assert (
+        next(cells).get_id()
+        == "https://bbp.epfl.ch/neurosciencegraph/data/20bdaa94-41e0-4ccf-b5c2-920b95b136ed"
+    )
 
 
 def test_list_by_sparql(monkeypatch):
 
     with monkeypatch.context() as m:
         m.setattr(
-            Wrapper, "urlopener", lambda *args, **kwargs: io.FileIO("tests/data/sparql_resp.json")
+            Wrapper,
+            "urlopener",
+            lambda *args, **kwargs: io.FileIO(TEST_DATA_DIR / "sparql_resp.json"),
         )
         params = ModelRuntimeParameters.list_by_model("dummy_model_resource_id")
         param = next(params)

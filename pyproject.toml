@@ -30,8 +30,8 @@ classifiers = [
   "Topic :: Utilities",
 ]
 dependencies = [
-  "requests",
   "attrs",
+  "httpx",
   "python-dateutil",
   "sparqlwrapper",
   "rdflib",

@@ -1,6 +1,5 @@
 # pylint: disable=missing-docstring,no-member
 import json
-import responses
 from pathlib import Path
 from unittest.mock import patch
 
@@ -314,9 +313,12 @@ ACTIVITY_JSLD = {
 }
 
 
-@responses.activate
-def test_get_configuration():
-    responses.add(responses.GET, "%s/%s" % (get_base_url(), quote(CFG_ID)), json=CFG_JSLD)
+def test_get_configuration(httpx_mock):
+    httpx_mock.add_response(
+        method="GET",
+        url="%s/%s" % (get_base_url(), quote(CFG_ID)),
+        json=CFG_JSLD,
+    )
 
     cfg = Configuration.from_id(CFG_ID)
     assert cfg._id == str(CFG_ID)
@@ -360,7 +362,7 @@ def _mock_circuit_load_by_id(resource_id, *args, **kwargs):
             "_updatedBy": "https://bbp.epfl.ch/nexus/v1/realms/bbp/users/zisis",
         }
 
-    raise ValuError(resource_id)
+    raise ValueError(resource_id)
 
 
 def test_detailed_circuit(monkeypatch):

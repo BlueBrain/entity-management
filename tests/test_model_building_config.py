@@ -1,8 +1,8 @@
 import json
+from json import JSONDecodeError
+
 import attr
-from requests.exceptions import JSONDecodeError
 from unittest.mock import patch, call, Mock, MagicMock
-from entity_management.config import Configs
 import entity_management.cli.model_building_config as test_module
 
 
@@ -54,15 +54,6 @@ def test_model_building_config_as_dict(mock_iter, mock_configs_dict):
 
     mock_iter.assert_called_once_with("foo")
     mock_configs_dict.assert_called_once_with("bar")
-
-
-def model_building_config_as_dict(model_config):
-    """Get ModelBuildingConfig as a dict."""
-    return {
-        "name": model_config.name,
-        "description": model_config.description,
-        "configs": _configs_as_dict(_iter_configs(model_config.configs)),
-    }
 
 
 def test__get_key():

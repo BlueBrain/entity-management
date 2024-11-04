@@ -1,8 +1,9 @@
 # pylint: disable=missing-docstring,no-member,import-outside-toplevel
+import json
+
+from pytest_httpx import IteratorStream
 from six.moves import builtins
 from unittest.mock import patch
-
-import responses
 
 import entity_management.nexus as nexus
 from entity_management.state import set_token, get_token, has_offline_token
@@ -43,42 +44,39 @@ ACES_TOKEN = (
 )
 
 
-@responses.activate
-@patch("%s.open" % builtins.__name__)
-def test_download_file(_):
-    responses.add(
-        responses.POST,
-        "https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token",
-        json={"access_token": ACES_TOKEN},
-    )
-
+def test_download_file(tmp_path, httpx_mock):
     # base64 encode 'myfile.jpg' in content disposition header
-    responses.add(
-        responses.GET,
-        FILE_URL,
+    stream = json.dumps(FILE_RESPONSE).encode("utf-8")
+    httpx_mock.add_response(
+        stream=IteratorStream([stream[: len(stream) // 2], stream[len(stream) // 2 :]]),
+        method="GET",
+        url=f"{FILE_URL}?tag=&rev=",
         headers={"Content-Disposition": 'attachment; filename="=?UTF-8?B?bXlmaWxlLmpwZw==?="'},
-        json=FILE_RESPONSE,
     )
 
-    file_path = nexus.download_file(FILE_URL, path="/tmp")
+    file_path = nexus.download_file(FILE_URL, path=str(tmp_path))
 
-    assert file_path == "/tmp/%s" % FILE_NAME_EXT
+    expected_path = tmp_path / FILE_NAME_EXT
+    assert file_path == str(expected_path)
+    assert expected_path.is_file()
+    assert expected_path.read_bytes() == stream
 
 
-@responses.activate
-def test_download_file_with_name():
-    responses.add(
-        responses.POST,
-        "https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token",
-        json={"access_token": ACES_TOKEN},
+def test_download_file_with_name(tmp_path, httpx_mock):
+    stream = json.dumps(FILE_RESPONSE).encode("utf-8")
+    httpx_mock.add_response(
+        stream=IteratorStream([stream[: len(stream) // 2], stream[len(stream) // 2 :]]),
+        method="GET",
+        url=f"{FILE_URL}?tag=&rev=",
     )
-
-    responses.add(responses.GET, FILE_URL, json=FILE_RESPONSE)
 
     new_name = "abc.jpg"
-    with patch("%s.open" % builtins.__name__):
-        file_path = nexus.download_file(FILE_URL, path="/tmp", file_name=new_name)
-        assert file_path == "/tmp/%s" % new_name
+    file_path = nexus.download_file(FILE_URL, path=str(tmp_path), file_name=new_name)
+
+    expected_path = tmp_path / new_name
+    assert file_path == str(expected_path)
+    assert expected_path.is_file()
+    assert expected_path.read_bytes() == stream
 
 
 def test_token():
@@ -94,14 +92,7 @@ def test_token():
     assert token == ACCESS_TOKEN
 
 
-@responses.activate
 def test_offline_token():
-    responses.add(
-        responses.POST,
-        "https://bbpauth.epfl.ch/auth/realms/BBP/protocol/openid-connect/token",
-        json={"access_token": ACES_TOKEN},
-    )
-
     offline = (
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG"
         "9lIiwidHlwIjoiT2ZmbGluZSIsImlhdCI6MTUxNjIzOTAyMn0.ulLat2ZoDCKcpKtvrTWb1hCRvvHfShU9s"
@@ -182,9 +173,7 @@ def test_load_by_id__with_tag():
         )
 
 
-@responses.activate
-def test_es_query():
-
+def test_es_query(httpx_mock):
     json_response = {
         "hits": {
             "hits": [
@@ -202,11 +191,11 @@ def test_es_query():
         "_shards": {"failed": 0, "skipped": 0, "successful": 1, "total": 1},
     }
 
-    responses.add(
-        responses.POST,
-        "https://foo/views/bar/zee/documents/_search",
+    httpx_mock.add_response(
+        method="POST",
+        url="https://foo/views/bar/zee/documents/_search",
         json=json_response,
-        content_type="application/json",
+        headers={"content-type": "application/json"},
     )
 
     query = {"query": {"term": {"@type": "Foo"}}}

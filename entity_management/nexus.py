@@ -10,7 +10,7 @@ import sys
 from email.header import decode_header
 from functools import wraps
 
-import requests
+import httpx
 from SPARQLWrapper import JSON, POST, POSTDIRECTLY, SPARQLWrapper
 
 from entity_management.debug import PP
@@ -131,7 +131,7 @@ def _nexus_wrapper(func):
 
         try:
             return func(*args, **kwargs)
-        except requests.exceptions.HTTPError as http_error:
+        except httpx.HTTPStatusError as http_error:
             # retry function call only when got Unauthorized, we have offline token to produce the
             # new access token and token was not explicitly provided
             if (
@@ -142,7 +142,7 @@ def _nexus_wrapper(func):
                 kwargs["token"] = refresh_token()
                 try:
                     return func(*args, **kwargs)
-                except requests.exceptions.HTTPError as http_error_nested:
+                except httpx.HTTPStatusError as http_error_nested:
                     _print_nexus_error(http_error_nested)
                     raise
             _print_nexus_error(http_error)
@@ -161,7 +161,7 @@ def get_type_from_id(resource_id, base=None, org=None, proj=None, token=None, cr
     """Get type which corresponds to the id_url"""
     base_url = get_base_url(base=base, org=org, proj=proj, cross_bucket=cross_bucket)
     url = f"{base_url}/{quote(resource_id)}"
-    response = requests.get(url, headers=_get_headers(token), timeout=10)
+    response = httpx.get(url, headers=_get_headers(token), timeout=10)
     response.raise_for_status()
     response_json = response.json()
     constrained_by = response_json["_constrainedBy"]
@@ -190,11 +190,11 @@ def create(base_url, payload, resource_id=None, sync_index=False, token=None):
         params = {}
     if resource_id:
         url = f"{base_url}/{resource_id}"
-        response = requests.put(
+        response = httpx.put(
             url, headers=_get_headers(token), params=params, json=payload, timeout=10
         )
     else:
-        response = requests.post(
+        response = httpx.post(
             base_url, headers=_get_headers(token), params=params, json=payload, timeout=10
         )
     response.raise_for_status()
@@ -219,7 +219,7 @@ def update(id_url, rev, payload, sync_index=False, token=None):
     params = {"rev": rev}
     if sync_index:
         params.update({"indexing": "sync"})
-    response = requests.put(
+    response = httpx.put(
         id_url, headers=_get_headers(token), params=params, json=payload, timeout=10
     )
     response.raise_for_status()
@@ -234,7 +234,7 @@ def deprecate(id_url, rev, sync_index=False, token=None):
     params = {"rev": rev}
     if sync_index:
         params.update({"indexing": "sync"})
-    response = requests.delete(id_url, headers=_get_headers(token), params=params, timeout=10)
+    response = httpx.delete(id_url, headers=_get_headers(token), params=params, timeout=10)
     response.raise_for_status()
     return _to_json(response)
 
@@ -246,14 +246,13 @@ def load_by_url(url, params=None, stream=False, token=None):
     Args:
         url (str): Url of the entity which will be loaded.
         params (dict): Url query params.
-        stream (bool): If True then ``response.content`` stream is returned.
+        stream (bool): If True then the content is returned as bytes.
         token (str): Optional OAuth token.
 
     Returns:
-        if stream is true then response stream content is returned otherwise
-        json response.
+        if stream is true then the response content is returned as bytes, otherwise as json.
     """
-    response = requests.get(url, headers=_get_headers(token), params=params, timeout=10)
+    response = httpx.get(url, headers=_get_headers(token), params=params, timeout=10)
 
     # if not found then return None
     if response.status_code == 404:
@@ -311,7 +310,7 @@ def get_current_agent(token=None):
     if token is None:
         return None
 
-    response = requests.get(
+    response = httpx.get(
         USERINFO,
         headers={"accept": "application/json", "authorization": "Bearer " + token},
         timeout=10,
@@ -327,7 +326,7 @@ def _get_files_endpoint():
 @_nexus_wrapper
 def _get_file_metadata(url, tag=None, token=None):
     """Helper function"""
-    response = requests.get(
+    response = httpx.get(
         url, headers=_get_headers(token), params={"tag": tag if tag else None}, timeout=10
     )
 
@@ -422,7 +421,7 @@ def upload_file(
     """
     if resource_id:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}"
-        response = requests.put(
+        response = httpx.put(
             url,
             headers=_get_headers(token),
             params={"rev": rev if rev else None, "storage": storage_id if storage_id else None},
@@ -431,7 +430,7 @@ def upload_file(
         )
     else:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}"
-        response = requests.post(
+        response = httpx.post(
             url,
             headers=_get_headers(token),
             params={"storage": storage_id if storage_id else None},
@@ -476,12 +475,10 @@ def link_file(
     json = {"filename": name, "path": file_path, "mediaType": content_type}
     if resource_id:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}/{quote(resource_id)}"
-        response = requests.put(
-            url, headers=_get_headers(token), params=params, json=json, timeout=10
-        )
+        response = httpx.put(url, headers=_get_headers(token), params=params, json=json, timeout=10)
     else:
         url = f"{get_base_files(base)}/{get_org(org)}/{get_proj(proj)}"
-        response = requests.post(
+        response = httpx.post(
             url, headers=_get_headers(token), params=params, json=json, timeout=10
         )
 
@@ -504,14 +501,13 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
     Returns:
         str: Path to the downloaded file.
     """
-    response = requests.get(
+    with httpx.stream(
+        "GET",
         url,
         headers=_get_headers(token, accept=None),
         params={"tag": tag if tag else None, "rev": rev if rev else None},
-        stream=True,
         timeout=10,
-    )
-    try:
+    ) as response:
         response.raise_for_status()
         L.debug(
             "Nexus request\nmethod = %s\nurl = %s",
@@ -525,10 +521,8 @@ def download_file(url, path, file_name=None, tag=None, rev=None, token=None):
             file_name = encoded_file_name.decode(encoding)
         file_ = os.path.join(path, file_name)
         with open(file_, "wb") as f:
-            for chunk in response.iter_content(chunk_size=1024):
+            for chunk in response.iter_bytes(chunk_size=1024):
                 f.write(chunk)
-    finally:
-        response.close()
 
     return os.path.join(os.path.realpath(path), file_name)
 
@@ -546,19 +540,16 @@ def file_as_dict(url, tag=None, rev=None, token=None):
     Returns:
         Raw response.
     """
-    response = requests.get(
+    with httpx.stream(
+        "GET",
         url,
         headers=_get_headers(token, accept=None),
         params={"tag": tag if tag else None, "rev": rev if rev else None},
-        stream=True,
         timeout=10,
-    )
-    try:
+    ) as response:
         response.raise_for_status()
-        response.raw.decode_content = True
-        return js.load(response.raw)
-    finally:
-        response.close()
+        # TODO: we may want to use a json decoder that can load content from a chunked stream
+        return js.loads(response.read())
 
 
 @_nexus_wrapper
@@ -601,7 +592,7 @@ def es_query(query, base=None, org=None, proj=None, token=None):
     """
     base_url = get_es_url(base, org, proj)
 
-    response = requests.post(
+    response = httpx.post(
         url=base_url,
         headers=_get_headers(token, accept="application/json"),
         json=query,

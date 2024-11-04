@@ -5,6 +5,9 @@ import sys
 from contextlib import contextmanager
 
 from io import StringIO
+from pathlib import Path
+
+TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
 @contextmanager

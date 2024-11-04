@@ -1,8 +1,10 @@
 # pylint: disable=missing-docstring,no-member
+import json
+
+from pytest_httpx import IteratorStream
 from six.moves import builtins
 
 from unittest.mock import patch
-import responses
 
 from entity_management.state import (
     get_org,
@@ -131,46 +133,35 @@ CELL_LIST_RESPONSE = {
 }
 
 
-@responses.activate
-def test_reconstructed_patched_cell():
-    responses.add(  # mock file resource response
-        responses.GET,
-        FILE_URL,
+def test_reconstructed_patched_cell(tmp_path, httpx_mock):
+    stream = json.dumps(FILE_RESPONSE).encode("utf-8")
+    httpx_mock.add_response(
+        stream=IteratorStream([stream[: len(stream) // 2], stream[len(stream) // 2 :]]),
+        method="GET",
+        url=f"{FILE_URL}?tag=&rev=",
         headers={"Content-Disposition": 'attachment; filename="=?UTF-8?B?bXlmaWxlLmpwZw==?="'},
-        json=FILE_RESPONSE,
     )
 
-    responses.add(  # mock patched cell listing response
-        responses.GET, ReconstructedPatchedCell.get_constrained_url(), json=CELL_LIST_RESPONSE
+    httpx_mock.add_response(  # mock patched cell listing response
+        method="GET",
+        url=f"{ReconstructedPatchedCell.get_constrained_url()}?from=0&size=50&deprecated=false",
+        json=CELL_LIST_RESPONSE,
     )
 
-    responses.add(  # mock patched cell detailed response
-        responses.GET,
-        "%s/%s" % (get_base_url(cross_bucket=False), quote(CELL_ID)),
+    httpx_mock.add_response(  # mock patched cell detailed response
+        method="GET",
+        url=f"{get_base_url(cross_bucket=True)}/{quote(CELL_ID)}",
         json=CELL_RESPONSE,
-    )
-
-    responses.add(  # mock patched cell detailed response
-        responses.GET,
-        "%s/%s" % (get_base_url(cross_bucket=True), quote(CELL_ID)),
-        json=CELL_RESPONSE,
-    )
-
-    responses.add(  # mock image response
-        responses.GET,
-        "%s/%s/%s/_/%s" % (get_base_resources(), get_org(), get_proj(), quote(IMAGE_ID)),
-        json=IMAGE_RESPOSE,
-    )
-
-    responses.add(  # mock image response
-        responses.GET,
-        "%s/%s/%s/_/%s" % (get_base_resolvers(), get_org(), get_proj(), quote(IMAGE_ID)),
-        json=IMAGE_RESPOSE,
     )
 
     cells = ReconstructedPatchedCell.list_by_schema()
     cell = next(cells)
     assert cell.name == "cell_name"
     assert isinstance(cell.wasDerivedFrom[0], Entity)
-    with patch("%s.open" % builtins.__name__):
-        assert cell.distribution[0].download(path="/tmp") == "/tmp/%s" % FILE_NAME_EXT
+
+    file_path = cell.distribution[0].download(path=str(tmp_path))
+
+    expected_path = tmp_path / FILE_NAME_EXT
+    assert file_path == str(expected_path)
+    assert expected_path.is_file()
+    assert expected_path.read_bytes() == stream
