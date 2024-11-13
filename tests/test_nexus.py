@@ -130,7 +130,7 @@ def test_nexus_wrapper_with_http_error_404(monkeypatch, httpx_mock, caplog):
             assert token is None
         else:
             assert token == "12345"
-        response = httpx.post("http://test", content=b'data')
+        response = httpx.post("http://test", content=b"data")
         response.raise_for_status()
         return 123
 
