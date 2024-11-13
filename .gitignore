@@ -7,3 +7,6 @@ doc/build
 doc/source/generated
 .tox
 build
+venv
+.venv
+.idea

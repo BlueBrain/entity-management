@@ -32,7 +32,6 @@ from entity_management.base import (
     Derivation,
     BrainLocation,
 )
-from entity_management import state
 from entity_management.state import get_org, get_proj
 from entity_management.core import ModelRuntimeParameters
 from entity_management.morphology import ReconstructedPatchedCell
@@ -40,8 +39,6 @@ import entity_management.nexus as nexus
 from entity_management.typing import MaybeList
 
 from util import TEST_DATA_DIR
-
-state.ACCESS_TOKEN = "foo"
 
 
 def test_id_type(monkeypatch):
