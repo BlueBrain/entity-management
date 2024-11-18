@@ -85,9 +85,9 @@ def _print_nexus_error(http_error):
     request = http_error.response.request
     response = http_error.response
     try:
-        request_data = js.loads(request.body) if request.body else None
+        request_data = js.loads(request.content) if request.content else None
     except ValueError:
-        request_data = request.body
+        request_data = request.content
     try:
         response_data = response.json()
     except ValueError:

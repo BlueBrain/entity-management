@@ -1,12 +1,13 @@
 # pylint: disable=missing-docstring,no-member,import-outside-toplevel
 import json
 
+import httpx
+import pytest
 from pytest_httpx import IteratorStream
-from six.moves import builtins
-from unittest.mock import patch
+from unittest.mock import create_autospec, patch
 
 import entity_management.nexus as nexus
-from entity_management.state import set_token, get_token, has_offline_token
+from entity_management.state import set_token, get_token, has_offline_token, refresh_token
 from entity_management.settings import NSG
 from entity_management.util import quote
 
@@ -42,6 +43,105 @@ ACES_TOKEN = (
     "IiwidHlwIjoiQmVhcmVyIiwiaWF0IjoxNTE2MjM5MDIyfQ.8xXouRWxnH6gHxUZSAAxplzmUb5OEWy61K6SF0"
     "5Hgi0"
 )
+
+
+def test_nexus_wrapper_with_http_error_401_and_offline_token(monkeypatch, httpx_mock, caplog):
+    mock_has_offline_token = create_autospec(has_offline_token, return_value=True)
+    mock_refresh_token = create_autospec(refresh_token, return_value="12345")
+
+    monkeypatch.setattr(nexus, "has_offline_token", mock_has_offline_token)
+    monkeypatch.setattr(nexus, "refresh_token", mock_refresh_token)
+
+    httpx_mock.add_response(status_code=401)
+    httpx_mock.add_response(status_code=200)
+
+    call_count = 0
+
+    @nexus._nexus_wrapper
+    def func(token=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            assert token is None
+        else:
+            assert token == "12345"
+        response = httpx.post("http://test", content=b'{"key":"value"}')
+        response.raise_for_status()
+        return 123
+
+    result = func()
+    assert result == 123
+    assert call_count == 2
+    assert mock_has_offline_token.call_count == 1
+    assert mock_refresh_token.call_count == 1
+    assert "Nexus error!" not in caplog.text
+
+
+def test_nexus_wrapper_with_http_error_401_nested(monkeypatch, httpx_mock, caplog):
+    mock_has_offline_token = create_autospec(has_offline_token, return_value=True)
+    mock_refresh_token = create_autospec(refresh_token, return_value="12345")
+
+    monkeypatch.setattr(nexus, "has_offline_token", mock_has_offline_token)
+    monkeypatch.setattr(nexus, "refresh_token", mock_refresh_token)
+
+    httpx_mock.add_response(status_code=401)
+    httpx_mock.add_response(status_code=401)
+
+    call_count = 0
+
+    @nexus._nexus_wrapper
+    def func(token=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            assert token is None
+        else:
+            assert token == "12345"
+        response = httpx.post("http://test", content=b'{"key":"value"}')
+        response.raise_for_status()
+        return 123
+
+    with pytest.raises(httpx.HTTPStatusError) as excinfo:
+        func()
+
+    assert excinfo.value.response.status_code == 401
+    assert call_count == 2
+    assert mock_has_offline_token.call_count == 1
+    assert mock_refresh_token.call_count == 1
+    assert "Nexus error!" in caplog.text
+
+
+def test_nexus_wrapper_with_http_error_404(monkeypatch, httpx_mock, caplog):
+    mock_has_offline_token = create_autospec(has_offline_token, return_value=True)
+    mock_refresh_token = create_autospec(refresh_token, return_value="12345")
+
+    monkeypatch.setattr(nexus, "has_offline_token", mock_has_offline_token)
+    monkeypatch.setattr(nexus, "refresh_token", mock_refresh_token)
+
+    httpx_mock.add_response(status_code=404)
+
+    call_count = 0
+
+    @nexus._nexus_wrapper
+    def func(token=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            assert token is None
+        else:
+            assert token == "12345"
+        response = httpx.post("http://test", content=b"data")
+        response.raise_for_status()
+        return 123
+
+    with pytest.raises(httpx.HTTPStatusError) as excinfo:
+        func()
+
+    assert excinfo.value.response.status_code == 404
+    assert call_count == 1
+    assert mock_has_offline_token.call_count == 0
+    assert mock_refresh_token.call_count == 0
+    assert "Nexus error!" in caplog.text
 
 
 def test_download_file(tmp_path, httpx_mock):
